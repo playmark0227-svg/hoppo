@@ -2220,6 +2220,46 @@ code { font-family: 'SFMono-Regular', ui-monospace, 'Kosugi Maru', monospace; }
   text-align: center;
   font-weight: 700;
 }
+.license-back-operator {
+  display: block;
+  margin-top: 4px;
+  font-size: 0.55rem;
+  letter-spacing: 0.18em;
+  font-weight: 600;
+  color: rgba(43, 36, 53, 0.45);
+}
+.license-back-operator b {
+  font-weight: 900;
+  color: rgba(43, 36, 53, 0.7);
+  letter-spacing: 0.1em;
+}
+
+/* App-wide credit (subtle footer line) */
+.app-credit {
+  margin: 28px auto 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  justify-content: center;
+  opacity: 0.55;
+  user-select: none;
+}
+.app-credit-line {
+  width: 36px; height: 1px;
+  background: linear-gradient(90deg, transparent, var(--c-ink-soft), transparent);
+}
+.app-credit-text {
+  font-size: 0.62rem;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  color: var(--c-ink-soft);
+  font-feature-settings: "palt";
+}
+.app-credit-text b {
+  font-weight: 900;
+  color: var(--c-ink);
+  letter-spacing: 0.06em;
+}
 
 .license-actions {
   display: flex;
