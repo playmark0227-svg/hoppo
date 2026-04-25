@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#f47a5a">
+  <meta name="description" content="北方領土ステータス — クイズやイベント参加でポイントを貯めて、北方領土について楽しく学ぼう！">
+  <title>北方領土ステータス</title>
+
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="apple-touch-icon" href="assets/images/icon-192.png">
+  <link rel="icon" href="assets/characters/erika-main.png">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700;900&family=Kosugi+Maru&family=Yuji+Syuku&family=M+PLUS+Rounded+1c:wght@500;700;800;900&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="css/style.css?v=7">
+</head>
+<body>
+
+  <!-- Loading -->
+  <div id="loader" class="loader">
+    <div class="loader-scene">
+      <div class="loader-sun"></div>
+      <div class="loader-wave"></div>
+      <div class="loader-char">
+        <img src="assets/characters/erika-main.png" alt="エリカちゃん" class="loader-char-img">
+      </div>
+      <div class="loader-title">北方領土ステータス</div>
+      <div class="loader-dots"><span></span><span></span><span></span></div>
+    </div>
+  </div>
+
+  <!-- App shell -->
+  <div id="app" class="app">
+
+    <!-- Decorative background blobs -->
+    <div class="bg-decor" aria-hidden="true">
+      <div class="bg-blob bg-blob-1"></div>
+      <div class="bg-blob bg-blob-2"></div>
+      <div class="bg-blob bg-blob-3"></div>
+      <div class="bg-dots"></div>
+    </div>
+
+    <!-- Top bar -->
+    <header class="topbar">
+      <div class="topbar-left">
+        <div class="avatar">
+          <img src="assets/characters/erika-main.png" alt="" class="avatar-img">
+        </div>
+        <div class="topbar-meta">
+          <div class="topbar-name" id="userName">ゲスト</div>
+          <div class="topbar-rank" id="userRankLabel"><span class="rank-pip">🐚</span> 島民見習い</div>
+        </div>
+      </div>
+      <div class="topbar-right">
+        <div class="points-chip" id="pointsChip" aria-label="保有ポイント">
+          <span class="points-icon">🌟</span>
+          <span class="points-value" id="pointsValue">0</span>
+          <span class="points-label">pt</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- Pages -->
+    <main id="pages" class="pages">
+
+      <!-- HOME -->
+      <section class="page page-home" data-page="home">
+        <!-- Hero scene -->
+        <div class="hero-scene">
+          <div class="hero-scene-photo"></div>
+          <div class="hero-scene-bg">
+            <div class="hero-sun"></div>
+            <div class="hero-cloud hero-cloud-1"></div>
+            <div class="hero-cloud hero-cloud-2"></div>
+            <div class="hero-sea"></div>
+            <div class="hero-island hero-island-1"></div>
+            <div class="hero-island hero-island-2"></div>
+            <div class="hero-island hero-island-3"></div>
+          </div>
+          <div class="hero-char-wrap">
+            <img src="assets/characters/erika-main.png" alt="エリカちゃん" class="hero-char" id="heroChar">
+          </div>
+          <div class="hero-bubble" id="heroBubble">
+            <span>こんにちは！<br>きょうは何する？</span>
+          </div>
+          <div class="hero-stamp" aria-hidden="true">
+            <div class="hero-stamp-ring">
+              <span>NEMURO</span>
+              <span>HOPPOU</span>
+              <span>4 ISLANDS</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Rank progress card -->
+        <div class="rank-card" id="rankCard">
+          <div class="rank-card-inner">
+            <div class="rank-card-head">
+              <div class="rank-badge" id="rankBadgeBig">🐚</div>
+              <div class="rank-meta">
+                <div class="rank-kicker">現在のステータス</div>
+                <div class="rank-name" id="rankName">島民見習い</div>
+                <div class="rank-sub" id="rankSub">SILVER APPRENTICE</div>
+              </div>
+            </div>
+            <div class="rank-progress">
+              <div class="rank-progress-bar" role="progressbar">
+                <div class="rank-progress-fill" id="rankProgressFill"></div>
+                <div class="rank-progress-shine"></div>
+              </div>
+              <div class="rank-progress-text" id="rankProgressText">次まで 100 pt</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Quick tiles -->
+        <div class="quick-grid">
+          <button class="quick-tile quick-quiz" data-goto="quiz">
+            <div class="quick-tile-inner">
+              <div class="quick-icon">📝</div>
+              <div class="quick-label">クイズ</div>
+              <div class="quick-sub">全問正解でボーナス！</div>
+            </div>
+          </button>
+          <button class="quick-tile quick-qr" data-goto="qr">
+            <div class="quick-tile-inner">
+              <div class="quick-icon">📷</div>
+              <div class="quick-label">QRよみとり</div>
+              <div class="quick-sub">イベントでゲット</div>
+            </div>
+          </button>
+          <button class="quick-tile quick-shop" data-goto="shop">
+            <div class="quick-tile-inner">
+              <div class="quick-icon">🎁</div>
+              <div class="quick-label">ショップ</div>
+              <div class="quick-sub">ポイントで交換</div>
+            </div>
+          </button>
+          <button class="quick-tile quick-license" data-goto="license">
+            <div class="quick-tile-inner">
+              <div class="quick-icon">🪪</div>
+              <div class="quick-label">ライセンス</div>
+              <div class="quick-sub">きみの階級は？</div>
+            </div>
+          </button>
+        </div>
+
+        <!-- Stats strip -->
+        <div class="stats-strip" id="statsStrip">
+          <div class="stat">
+            <div class="stat-value" id="statQuizzes">0</div>
+            <div class="stat-label">クイズ挑戦</div>
+          </div>
+          <div class="stat">
+            <div class="stat-value" id="statEvents">0</div>
+            <div class="stat-label">イベント参加</div>
+          </div>
+          <div class="stat stat-streak">
+            <div class="stat-value" id="statStreak">0<span class="stat-unit">日</span></div>
+            <div class="stat-label">連続ログイン</div>
+          </div>
+          <div class="stat">
+            <div class="stat-value" id="statTotal">0</div>
+            <div class="stat-label">累計ポイント</div>
+          </div>
+        </div>
+
+        <!-- Places-of-interest photo strip -->
+        <h3 class="section-title"><span>🏝️</span> 四つの島、今日のひとこま</h3>
+        <div class="place-strip" aria-label="四島の写真">
+          <div class="place-card" style="background-image: url('assets/images/hoppou/iturup-volcano.jpg');">
+            <div class="place-card-inner">
+              <div class="place-card-kicker">ETOROFU</div>
+              <div class="place-card-name">択捉島</div>
+              <div class="place-card-desc">最大の島と火山</div>
+            </div>
+          </div>
+          <div class="place-card" style="background-image: url('assets/images/hoppou/kunashir-view.jpg');">
+            <div class="place-card-inner">
+              <div class="place-card-kicker">KUNASHIRI</div>
+              <div class="place-card-name">国後島</div>
+              <div class="place-card-desc">根室から望む</div>
+            </div>
+          </div>
+          <div class="place-card" style="background-image: url('assets/images/hoppou/shikotan.jpg');">
+            <div class="place-card-inner">
+              <div class="place-card-kicker">SHIKOTAN</div>
+              <div class="place-card-name">色丹島</div>
+              <div class="place-card-desc">小さな島の暮らし</div>
+            </div>
+          </div>
+          <div class="place-card" style="background-image: url('assets/images/hoppou/cape-nosappu.jpg');">
+            <div class="place-card-inner">
+              <div class="place-card-kicker">HABOMAI</div>
+              <div class="place-card-name">歯舞群島</div>
+              <div class="place-card-desc">納沙布岬から3.7km</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- News -->
+        <div class="news-card">
+          <div class="news-head">
+            <span class="news-head-icon">📣</span>
+            <span>お知らせ</span>
+          </div>
+          <ul class="news-list">
+            <li><span class="news-dot"></span>毎日ログインで <b>+5pt</b></li>
+            <li><span class="news-dot"></span>新しいクイズが追加されました</li>
+            <li><span class="news-dot"></span>イベント会場のQRを探してみよう</li>
+          </ul>
+        </div>
+
+        <!-- Credits footer -->
+        <div class="footer-credits">
+          <p>画像クレジット：Wikimedia Commons (CC BY-SA / Public Domain)<br>詳細は <code>CREDITS.md</code> を参照</p>
+        </div>
+      </section>
+
+      <!-- QUIZ -->
+      <section class="page page-quiz" data-page="quiz" hidden>
+        <div class="page-head">
+          <div class="page-head-kicker">学んで貯めよう</div>
+          <h2>📝 クイズ</h2>
+          <p class="page-desc">全問正解で <b>+50pt</b> ボーナス！</p>
+        </div>
+
+        <div id="quizList" class="quiz-list"></div>
+
+        <div id="quizPlay" class="quiz-play" hidden>
+          <div class="quiz-play-banner" id="quizPlayBanner">
+            <div class="quiz-play-banner-bg" id="quizPlayBannerBg"></div>
+            <div class="quiz-play-banner-fade"></div>
+            <button class="quiz-play-exit" id="quizPlayExit" aria-label="クイズ一覧にもどる">←</button>
+            <div class="quiz-play-banner-body">
+              <div class="quiz-play-banner-icon" id="quizPlayIcon">📝</div>
+              <div class="quiz-play-banner-meta">
+                <div class="quiz-play-banner-kicker">いま挑戦中</div>
+                <div class="quiz-play-banner-title" id="quizPlayTitle">クイズ</div>
+              </div>
+            </div>
+          </div>
+          <div class="quiz-progress">
+            <span id="quizProgText">1 / 5</span>
+            <div class="quiz-progress-bar"><div id="quizProgFill" class="quiz-progress-fill"></div></div>
+            <span class="quiz-progress-stars" id="quizProgStars" aria-hidden="true"></span>
+          </div>
+          <div class="quiz-card">
+            <div class="quiz-q-wrap">
+              <div class="quiz-q-label">Q.</div>
+              <div class="quiz-q" id="quizQuestion"></div>
+            </div>
+            <div class="quiz-choices" id="quizChoices"></div>
+            <div class="quiz-feedback" id="quizFeedback" hidden></div>
+            <button class="btn btn-primary btn-full" id="quizNextBtn" hidden>つぎへ →</button>
+            <div class="quiz-mascot" aria-hidden="true">
+              <img src="assets/characters/erika-main.png" alt="">
+              <div class="quiz-mascot-cheer" id="quizMascotCheer">いっしょに がんばろ！</div>
+            </div>
+          </div>
+        </div>
+
+        <div id="quizResult" class="quiz-result" hidden>
+          <div class="quiz-result-burst"></div>
+          <div class="quiz-result-char">
+            <img src="assets/characters/erika-main.png" alt="エリカちゃん">
+          </div>
+          <div class="quiz-result-title" id="quizResultTitle">けっか！</div>
+          <div class="quiz-result-score" id="quizResultScore"></div>
+          <div class="quiz-result-bonus" id="quizResultBonus"></div>
+          <button class="btn btn-primary btn-full" id="quizBackBtn">クイズ一覧へ</button>
+        </div>
+      </section>
+
+      <!-- QR -->
+      <section class="page page-qr" data-page="qr" hidden>
+        <div class="page-head">
+          <div class="page-head-kicker">イベントでゲット</div>
+          <h2>📷 QRをよみとる</h2>
+          <p class="page-desc">会場のQRをカメラで読み込んでポイント獲得！</p>
+        </div>
+
+        <div class="qr-scanner">
+          <div class="qr-frame">
+            <video id="qrVideo" playsinline></video>
+            <canvas id="qrCanvas" hidden></canvas>
+            <div class="qr-overlay"><div class="qr-target">
+              <span class="qr-corner qr-corner-tl"></span>
+              <span class="qr-corner qr-corner-tr"></span>
+              <span class="qr-corner qr-corner-bl"></span>
+              <span class="qr-corner qr-corner-br"></span>
+              <div class="qr-scanline"></div>
+            </div></div>
+            <div class="qr-placeholder" id="qrPlaceholder">
+              <div class="qr-placeholder-bg">
+                <span class="qr-placeholder-blob qr-placeholder-blob-1"></span>
+                <span class="qr-placeholder-blob qr-placeholder-blob-2"></span>
+                <span class="qr-placeholder-blob qr-placeholder-blob-3"></span>
+                <span class="qr-placeholder-ring"></span>
+                <span class="qr-placeholder-ring qr-placeholder-ring-2"></span>
+              </div>
+              <div class="qr-placeholder-card">
+                <div class="qr-placeholder-mascot">
+                  <img src="assets/characters/erika-main.png" alt="エリカちゃん" class="qr-placeholder-erika">
+                  <div class="qr-placeholder-bubble">
+                    <span class="qr-placeholder-bubble-text">QRコードを さがしてね！</span>
+                  </div>
+                </div>
+                <div class="qr-placeholder-sweep"></div>
+                <div class="qr-placeholder-text">
+                  <div class="qr-placeholder-kicker">
+                    <span class="qr-placeholder-dot"></span>
+                    READY TO SCAN
+                  </div>
+                  <h3 class="qr-placeholder-title">カメラを 起動してね</h3>
+                  <p class="qr-placeholder-sub">イベントや ガイドブックの<br>QRコードを 読みとると<br>ポイントが もらえるよ✨</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="qr-actions">
+            <button class="btn btn-primary" id="qrStartBtn">カメラを起動</button>
+            <button class="btn btn-ghost" id="qrStopBtn" hidden>止める</button>
+          </div>
+          <details class="qr-manual">
+            <summary>手入力でコードを使う</summary>
+            <div class="qr-manual-inner">
+              <input type="text" id="qrManualInput" class="input" placeholder="HOPPOU-XXXX">
+              <button class="btn btn-primary" id="qrManualBtn">使う</button>
+            </div>
+          </details>
+          <div class="qr-hint">
+            <div class="qr-hint-title">💡 デモ用コード</div>
+            <div class="qr-hint-codes">
+              <code>HOPPOU-DEMO-50</code>
+              <code>HOPPOU-EVENT-100</code>
+              <code>HOPPOU-NEMURO-200</code>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SHOP -->
+      <section class="page page-shop" data-page="shop" hidden>
+        <div class="page-head">
+          <div class="page-head-kicker">ポイントでこうかん</div>
+          <h2>🎁 ショップ</h2>
+          <p class="page-desc">ためたポイントで、かわいいアイテムをゲット</p>
+        </div>
+
+        <div class="shop-balance-card">
+          <div class="shop-balance-label">てもちポイント</div>
+          <div class="shop-balance-value"><strong id="shopBalance">0</strong><small>pt</small></div>
+          <div class="shop-balance-hint">クイズやQRでポイントをためよう！</div>
+        </div>
+
+        <div id="shopGrid" class="shop-grid"></div>
+
+        <div class="shop-history">
+          <h3 class="section-title"><span>🧾</span> こうかんりれき</h3>
+          <ul id="shopHistory" class="shop-history-list"></ul>
+        </div>
+      </section>
+
+      <!-- LICENSE -->
+      <section class="page page-license" data-page="license" hidden>
+        <div class="page-head">
+          <div class="page-head-kicker">OFFICIAL LICENSE</div>
+          <h2>🪪 ライセンス</h2>
+          <p class="page-desc">きみの北方領土ステータス</p>
+        </div>
+
+        <!-- License card (premium, flippable) -->
+        <div class="license-card-flipper" id="licenseCard">
+          <div class="license-card">
+            <!-- Decorative layers -->
+            <div class="license-card-watermark" aria-hidden="true"></div>
+            <div class="license-card-pattern" aria-hidden="true"></div>
+            <div class="license-card-holo" aria-hidden="true"></div>
+            <div class="license-card-corner license-card-corner-tl" aria-hidden="true"></div>
+            <div class="license-card-corner license-card-corner-br" aria-hidden="true"></div>
+
+            <div class="license-card-header">
+              <div class="license-card-header-left">
+                <div class="license-emblem" aria-hidden="true">
+                  <svg viewBox="0 0 40 40" width="22" height="22">
+                    <defs>
+                      <radialGradient id="emblem-g" cx="35%" cy="30%" r="70%">
+                        <stop offset="0%" stop-color="#fff8d6"/>
+                        <stop offset="100%" stop-color="#f6b93b"/>
+                      </radialGradient>
+                    </defs>
+                    <path d="M20 4 L36 14 L30 34 L10 34 L4 14 Z" fill="url(#emblem-g)" stroke="#fff" stroke-width="1.8" stroke-linejoin="round"/>
+                    <circle cx="20" cy="20" r="5" fill="#fff"/>
+                    <path d="M16 20 q4 -4 8 0 q-4 4 -8 0 Z" fill="#f47a5a"/>
+                  </svg>
+                </div>
+                <div class="license-brand">
+                  <div class="license-brand-jp">北方領土ステータス</div>
+                  <div class="license-brand-en">HOPPOU STATUS · OFFICIAL LICENSE</div>
+                </div>
+              </div>
+              <div class="license-card-header-right">
+                <div class="license-serial" id="licenseSerialTop">NO. —</div>
+              </div>
+            </div>
+
+            <div class="license-card-main">
+              <div class="license-portrait">
+                <img src="assets/characters/erika-main.png" alt="" class="license-portrait-img">
+                <div class="license-portrait-ring" aria-hidden="true"></div>
+                <div class="license-portrait-star" aria-hidden="true">★</div>
+              </div>
+              <div class="license-rank-zone">
+                <div class="license-rank-badge" id="licenseRankBadge">🐚</div>
+                <div class="license-rank-name" id="licenseRankName">島民見習い</div>
+                <div class="license-rank-en" id="licenseRankEn">SILVER APPRENTICE</div>
+                <div class="license-rank-tier" id="licenseRankTier">TIER 01 / 05</div>
+              </div>
+            </div>
+
+            <div class="license-card-meta">
+              <div class="license-meta-row">
+                <div class="license-meta-cell">
+                  <span class="license-meta-k">NAME</span>
+                  <strong class="license-meta-v" id="licenseName">ゲスト</strong>
+                </div>
+                <div class="license-meta-cell">
+                  <span class="license-meta-k">LICENSE ID</span>
+                  <strong class="license-meta-v mono" id="licenseId">—</strong>
+                </div>
+              </div>
+              <div class="license-meta-row">
+                <div class="license-meta-cell">
+                  <span class="license-meta-k">POINTS</span>
+                  <strong class="license-meta-v" id="licensePoints">0</strong>
+                </div>
+                <div class="license-meta-cell">
+                  <span class="license-meta-k">ISSUED</span>
+                  <strong class="license-meta-v" id="licenseIssued">—</strong>
+                </div>
+              </div>
+            </div>
+
+            <div class="license-card-foot">
+              <div class="license-sig-wrap">
+                <div class="license-sig">SIGNATURE</div>
+                <div class="license-sig-line">
+                  <span id="licenseSigName">— ゲスト —</span>
+                </div>
+              </div>
+              <div class="license-stamp" aria-hidden="true">
+                <span class="license-stamp-ring">四島<br>公認</span>
+              </div>
+            </div>
+
+            <div class="license-card-micro" aria-hidden="true">HOPPOU·STATUS·OFFICIAL·LICENSE·HOPPOU·STATUS·OFFICIAL·LICENSE·HOPPOU·STATUS</div>
+          </div>
+
+          <!-- Back face -->
+          <div class="license-card license-card-back">
+            <div class="license-card-watermark license-card-watermark-back" aria-hidden="true"></div>
+            <div class="license-card-pattern" aria-hidden="true"></div>
+
+            <div class="license-back-head">
+              <div class="license-back-title">北方領土について</div>
+              <div class="license-back-en">ABOUT THE NORTHERN TERRITORIES</div>
+            </div>
+
+            <div class="license-back-body">
+              <p>北方領土は、日本固有の領土である<b>択捉島・国後島・色丹島・歯舞群島</b>の四島をさします。</p>
+              <p>1945年以降、ロシア（旧ソ連）により不法に占拠されたままの状態が続いています。</p>
+              <p>このライセンスは、北方領土に関心をもち、学び、語り継ぐ「仲間」の証です。</p>
+            </div>
+
+            <ul class="license-back-facts">
+              <li><span>面積合計</span><b>5,003 km²</b></li>
+              <li><span>最近接距離</span><b>3.7 km</b></li>
+              <li><span>元島民数</span><b>17,291 人</b></li>
+              <li><span>北方領土の日</span><b>2月7日</b></li>
+            </ul>
+
+            <div class="license-back-foot">
+              <div class="license-back-barcode"></div>
+              <div class="license-back-note">このカードは学習・啓発目的のデモ表示です</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="license-actions">
+          <button class="btn btn-ghost btn-sm" id="licenseShareBtn">🔗 共有</button>
+          <button class="btn btn-ghost btn-sm" id="licenseSaveBtn">💾 画像に保存</button>
+          <button class="btn btn-ghost btn-sm" id="licenseFlipBtn">🔄 裏面を見る</button>
+        </div>
+
+        <!-- Achievements -->
+        <h3 class="section-title section-title-center">
+          <span>アチーブメント</span>
+          <span class="section-counter" id="achieveCounter">0 / 0</span>
+        </h3>
+        <div class="achieve-grid" id="achieveGrid" aria-label="アチーブメント一覧"></div>
+
+        <!-- Rank ladder -->
+        <h3 class="section-title section-title-center"><span>階級いちらん</span></h3>
+        <div class="rank-journey">
+          <div class="rank-journey-line"></div>
+          <div id="rankList" class="rank-list"></div>
+        </div>
+
+        <!-- Profile -->
+        <h3 class="section-title"><span>⚙️</span> プロフィール</h3>
+        <div class="profile-card">
+          <div class="profile-form">
+            <label class="field">
+              <span>ニックネーム</span>
+              <input type="text" id="profileName" class="input" maxlength="12" placeholder="なまえを入力">
+            </label>
+            <div class="profile-actions">
+              <button class="btn btn-primary" id="profileSaveBtn">ほぞん</button>
+              <button class="btn btn-ghost btn-sm" id="resetBtn">データをリセット</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </main>
+
+    <!-- Bottom nav -->
+    <nav class="bottom-nav" aria-label="メインナビゲーション">
+      <div class="bottom-nav-inner">
+        <button class="nav-btn active" data-goto="home" aria-label="ホーム">
+          <span class="nav-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M3.5 11.5 12 4l8.5 7.5"></path>
+              <path d="M5.5 10.5V19a1 1 0 0 0 1 1h3.5v-5h4v5H17.5a1 1 0 0 0 1-1v-8.5"></path>
+            </svg>
+          </span>
+          <span class="nav-label">ホーム</span>
+          <span class="nav-pill" aria-hidden="true"></span>
+        </button>
+        <button class="nav-btn" data-goto="quiz" aria-label="クイズ">
+          <span class="nav-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M5 4.5h11l3 3V19a1.5 1.5 0 0 1-1.5 1.5h-12.5A1.5 1.5 0 0 1 3.5 19V6A1.5 1.5 0 0 1 5 4.5z"></path>
+              <path d="M16 4.5V8h3"></path>
+              <path d="M7.5 11.5l1.5 1.5 2.5-2.8"></path>
+              <path d="M13 12.5h3.5"></path>
+              <path d="M7.5 16.2l1.5 1.5 2.5-2.8"></path>
+              <path d="M13 16.2h3.5"></path>
+            </svg>
+          </span>
+          <span class="nav-label">クイズ</span>
+          <span class="nav-pill" aria-hidden="true"></span>
+        </button>
+        <button class="nav-btn nav-btn-center" data-goto="qr" aria-label="QRをよみとる">
+          <span class="nav-btn-center-ring" aria-hidden="true"></span>
+          <span class="nav-icon nav-icon-qr" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="currentColor" fill-rule="evenodd" clip-rule="evenodd">
+              <!-- TL finder: outer ring + center dot -->
+              <path d="M3 3h7v7H3V3zm2 2v3h3V5H5z"/>
+              <rect x="5.5" y="5.5" width="2" height="2"/>
+              <!-- TR finder -->
+              <path d="M14 3h7v7h-7V3zm2 2v3h3V5h-3z"/>
+              <rect x="16.5" y="5.5" width="2" height="2"/>
+              <!-- BL finder -->
+              <path d="M3 14h7v7H3v-7zm2 2v3h3v-3H5z"/>
+              <rect x="5.5" y="16.5" width="2" height="2"/>
+              <!-- BR data modules — staggered to look like real QR data -->
+              <rect x="14"   y="14"   width="2.2" height="2.2"/>
+              <rect x="18.8" y="14"   width="2.2" height="2.2"/>
+              <rect x="16.4" y="16.4" width="2.2" height="2.2"/>
+              <rect x="14"   y="18.8" width="2.2" height="2.2"/>
+              <rect x="18.8" y="18.8" width="2.2" height="2.2"/>
+            </svg>
+          </span>
+        </button>
+        <button class="nav-btn" data-goto="shop" aria-label="ショップ">
+          <span class="nav-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M4 8.5h16v3H4z"></path>
+              <path d="M5 11.5v8.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-8.5"></path>
+              <path d="M12 8.5v12"></path>
+              <path d="M12 8.5C9.5 8.5 8 7.4 8 5.8c0-1.1.8-1.8 1.8-1.8 1.7 0 2.2 2.4 2.2 4.5z"></path>
+              <path d="M12 8.5c2.5 0 4-1.1 4-2.7 0-1.1-.8-1.8-1.8-1.8-1.7 0-2.2 2.4-2.2 4.5z"></path>
+            </svg>
+          </span>
+          <span class="nav-label">ショップ</span>
+          <span class="nav-pill" aria-hidden="true"></span>
+        </button>
+        <button class="nav-btn" data-goto="license" aria-label="ライセンス">
+          <span class="nav-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="5" width="18" height="14" rx="2.4"></rect>
+              <circle cx="8.5" cy="11.5" r="2"></circle>
+              <path d="M5.6 17c.6-1.4 1.7-2.2 2.9-2.2s2.3.8 2.9 2.2"></path>
+              <path d="M14 9.5h4.5"></path>
+              <path d="M14 13h4.5"></path>
+              <path d="M14 16h3"></path>
+            </svg>
+          </span>
+          <span class="nav-label">ライセンス</span>
+          <span class="nav-pill" aria-hidden="true"></span>
+        </button>
+      </div>
+    </nav>
+
+    <!-- Toast -->
+    <div id="toast" class="toast" hidden></div>
+
+    <!-- Achievement popup (slides in from top-right) -->
+    <div id="achievePop" class="achieve-pop" hidden>
+      <div class="achieve-pop-icon" id="achievePopIcon">🏅</div>
+      <div class="achieve-pop-body">
+        <div class="achieve-pop-kicker">アチーブメント解除</div>
+        <div class="achieve-pop-title" id="achievePopTitle">—</div>
+        <div class="achieve-pop-desc" id="achievePopDesc">—</div>
+      </div>
+    </div>
+
+    <!-- Welcome / daily check-in modal -->
+    <div id="welcomeModal" class="modal-layer" hidden aria-hidden="true">
+      <div class="modal-backdrop"></div>
+      <div class="modal-card welcome-card" role="dialog" aria-labelledby="welcomeTitle">
+        <div class="welcome-burst"></div>
+        <div class="welcome-char">
+          <img src="assets/characters/erika-main.png" alt="エリカちゃん">
+        </div>
+        <div class="welcome-kicker" id="welcomeKicker">きょうもきてくれて ありがとう！</div>
+        <h3 class="welcome-title" id="welcomeTitle">ログインボーナス</h3>
+        <div class="welcome-streak" id="welcomeStreak">🔥 1日 連続</div>
+        <div class="welcome-points" id="welcomePoints">+5 pt</div>
+        <div class="welcome-sub" id="welcomeSub">連続ログインで ボーナスアップ！</div>
+        <button class="btn btn-primary btn-full" id="welcomeCloseBtn">うけとる</button>
+      </div>
+    </div>
+
+    <!-- Confetti layer -->
+    <canvas id="confetti" class="confetti"></canvas>
+  </div>
+
+  <script src="js/data.js?v=7"></script>
+  <script src="js/store.js?v=7"></script>
+  <script src="js/ui.js?v=7"></script>
+  <script src="js/achievements.js?v=7"></script>
+  <script src="js/quiz.js?v=7"></script>
+  <script src="js/shop.js?v=7"></script>
+  <script src="js/qr.js?v=7"></script>
+  <script src="js/license.js?v=7"></script>
+  <script src="js/app.js?v=7"></script>
+</body>
+</html>

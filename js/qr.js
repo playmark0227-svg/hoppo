@@ -1,0 +1,135 @@
+/* ============================================================
+   QR — camera scan + manual entry
+   Uses jsQR, loaded lazily on first use.
+   ============================================================ */
+(function() {
+  let stream = null;
+  let scanning = false;
+  let rafId = null;
+  let jsQRReady = null;
+
+  function loadJsQR() {
+    if (jsQRReady) return jsQRReady;
+    jsQRReady = new Promise((resolve, reject) => {
+      if (window.jsQR) { resolve(window.jsQR); return; }
+      const s = document.createElement('script');
+      s.src = 'https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js';
+      s.onload = () => resolve(window.jsQR);
+      s.onerror = () => reject(new Error('jsQR load failed'));
+      document.head.appendChild(s);
+    });
+    return jsQRReady;
+  }
+
+  async function startScan() {
+    const video = document.getElementById('qrVideo');
+    const placeholder = document.getElementById('qrPlaceholder');
+    const startBtn = document.getElementById('qrStartBtn');
+    const stopBtn = document.getElementById('qrStopBtn');
+
+    try {
+      await loadJsQR();
+    } catch (e) {
+      UI.toast('スキャナの読み込みに失敗。手入力を使ってね', 'bad', 3000);
+      return;
+    }
+
+    try {
+      stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: 'environment' },
+        audio: false
+      });
+    } catch (e) {
+      console.warn(e);
+      UI.toast('カメラが使えませんでした', 'bad', 3000);
+      return;
+    }
+
+    video.srcObject = stream;
+    video.setAttribute('playsinline', 'true');
+    await video.play();
+    placeholder.hidden = true;
+    startBtn.hidden = true;
+    stopBtn.hidden = false;
+    scanning = true;
+    tick();
+  }
+
+  function tick() {
+    if (!scanning) return;
+    const video = document.getElementById('qrVideo');
+    const canvas = document.getElementById('qrCanvas');
+    if (video.readyState === video.HAVE_ENOUGH_DATA) {
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+      const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      const code = window.jsQR(imgData.data, imgData.width, imgData.height, { inversionAttempts: 'dontInvert' });
+      if (code && code.data) {
+        handleCode(code.data.trim());
+        return;
+      }
+    }
+    rafId = requestAnimationFrame(tick);
+  }
+
+  function stopScan() {
+    scanning = false;
+    if (rafId) cancelAnimationFrame(rafId);
+    if (stream) {
+      stream.getTracks().forEach(t => t.stop());
+      stream = null;
+    }
+    document.getElementById('qrPlaceholder').hidden = false;
+    document.getElementById('qrStartBtn').hidden = false;
+    document.getElementById('qrStopBtn').hidden = true;
+  }
+
+  function handleCode(raw) {
+    stopScan();
+    redeem(raw);
+  }
+
+  function redeem(code) {
+    const normalized = (code || '').toUpperCase().trim();
+    const entry = window.QR_CODES[normalized];
+    if (!entry) {
+      UI.toast('このコードは使えないみたい…', 'bad');
+      return;
+    }
+    if (Store.isQrUsed(normalized)) {
+      UI.toast('このコードはもう使ったよ！', 'bad', 2600);
+      return;
+    }
+    Store.markQrUsed(normalized);
+    Store.addPoints(entry.points, { type: 'qr', label: entry.label }, { silent: true });
+    UI.flashPoints();
+    UI.confetti();
+    UI.toast(`${entry.label} +${entry.points}pt !`, 'points', 2800);
+    UI.refreshHeader();
+    UI.refreshHome();
+  }
+
+  function bind() {
+    document.getElementById('qrStartBtn').addEventListener('click', startScan);
+    document.getElementById('qrStopBtn').addEventListener('click', stopScan);
+    document.getElementById('qrManualBtn').addEventListener('click', () => {
+      const input = document.getElementById('qrManualInput');
+      const val = input.value.trim();
+      if (!val) return;
+      redeem(val);
+      input.value = '';
+    });
+    document.getElementById('qrManualInput').addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') document.getElementById('qrManualBtn').click();
+    });
+
+    // Stop camera when leaving QR page
+    UI.on('page', (page) => {
+      if (page !== 'qr' && scanning) stopScan();
+    });
+  }
+
+  window.QR = { init: bind, stop: stopScan };
+})();

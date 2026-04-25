@@ -1,0 +1,25 @@
+{
+  "name": "北方領土ステータス",
+  "short_name": "HoppouStatus",
+  "description": "クイズやイベントでポイントを貯めて、北方領土について楽しく学ぼう！",
+  "start_url": ".",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#fff9f0",
+  "theme_color": "#88c9f2",
+  "lang": "ja",
+  "icons": [
+    {
+      "src": "assets/images/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "assets/images/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
