@@ -2508,6 +2508,10 @@ code { font-family: 'SFMono-Regular', ui-monospace, 'Kosugi Maru', monospace; }
   width: 64px; height: 64px;
   align-self: center;
   justify-self: center;
+  display: grid;
+  grid-template: 1fr / 1fr;   /* single full-cell grid */
+  place-items: center;        /* center icon within the cell */
+  place-content: center;      /* center the grid tracks too */
   border-radius: 50%;
   background:
     radial-gradient(circle at 32% 28%, rgba(255, 255, 255, 0.45), transparent 55%),
@@ -2521,6 +2525,12 @@ code { font-family: 'SFMono-Regular', ui-monospace, 'Kosugi Maru', monospace; }
     inset 0 2px 3px rgba(255, 255, 255, 0.45);
   padding: 0;
   gap: 0;
+}
+.nav-btn-center .nav-icon {
+  grid-column: 1; grid-row: 1; /* same cell as the ring */
+}
+.nav-btn-center .nav-btn-center-ring {
+  grid-column: 1; grid-row: 1;
 }
 .nav-btn-center .nav-icon {
   width: 30px; height: 30px;
