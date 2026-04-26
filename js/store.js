@@ -4,6 +4,25 @@
 (function() {
   const STORAGE_KEY = 'hoppou_status_v1';
 
+  const DEFAULT_PROFILE = {
+    bio: '',                  // 自己紹介
+    favoriteIsland: 'kunashiri', // 'etorofu' | 'kunashiri' | 'shikotan' | 'habomai'
+    avatarFrame: 'coral',     // 'coral' | 'ocean' | 'gold' | 'cherry' | 'mint' | 'plum'
+    avatarPattern: 'wave',    // 'wave' | 'dots' | 'shine' | 'plain'
+    region: '',               // 出身・在住地域
+    birthday: ''              // YYYY-MM-DD（任意）
+  };
+
+  const DEFAULT_SETTINGS = {
+    soundEffects: true,       // 効果音（コンフェッティ・トースト演出）
+    confetti: true,           // 紙吹雪を表示するか
+    haptics: true,            // バイブレーション（対応端末のみ）
+    reduceMotion: false,      // モーション控えめ
+    highContrast: false,      // 高コントラスト表示
+    notifyDaily: true,        // ログインボーナスのモーダル表示
+    autoFlipLicense: false    // ライセンス画面で自動的に裏面を覗き見
+  };
+
   const DEFAULT_STATE = {
     userId: null,
     name: 'ゲスト',
@@ -18,14 +37,23 @@
     loginStreak: 0,         // consecutive login days
     longestStreak: 0,       // best streak ever
     loginTotal: 0,          // total unique-day logins
-    achievements: []        // earned achievement ids
+    achievements: [],       // earned achievement ids
+    profile: { ...DEFAULT_PROFILE },
+    settings: { ...DEFAULT_SETTINGS }
   };
 
   function load() {
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
       if (!raw) return null;
-      return { ...DEFAULT_STATE, ...JSON.parse(raw) };
+      const parsed = JSON.parse(raw);
+      // Deep-merge nested objects so older saves still get default fields.
+      return {
+        ...DEFAULT_STATE,
+        ...parsed,
+        profile: { ...DEFAULT_PROFILE, ...(parsed.profile || {}) },
+        settings: { ...DEFAULT_SETTINGS, ...(parsed.settings || {}) }
+      };
     } catch (e) {
       console.warn('[store] load failed', e);
       return null;
@@ -183,6 +211,28 @@
       this.state.name = (name || '').trim().slice(0, 12) || 'ゲスト';
       this.commit();
     },
+
+    /** Patch profile fields. Pass any subset of profile keys. */
+    updateProfile(patch) {
+      if (!patch || typeof patch !== 'object') return;
+      const next = { ...this.state.profile, ...patch };
+      // Sanitize string fields
+      if (typeof next.bio === 'string') next.bio = next.bio.slice(0, 80);
+      if (typeof next.region === 'string') next.region = next.region.slice(0, 24);
+      this.state.profile = next;
+      this.commit();
+    },
+
+    /** Patch settings fields. Pass any subset of settings keys. */
+    updateSettings(patch) {
+      if (!patch || typeof patch !== 'object') return;
+      this.state.settings = { ...this.state.settings, ...patch };
+      this.commit();
+    },
+
+    /** Convenience getters. */
+    getProfile() { return { ...this.state.profile }; },
+    getSettings() { return { ...this.state.settings }; },
 
     reset() {
       localStorage.removeItem(STORAGE_KEY);

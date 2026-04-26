@@ -8,28 +8,28 @@
       id: 'first-steps',
       icon: '🐚',
       name: 'はじめの一歩',
-      desc: 'アプリを はじめて 起動したよ',
+      desc: 'アプリを初めて起動した',
       test: (s) => (s.loginTotal || 0) >= 1
     },
     {
       id: 'streak-3',
       icon: '🔥',
       name: '三日坊主じゃない',
-      desc: '3日 連続で ログインしたよ',
+      desc: '3日連続でログインした',
       test: (s) => (s.longestStreak || 0) >= 3
     },
     {
       id: 'streak-7',
       icon: '🔥🔥',
-      name: 'いっしゅうかん皆勤',
-      desc: '7日 連続で ログインしたよ',
+      name: '一週間皆勤賞',
+      desc: '7日連続でログインした',
       test: (s) => (s.longestStreak || 0) >= 7
     },
     {
       id: 'quiz-perfect',
       icon: '🎯',
-      name: 'パーフェクトこぶし',
-      desc: 'クイズで 全問せいかいしたよ',
+      name: 'パーフェクト達成',
+      desc: 'クイズで全問正解した',
       test: (s) => Object.values(s.quizResults || {}).some(
         (r) => r && r.bestScore > 0 && r.bestScore === r.total
       )
@@ -38,7 +38,7 @@
       id: 'quiz-all-perfect',
       icon: '🏆',
       name: 'クイズマスター',
-      desc: 'すべてのクイズを 全問せいかい！',
+      desc: '全てのクイズで全問正解した',
       test: (s) => {
         const quizzes = window.QUIZZES || [];
         if (!quizzes.length) return false;
@@ -52,35 +52,35 @@
       id: 'qr-first',
       icon: '📷',
       name: 'イベントデビュー',
-      desc: 'QRコードを はじめて 読んだよ',
+      desc: 'QRコードを初めて読み取った',
       test: (s) => (s.usedQrCodes || []).length >= 1
     },
     {
       id: 'points-100',
       icon: '💯',
-      name: 'ひゃくポイント！',
-      desc: 'ポイントを 100pt ためたよ',
+      name: '100ポイント突破',
+      desc: '累計100ptを獲得した',
       test: (s) => (s.totalEarned || 0) >= 100
     },
     {
       id: 'points-500',
       icon: '💠',
-      name: 'ごひゃくポイント',
-      desc: 'ポイントを 500pt ためたよ',
+      name: '500ポイントクラブ',
+      desc: '累計500ptを獲得した',
       test: (s) => (s.totalEarned || 0) >= 500
     },
     {
       id: 'points-1000',
       icon: '💎',
-      name: 'せんポイントクラブ',
-      desc: 'ポイントを 1,000pt ためたよ',
+      name: '1000ポイントクラブ',
+      desc: '累計1,000ptを獲得した',
       test: (s) => (s.totalEarned || 0) >= 1000
     },
     {
       id: 'rank-clione',
       icon: '🌊',
       name: '流氷の仲間入り',
-      desc: '「流氷の守り手」に なったよ',
+      desc: '「流氷の守り手」に昇格した',
       test: (s) => {
         const r = window.getRankByPoints && window.getRankByPoints(s.points);
         if (!r) return false;
@@ -92,7 +92,7 @@
       id: 'rank-prime',
       icon: '👑',
       name: '最高位到達',
-      desc: '「北方領土総理」に なったよ！',
+      desc: '「北方領土総理」に到達した',
       test: (s) => {
         const r = window.getRankByPoints && window.getRankByPoints(s.points);
         return r && r.id === 'prime';
@@ -101,8 +101,8 @@
     {
       id: 'shop-first',
       icon: '🎁',
-      name: 'はじめてのお買物',
-      desc: 'ショップで アイテムを 交換したよ',
+      name: '初めてのお買い物',
+      desc: 'ショップでアイテムを交換した',
       test: (s) => (s.owned || []).length >= 1
     }
   ];

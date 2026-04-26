@@ -15,7 +15,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700;900&family=Kosugi+Maru&family=Yuji+Syuku&family=M+PLUS+Rounded+1c:wght@500;700;800;900&display=swap" rel="stylesheet">
 
-  <link rel="stylesheet" href="css/style.css?v=10">
+  <link rel="stylesheet" href="css/style.css?v=11">
 </head>
 <body>
 
@@ -45,21 +45,22 @@
 
     <!-- Top bar -->
     <header class="topbar">
-      <div class="topbar-left">
-        <div class="avatar">
+      <button type="button" class="topbar-left topbar-profile-btn" id="topbarProfileBtn" data-goto="settings" aria-label="プロフィールと設定を開く">
+        <div class="avatar" data-frame="coral" data-pattern="wave" id="topbarAvatar">
           <img src="assets/characters/erika-main.png" alt="" class="avatar-img">
+          <span class="avatar-edit-pip" aria-hidden="true">⚙</span>
         </div>
         <div class="topbar-meta">
           <div class="topbar-name" id="userName">ゲスト</div>
           <div class="topbar-rank" id="userRankLabel"><span class="rank-pip">🐚</span> 島民見習い</div>
         </div>
-      </div>
+      </button>
       <div class="topbar-right">
-        <div class="points-chip" id="pointsChip" aria-label="保有ポイント">
+        <button type="button" class="points-chip" id="pointsChip" aria-label="保有ポイント — 履歴を開く" data-open="history">
           <span class="points-icon">🌟</span>
           <span class="points-value" id="pointsValue">0</span>
           <span class="points-label">pt</span>
-        </div>
+        </button>
       </div>
     </header>
 
@@ -83,9 +84,9 @@
           <div class="hero-char-wrap">
             <img src="assets/characters/erika-main.png" alt="エリカちゃん" class="hero-char" id="heroChar">
           </div>
-          <div class="hero-bubble" id="heroBubble">
-            <span>こんにちは！<br>きょうは何する？</span>
-          </div>
+          <button type="button" class="hero-bubble" id="heroBubble" aria-label="エリカちゃんからのメッセージ — タップで切替">
+            <span>こんにちは！<br>今日は何する？</span>
+          </button>
           <div class="hero-stamp" aria-hidden="true">
             <div class="hero-stamp-ring">
               <span>NEMURO</span>
@@ -122,14 +123,14 @@
             <div class="quick-tile-inner">
               <div class="quick-icon">📝</div>
               <div class="quick-label">クイズ</div>
-              <div class="quick-sub">全問正解でボーナス！</div>
+              <div class="quick-sub">全問正解でボーナス</div>
             </div>
           </button>
           <button class="quick-tile quick-qr" data-goto="qr">
             <div class="quick-tile-inner">
               <div class="quick-icon">📷</div>
-              <div class="quick-label">QRよみとり</div>
-              <div class="quick-sub">イベントでゲット</div>
+              <div class="quick-label">QR読み取り</div>
+              <div class="quick-sub">イベントで獲得</div>
             </div>
           </button>
           <button class="quick-tile quick-shop" data-goto="shop">
@@ -143,62 +144,62 @@
             <div class="quick-tile-inner">
               <div class="quick-icon">🪪</div>
               <div class="quick-label">ライセンス</div>
-              <div class="quick-sub">きみの階級は？</div>
+              <div class="quick-sub">あなたの階級は？</div>
             </div>
           </button>
         </div>
 
         <!-- Stats strip -->
         <div class="stats-strip" id="statsStrip">
-          <div class="stat">
+          <button type="button" class="stat" data-stat="quizzes" aria-label="クイズ挑戦回数">
             <div class="stat-value" id="statQuizzes">0</div>
             <div class="stat-label">クイズ挑戦</div>
-          </div>
-          <div class="stat">
+          </button>
+          <button type="button" class="stat" data-stat="events" aria-label="イベント参加回数">
             <div class="stat-value" id="statEvents">0</div>
             <div class="stat-label">イベント参加</div>
-          </div>
-          <div class="stat stat-streak">
+          </button>
+          <button type="button" class="stat stat-streak" data-stat="streak" aria-label="連続ログイン">
             <div class="stat-value" id="statStreak">0<span class="stat-unit">日</span></div>
             <div class="stat-label">連続ログイン</div>
-          </div>
-          <div class="stat">
+          </button>
+          <button type="button" class="stat" data-stat="total" aria-label="累計獲得ポイント">
             <div class="stat-value" id="statTotal">0</div>
             <div class="stat-label">累計ポイント</div>
-          </div>
+          </button>
         </div>
 
         <!-- Places-of-interest photo strip -->
         <h3 class="section-title"><span>🏝️</span> 四つの島、今日のひとこま</h3>
-        <div class="place-strip" aria-label="四島の写真">
-          <div class="place-card" style="background-image: url('assets/images/hoppou/iturup-volcano.jpg');">
+        <div class="place-strip" aria-label="四島の写真 — タップで詳細">
+          <button type="button" class="place-card" data-island="etorofu" style="background-image: url('assets/images/hoppou/iturup-volcano.jpg');">
             <div class="place-card-inner">
               <div class="place-card-kicker">ETOROFU</div>
               <div class="place-card-name">択捉島</div>
               <div class="place-card-desc">最大の島と火山</div>
             </div>
-          </div>
-          <div class="place-card" style="background-image: url('assets/images/hoppou/kunashir-view.jpg');">
+          </button>
+          <button type="button" class="place-card" data-island="kunashiri" style="background-image: url('assets/images/hoppou/kunashir-view.jpg');">
             <div class="place-card-inner">
               <div class="place-card-kicker">KUNASHIRI</div>
               <div class="place-card-name">国後島</div>
               <div class="place-card-desc">根室から望む</div>
             </div>
-          </div>
-          <div class="place-card" style="background-image: url('assets/images/hoppou/shikotan.jpg');">
+          </button>
+          <button type="button" class="place-card" data-island="shikotan" style="background-image: url('assets/images/hoppou/shikotan.jpg');">
             <div class="place-card-inner">
               <div class="place-card-kicker">SHIKOTAN</div>
               <div class="place-card-name">色丹島</div>
               <div class="place-card-desc">小さな島の暮らし</div>
             </div>
-          </div>
-          <div class="place-card" style="background-image: url('assets/images/hoppou/cape-nosappu.jpg');">
+          </button>
+          <button type="button" class="place-card" data-island="habomai" style="background-image: url('assets/images/hoppou/cape-nosappu.jpg');">
             <div class="place-card-inner">
               <div class="place-card-kicker">HABOMAI</div>
               <div class="place-card-name">歯舞群島</div>
               <div class="place-card-desc">納沙布岬から3.7km</div>
             </div>
-          </div>
+          </button>
         </div>
 
         <!-- News -->
@@ -208,11 +209,26 @@
             <span>お知らせ</span>
           </div>
           <ul class="news-list">
-            <li><span class="news-dot"></span>毎日ログインで <b>+5pt</b></li>
+            <li><span class="news-dot"></span>毎日ログインで <b>+5pt</b>（最大15ptまでアップ）</li>
             <li><span class="news-dot"></span>新しいクイズが追加されました</li>
             <li><span class="news-dot"></span>イベント会場のQRを探してみよう</li>
           </ul>
         </div>
+
+        <!-- Shortcut to settings -->
+        <button type="button" class="home-settings-cta" data-goto="settings" aria-label="設定を開く">
+          <span class="home-settings-cta-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="3"></circle>
+              <path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"></path>
+            </svg>
+          </span>
+          <span class="home-settings-cta-meta">
+            <span class="home-settings-cta-title">プロフィール・設定</span>
+            <span class="home-settings-cta-sub">アバター、表示、データ管理など</span>
+          </span>
+          <span class="home-settings-cta-arrow" aria-hidden="true">›</span>
+        </button>
 
         <!-- Credits footer -->
         <div class="footer-credits">
@@ -225,7 +241,7 @@
         <div class="page-head">
           <div class="page-head-kicker">学んで貯めよう</div>
           <h2>📝 クイズ</h2>
-          <p class="page-desc">全問正解で <b>+50pt</b> ボーナス！</p>
+          <p class="page-desc">全問正解で <b>+50pt</b> ボーナス獲得！</p>
         </div>
 
         <div id="quizList" class="quiz-list"></div>
@@ -255,7 +271,7 @@
             </div>
             <div class="quiz-choices" id="quizChoices"></div>
             <div class="quiz-feedback" id="quizFeedback" hidden></div>
-            <button class="btn btn-primary btn-full" id="quizNextBtn" hidden>つぎへ →</button>
+            <button class="btn btn-primary btn-full" id="quizNextBtn" hidden>次へ →</button>
             <div class="quiz-mascot" aria-hidden="true">
               <img src="assets/characters/erika-main.png" alt="">
               <div class="quiz-mascot-cheer" id="quizMascotCheer">いっしょに がんばろ！</div>
@@ -278,8 +294,8 @@
       <!-- QR -->
       <section class="page page-qr" data-page="qr" hidden>
         <div class="page-head">
-          <div class="page-head-kicker">イベントでゲット</div>
-          <h2>📷 QRをよみとる</h2>
+          <div class="page-head-kicker">イベントで獲得</div>
+          <h2>📷 QRを読み取る</h2>
           <p class="page-desc">会場のQRをカメラで読み込んでポイント獲得！</p>
         </div>
 
@@ -306,7 +322,7 @@
                 <div class="qr-placeholder-mascot">
                   <img src="assets/characters/erika-main.png" alt="エリカちゃん" class="qr-placeholder-erika">
                   <div class="qr-placeholder-bubble">
-                    <span class="qr-placeholder-bubble-text">QRコードを さがしてね！</span>
+                    <span class="qr-placeholder-bubble-text">QRコードを探してね！</span>
                   </div>
                 </div>
                 <div class="qr-placeholder-sweep"></div>
@@ -315,8 +331,8 @@
                     <span class="qr-placeholder-dot"></span>
                     READY TO SCAN
                   </div>
-                  <h3 class="qr-placeholder-title">カメラを 起動してね</h3>
-                  <p class="qr-placeholder-sub">イベントや ガイドブックの<br>QRコードを 読みとると<br>ポイントが もらえるよ✨</p>
+                  <h3 class="qr-placeholder-title">カメラを起動してね</h3>
+                  <p class="qr-placeholder-sub">イベントやガイドブックの<br>QRコードを読み取ると<br>ポイントが貰えます✨</p>
                 </div>
               </div>
             </div>
@@ -332,12 +348,13 @@
               <button class="btn btn-primary" id="qrManualBtn">使う</button>
             </div>
           </details>
+          <button type="button" class="qr-history-btn" id="qrShowDemo" aria-label="デモコードを使う">デモコードで試す</button>
           <div class="qr-hint">
-            <div class="qr-hint-title">💡 デモ用コード</div>
+            <div class="qr-hint-title">💡 デモ用コード <small>（タップでコピー）</small></div>
             <div class="qr-hint-codes">
-              <code>HOPPOU-DEMO-50</code>
-              <code>HOPPOU-EVENT-100</code>
-              <code>HOPPOU-NEMURO-200</code>
+              <button type="button" class="qr-hint-code" data-copy="HOPPOU-DEMO-50">HOPPOU-DEMO-50</button>
+              <button type="button" class="qr-hint-code" data-copy="HOPPOU-EVENT-100">HOPPOU-EVENT-100</button>
+              <button type="button" class="qr-hint-code" data-copy="HOPPOU-NEMURO-200">HOPPOU-NEMURO-200</button>
             </div>
           </div>
         </div>
@@ -346,21 +363,21 @@
       <!-- SHOP -->
       <section class="page page-shop" data-page="shop" hidden>
         <div class="page-head">
-          <div class="page-head-kicker">ポイントでこうかん</div>
+          <div class="page-head-kicker">ポイントで交換</div>
           <h2>🎁 ショップ</h2>
-          <p class="page-desc">ためたポイントで、かわいいアイテムをゲット</p>
+          <p class="page-desc">貯めたポイントで、可愛いアイテムを獲得しよう</p>
         </div>
 
         <div class="shop-balance-card">
-          <div class="shop-balance-label">てもちポイント</div>
+          <div class="shop-balance-label">手持ちポイント</div>
           <div class="shop-balance-value"><strong id="shopBalance">0</strong><small>pt</small></div>
-          <div class="shop-balance-hint">クイズやQRでポイントをためよう！</div>
+          <div class="shop-balance-hint">クイズやQRでポイントを貯めよう！</div>
         </div>
 
         <div id="shopGrid" class="shop-grid"></div>
 
         <div class="shop-history">
-          <h3 class="section-title"><span>🧾</span> こうかんりれき</h3>
+          <h3 class="section-title"><span>🧾</span> 交換履歴</h3>
           <ul id="shopHistory" class="shop-history-list"></ul>
         </div>
       </section>
@@ -370,7 +387,7 @@
         <div class="page-head">
           <div class="page-head-kicker">OFFICIAL LICENSE</div>
           <h2>🪪 ライセンス</h2>
-          <p class="page-desc">きみの北方領土ステータス</p>
+          <p class="page-desc">あなたの北方領土ステータス</p>
         </div>
 
         <!-- License card (premium, flippable) -->
@@ -495,7 +512,7 @@
 
         <div class="license-actions">
           <button class="btn btn-ghost btn-sm" id="licenseShareBtn">🔗 共有</button>
-          <button class="btn btn-ghost btn-sm" id="licenseSaveBtn">💾 画像に保存</button>
+          <button class="btn btn-ghost btn-sm" id="licenseSaveBtn">💾 画像保存</button>
           <button class="btn btn-ghost btn-sm" id="licenseFlipBtn">🔄 裏面を見る</button>
         </div>
 
@@ -507,24 +524,232 @@
         <div class="achieve-grid" id="achieveGrid" aria-label="アチーブメント一覧"></div>
 
         <!-- Rank ladder -->
-        <h3 class="section-title section-title-center"><span>階級いちらん</span></h3>
+        <h3 class="section-title section-title-center"><span>階級一覧</span></h3>
         <div class="rank-journey">
           <div class="rank-journey-line"></div>
           <div id="rankList" class="rank-list"></div>
         </div>
 
-        <!-- Profile -->
+        <!-- Profile shortcut -->
         <h3 class="section-title"><span>⚙️</span> プロフィール</h3>
-        <div class="profile-card">
-          <div class="profile-form">
+        <button type="button" class="profile-shortcut" data-goto="settings">
+          <div class="profile-shortcut-avatar" data-frame="coral" data-pattern="wave" id="profileShortcutAvatar">
+            <img src="assets/characters/erika-main.png" alt="">
+          </div>
+          <div class="profile-shortcut-meta">
+            <div class="profile-shortcut-kicker">タップで編集</div>
+            <div class="profile-shortcut-name" id="profileShortcutName">ゲスト</div>
+            <div class="profile-shortcut-sub" id="profileShortcutSub">ニックネーム・アバター・自己紹介を設定</div>
+          </div>
+          <span class="profile-shortcut-arrow" aria-hidden="true">›</span>
+        </button>
+
+        <!-- Subtle operator credit -->
+        <div class="app-credit" aria-label="運営">
+          <span class="app-credit-line"></span>
+          <span class="app-credit-text">Operated by <b>ViFight</b></span>
+          <span class="app-credit-line"></span>
+        </div>
+      </section>
+
+      <!-- SETTINGS -->
+      <section class="page page-settings" data-page="settings" hidden>
+        <div class="page-head">
+          <div class="page-head-kicker">PROFILE &amp; SETTINGS</div>
+          <h2>⚙️ プロフィール・設定</h2>
+          <p class="page-desc">あなただけのライセンスをカスタマイズ</p>
+        </div>
+
+        <!-- Profile preview card -->
+        <div class="settings-preview">
+          <div class="settings-preview-bg" aria-hidden="true"></div>
+          <div class="settings-preview-avatar" data-frame="coral" data-pattern="wave" id="settingsPreviewAvatar">
+            <img src="assets/characters/erika-main.png" alt="">
+          </div>
+          <div class="settings-preview-meta">
+            <div class="settings-preview-name" id="settingsPreviewName">ゲスト</div>
+            <div class="settings-preview-rank" id="settingsPreviewRank">🐚 島民見習い</div>
+            <div class="settings-preview-bio" id="settingsPreviewBio">よろしくね！</div>
+          </div>
+        </div>
+
+        <!-- Section: 基本情報 -->
+        <div class="settings-section">
+          <div class="settings-section-head">
+            <span class="settings-section-icon">🪪</span>
+            <span class="settings-section-title">基本情報</span>
+          </div>
+          <div class="settings-card">
             <label class="field">
-              <span>ニックネーム</span>
-              <input type="text" id="profileName" class="input" maxlength="12" placeholder="なまえを入力">
+              <span>ニックネーム <small>（最大12文字）</small></span>
+              <input type="text" id="settingsName" class="input" maxlength="12" placeholder="例：エトピリカ">
             </label>
-            <div class="profile-actions">
-              <button class="btn btn-primary" id="profileSaveBtn">ほぞん</button>
-              <button class="btn btn-ghost btn-sm" id="resetBtn">データをリセット</button>
+            <label class="field">
+              <span>自己紹介 <small>（最大80文字）</small></span>
+              <textarea id="settingsBio" class="input input-textarea" maxlength="80" rows="2" placeholder="北方領土を学んでいます！"></textarea>
+              <small class="field-counter"><span id="settingsBioCount">0</span> / 80</small>
+            </label>
+            <label class="field">
+              <span>地域 <small>（任意）</small></span>
+              <input type="text" id="settingsRegion" class="input" maxlength="24" placeholder="例：根室市">
+            </label>
+            <label class="field">
+              <span>誕生日 <small>（任意・他人には公開されません）</small></span>
+              <input type="date" id="settingsBirthday" class="input">
+            </label>
+          </div>
+        </div>
+
+        <!-- Section: アバター -->
+        <div class="settings-section">
+          <div class="settings-section-head">
+            <span class="settings-section-icon">🎨</span>
+            <span class="settings-section-title">アバターを着せ替え</span>
+          </div>
+          <div class="settings-card">
+            <div class="settings-sub-label">フレームの色</div>
+            <div class="frame-picker" id="framePicker" role="radiogroup" aria-label="アバターフレーム"></div>
+            <div class="settings-sub-label">背景パターン</div>
+            <div class="pattern-picker" id="patternPicker" role="radiogroup" aria-label="アバター背景"></div>
+          </div>
+        </div>
+
+        <!-- Section: 推し島 -->
+        <div class="settings-section">
+          <div class="settings-section-head">
+            <span class="settings-section-icon">🏝️</span>
+            <span class="settings-section-title">推しの島</span>
+          </div>
+          <div class="settings-card">
+            <p class="settings-card-desc">あなたが特に応援したい島を選んでください。プロフィールに反映されます。</p>
+            <div class="island-picker" id="islandPicker" role="radiogroup" aria-label="推しの島"></div>
+          </div>
+        </div>
+
+        <!-- Section: 表示・体験 -->
+        <div class="settings-section">
+          <div class="settings-section-head">
+            <span class="settings-section-icon">✨</span>
+            <span class="settings-section-title">表示・体験</span>
+          </div>
+          <div class="settings-card">
+            <label class="settings-toggle">
+              <span class="settings-toggle-meta">
+                <strong>効果音・エフェクト</strong>
+                <small>ボタンを押した時の演出を出します</small>
+              </span>
+              <input type="checkbox" id="setSoundEffects">
+              <span class="settings-toggle-track" aria-hidden="true"></span>
+            </label>
+            <label class="settings-toggle">
+              <span class="settings-toggle-meta">
+                <strong>紙吹雪</strong>
+                <small>ポイント獲得・購入時のお祝い演出</small>
+              </span>
+              <input type="checkbox" id="setConfetti">
+              <span class="settings-toggle-track" aria-hidden="true"></span>
+            </label>
+            <label class="settings-toggle">
+              <span class="settings-toggle-meta">
+                <strong>バイブレーション</strong>
+                <small>対応端末でボタンを押すと振動します</small>
+              </span>
+              <input type="checkbox" id="setHaptics">
+              <span class="settings-toggle-track" aria-hidden="true"></span>
+            </label>
+            <label class="settings-toggle">
+              <span class="settings-toggle-meta">
+                <strong>モーション控えめ</strong>
+                <small>過度なアニメーションを抑えます</small>
+              </span>
+              <input type="checkbox" id="setReduceMotion">
+              <span class="settings-toggle-track" aria-hidden="true"></span>
+            </label>
+            <label class="settings-toggle">
+              <span class="settings-toggle-meta">
+                <strong>高コントラスト</strong>
+                <small>文字をくっきり表示します</small>
+              </span>
+              <input type="checkbox" id="setHighContrast">
+              <span class="settings-toggle-track" aria-hidden="true"></span>
+            </label>
+            <label class="settings-toggle">
+              <span class="settings-toggle-meta">
+                <strong>ログインボーナスを表示</strong>
+                <small>毎日のチェックインモーダルを出す</small>
+              </span>
+              <input type="checkbox" id="setNotifyDaily">
+              <span class="settings-toggle-track" aria-hidden="true"></span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Section: データ -->
+        <div class="settings-section">
+          <div class="settings-section-head">
+            <span class="settings-section-icon">📦</span>
+            <span class="settings-section-title">データ</span>
+          </div>
+          <div class="settings-card">
+            <button type="button" class="settings-row-btn" id="settingsExportBtn">
+              <span class="settings-row-icon">⬇️</span>
+              <span class="settings-row-meta">
+                <strong>データをエクスポート</strong>
+                <small>JSONファイルとして保存</small>
+              </span>
+              <span class="settings-row-arrow">›</span>
+            </button>
+            <button type="button" class="settings-row-btn" id="settingsImportBtn">
+              <span class="settings-row-icon">⬆️</span>
+              <span class="settings-row-meta">
+                <strong>データをインポート</strong>
+                <small>バックアップから復元</small>
+              </span>
+              <span class="settings-row-arrow">›</span>
+            </button>
+            <input type="file" id="settingsImportFile" accept="application/json,.json" hidden>
+            <button type="button" class="settings-row-btn settings-row-btn-danger" id="settingsResetBtn">
+              <span class="settings-row-icon">🗑️</span>
+              <span class="settings-row-meta">
+                <strong>データをリセット</strong>
+                <small>ポイント・履歴・実績を全て初期化します</small>
+              </span>
+              <span class="settings-row-arrow">›</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Section: アプリ情報 -->
+        <div class="settings-section">
+          <div class="settings-section-head">
+            <span class="settings-section-icon">ℹ️</span>
+            <span class="settings-section-title">アプリについて</span>
+          </div>
+          <div class="settings-card">
+            <div class="settings-info-row">
+              <span>バージョン</span>
+              <strong>1.1.0</strong>
             </div>
+            <div class="settings-info-row">
+              <span>あなたのID</span>
+              <strong class="mono" id="settingsUserId">—</strong>
+            </div>
+            <div class="settings-info-row">
+              <span>登録日</span>
+              <strong id="settingsCreatedAt">—</strong>
+            </div>
+            <div class="settings-info-row">
+              <span>運営</span>
+              <strong>ViFight</strong>
+            </div>
+            <button type="button" class="settings-row-btn" id="settingsCreditsBtn">
+              <span class="settings-row-icon">📜</span>
+              <span class="settings-row-meta">
+                <strong>クレジット</strong>
+                <small>素材ライセンス・使用しているフォント</small>
+              </span>
+              <span class="settings-row-arrow">›</span>
+            </button>
           </div>
         </div>
 
@@ -565,7 +790,7 @@
           <span class="nav-label">クイズ</span>
           <span class="nav-pill" aria-hidden="true"></span>
         </button>
-        <button class="nav-btn nav-btn-center" data-goto="qr" aria-label="QRをよみとる">
+        <button class="nav-btn nav-btn-center" data-goto="qr" aria-label="QRを読み取る">
           <span class="nav-btn-center-ring" aria-hidden="true"></span>
           <span class="nav-icon nav-icon-qr" aria-hidden="true">
             <svg viewBox="0 0 24 24" fill="currentColor" fill-rule="evenodd" clip-rule="evenodd">
@@ -617,6 +842,66 @@
       </div>
     </nav>
 
+    <!-- Island detail modal -->
+    <div id="islandModal" class="modal-layer" hidden aria-hidden="true">
+      <div class="modal-backdrop" data-close></div>
+      <div class="modal-card detail-card" role="dialog" aria-labelledby="islandModalTitle">
+        <button type="button" class="modal-close" data-close aria-label="閉じる">×</button>
+        <div class="detail-photo" id="islandPhoto"></div>
+        <div class="detail-kicker" id="islandKicker">ETOROFU</div>
+        <h3 class="detail-title" id="islandModalTitle">択捉島</h3>
+        <p class="detail-sub" id="islandSub">最大の島と火山</p>
+        <ul class="detail-facts" id="islandFacts"></ul>
+        <div class="detail-body" id="islandBody"></div>
+        <button type="button" class="btn btn-primary btn-full" data-close>閉じる</button>
+      </div>
+    </div>
+
+    <!-- Achievement detail modal -->
+    <div id="achieveModal" class="modal-layer" hidden aria-hidden="true">
+      <div class="modal-backdrop" data-close></div>
+      <div class="modal-card detail-card detail-card-achieve" role="dialog" aria-labelledby="achieveModalTitle">
+        <button type="button" class="modal-close" data-close aria-label="閉じる">×</button>
+        <div class="achieve-modal-medal" id="achieveModalIcon">🏅</div>
+        <div class="detail-kicker" id="achieveModalState">獲得済み</div>
+        <h3 class="detail-title" id="achieveModalTitle">—</h3>
+        <p class="detail-sub" id="achieveModalDesc">—</p>
+        <div class="achieve-modal-meta" id="achieveModalMeta"></div>
+        <button type="button" class="btn btn-primary btn-full" data-close>閉じる</button>
+      </div>
+    </div>
+
+    <!-- History / points log modal -->
+    <div id="historyModal" class="modal-layer" hidden aria-hidden="true">
+      <div class="modal-backdrop" data-close></div>
+      <div class="modal-card detail-card" role="dialog" aria-labelledby="historyModalTitle">
+        <button type="button" class="modal-close" data-close aria-label="閉じる">×</button>
+        <div class="detail-kicker">POINTS LOG</div>
+        <h3 class="detail-title" id="historyModalTitle">ポイント履歴</h3>
+        <p class="detail-sub">最近の獲得・利用50件まで表示</p>
+        <ul class="history-list" id="historyList"></ul>
+        <button type="button" class="btn btn-primary btn-full" data-close>閉じる</button>
+      </div>
+    </div>
+
+    <!-- Credits modal -->
+    <div id="creditsModal" class="modal-layer" hidden aria-hidden="true">
+      <div class="modal-backdrop" data-close></div>
+      <div class="modal-card detail-card" role="dialog" aria-labelledby="creditsModalTitle">
+        <button type="button" class="modal-close" data-close aria-label="閉じる">×</button>
+        <div class="detail-kicker">CREDITS</div>
+        <h3 class="detail-title" id="creditsModalTitle">クレジット</h3>
+        <div class="detail-body">
+          <p><b>画像</b><br>Wikimedia Commons (CC BY-SA / Public Domain)。詳しくは <code>CREDITS.md</code> を参照。</p>
+          <p><b>フォント</b><br>Zen Maru Gothic / M PLUS Rounded 1c / Yuji Syuku（Google Fonts）</p>
+          <p><b>QR読み取り</b><br>jsQR (Apache-2.0)</p>
+          <p><b>キャラクター</b><br>「エリカちゃん」© 北方領土ステータス制作チーム</p>
+          <p class="detail-foot-note">本アプリは学習・啓発目的のサンプル教育アプリです。<br>Operated by <b>ViFight</b></p>
+        </div>
+        <button type="button" class="btn btn-primary btn-full" data-close>閉じる</button>
+      </div>
+    </div>
+
     <!-- Toast -->
     <div id="toast" class="toast" hidden></div>
 
@@ -638,12 +923,12 @@
         <div class="welcome-char">
           <img src="assets/characters/erika-main.png" alt="エリカちゃん">
         </div>
-        <div class="welcome-kicker" id="welcomeKicker">きょうもきてくれて ありがとう！</div>
+        <div class="welcome-kicker" id="welcomeKicker">今日も来てくれてありがとう！</div>
         <h3 class="welcome-title" id="welcomeTitle">ログインボーナス</h3>
-        <div class="welcome-streak" id="welcomeStreak">🔥 1日 連続</div>
+        <div class="welcome-streak" id="welcomeStreak">🔥 1日連続</div>
         <div class="welcome-points" id="welcomePoints">+5 pt</div>
-        <div class="welcome-sub" id="welcomeSub">連続ログインで ボーナスアップ！</div>
-        <button class="btn btn-primary btn-full" id="welcomeCloseBtn">うけとる</button>
+        <div class="welcome-sub" id="welcomeSub">連続ログインでボーナスアップ！</div>
+        <button class="btn btn-primary btn-full" id="welcomeCloseBtn">受け取る</button>
       </div>
     </div>
 
@@ -651,14 +936,15 @@
     <canvas id="confetti" class="confetti"></canvas>
   </div>
 
-  <script src="js/data.js?v=10"></script>
-  <script src="js/store.js?v=10"></script>
-  <script src="js/ui.js?v=10"></script>
-  <script src="js/achievements.js?v=10"></script>
-  <script src="js/quiz.js?v=10"></script>
-  <script src="js/shop.js?v=10"></script>
-  <script src="js/qr.js?v=10"></script>
-  <script src="js/license.js?v=10"></script>
-  <script src="js/app.js?v=10"></script>
+  <script src="js/data.js?v=11"></script>
+  <script src="js/store.js?v=11"></script>
+  <script src="js/ui.js?v=11"></script>
+  <script src="js/achievements.js?v=11"></script>
+  <script src="js/quiz.js?v=11"></script>
+  <script src="js/shop.js?v=11"></script>
+  <script src="js/qr.js?v=11"></script>
+  <script src="js/license.js?v=11"></script>
+  <script src="js/settings.js?v=11"></script>
+  <script src="js/app.js?v=11"></script>
 </body>
 </html>

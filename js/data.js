@@ -12,7 +12,7 @@ window.RANKS = [
     min: 0,
     image: 'assets/images/hoppou/shikotan.jpg',
     color: '#c7d0dc',
-    blurb: 'ようこそ！北方領土にきょうみをもった君の第一歩。'
+    blurb: 'ようこそ！北方領土に興味を持ったあなたの第一歩。'
   },
   {
     id: 'gold',
@@ -63,8 +63,8 @@ window.RANKS = [
 window.QUIZZES = [
   {
     id: 'basics',
-    title: '北方領土きほんクイズ',
-    desc: 'ぜったい知っておきたい基本のキ',
+    title: '北方領土 基本クイズ',
+    desc: '絶対に知っておきたい基本のキ',
     icon: '🗾',
     image: 'assets/images/hoppou/four-islands-map.png',
     questions: [
@@ -103,7 +103,7 @@ window.QUIZZES = [
   {
     id: 'history',
     title: '歴史のクイズ',
-    desc: 'むかしなにがあったんだろう？',
+    desc: '昔、何があったんだろう？',
     icon: '📜',
     image: 'assets/images/hoppou/cape-nosappu.jpg',
     questions: [
@@ -135,7 +135,7 @@ window.QUIZZES = [
   },
   {
     id: 'nature',
-    title: 'しぜん・文化クイズ',
+    title: '自然・文化クイズ',
     desc: 'どんな島なんだろう？',
     icon: '🦭',
     image: 'assets/images/hoppou/drift-ice.jpg',
@@ -190,7 +190,7 @@ window.SHOP_ITEMS = [
   {
     id: 'plush-mini',
     name: 'ミニぬいぐるみ',
-    desc: 'てのひらサイズのエリカちゃん',
+    desc: '手のひらサイズのエリカちゃん',
     emoji: '🧸',
     accent: 'coral',
     price: 300,
@@ -199,7 +199,7 @@ window.SHOP_ITEMS = [
   {
     id: 'plush-big',
     name: 'ジャンボぬいぐるみ',
-    desc: 'だきしめサイズ！',
+    desc: '抱きしめサイズ！',
     emoji: '🐻',
     accent: 'cherry',
     price: 800,
@@ -225,8 +225,8 @@ window.SHOP_ITEMS = [
   },
   {
     id: 'book-picture',
-    name: 'えほん「四つの島」',
-    desc: 'やさしく学べる絵本',
+    name: '絵本「四つの島」',
+    desc: '優しく学べる絵本',
     emoji: '📖',
     accent: 'mint',
     price: 400,
@@ -250,6 +250,73 @@ window.QR_CODES = {
   'HOPPOU-NEMURO-200':  { label: '根室ツアー参加ボーナス',   points: 200 },
   'HOPPOU-RALLY-150':   { label: '啓発ラリー参加ボーナス',  points: 150 },
   'HOPPOU-SCHOOL-80':   { label: '学校イベントボーナス',    points: 80 }
+};
+
+window.ISLANDS = [
+  {
+    id: 'etorofu',
+    name: '択捉島',
+    en: 'ETOROFU',
+    kana: 'えとろふとう',
+    desc: '北方四島で最大の島',
+    image: 'assets/images/hoppou/iturup-volcano.jpg',
+    facts: [
+      { k: '面積', v: '3,167 km²' },
+      { k: '本州との比較', v: '東京都の約1.5倍' },
+      { k: '主な地形', v: '火山と湿原' },
+      { k: '最高峰', v: '茂世路岳 1,124m' }
+    ],
+    body: '択捉島は北方領土最大の島で、活火山を抱える雄大な島です。戦前は日本人がサケ・マス漁や昆布漁を営み、内岡（紗那）には町がありました。豊かな自然が残り、ヒグマやキタキツネ、海鳥が暮らしています。'
+  },
+  {
+    id: 'kunashiri',
+    name: '国後島',
+    en: 'KUNASHIRI',
+    kana: 'くなしりとう',
+    desc: '根室から望める雄大な島',
+    image: 'assets/images/hoppou/kunashir-view.jpg',
+    facts: [
+      { k: '面積', v: '1,489 km²' },
+      { k: '本州との比較', v: '沖縄本島より大きい' },
+      { k: '根室からの距離', v: '約16 km' },
+      { k: '最高峰', v: '爺爺岳 1,822m' }
+    ],
+    body: '国後島は根室半島から肉眼で見える距離にあり、爺爺岳（ちゃちゃだけ）という美しい火山がシンボルです。温泉や原生林が点在し、独特の生態系を持っています。'
+  },
+  {
+    id: 'shikotan',
+    name: '色丹島',
+    en: 'SHIKOTAN',
+    kana: 'しこたんとう',
+    desc: '緑豊かな小さな島',
+    image: 'assets/images/hoppou/shikotan.jpg',
+    facts: [
+      { k: '面積', v: '253 km²' },
+      { k: '本州との比較', v: '東京23区の約4割' },
+      { k: '最高峰', v: '斜古丹山 412m' },
+      { k: '主な産業', v: '漁業（サケ・カニ）' }
+    ],
+    body: '色丹島は穏やかな入り江と緑豊かな丘陵が特徴の島です。戦前は穴澗（あなま）が中心地で、漁業と缶詰工場がありました。湿原には固有の植物も自生しています。'
+  },
+  {
+    id: 'habomai',
+    name: '歯舞群島',
+    en: 'HABOMAI',
+    kana: 'はぼまいぐんとう',
+    desc: '日本本土から最も近い島々',
+    image: 'assets/images/hoppou/cape-nosappu.jpg',
+    facts: [
+      { k: '面積', v: '94 km²（合計）' },
+      { k: '島の数', v: '貝殻島など6島群' },
+      { k: '納沙布岬から', v: '約3.7 km' },
+      { k: '主な産業', v: '昆布漁' }
+    ],
+    body: '歯舞群島は北海道納沙布岬の沖合にある小さな島々の集まりです。最も近い貝殻島は、納沙布岬からわずか3.7km。戦前は多くの人が昆布漁で暮らしていました。'
+  }
+];
+
+window.getIslandById = function(id) {
+  return (window.ISLANDS || []).find(i => i.id === id) || null;
 };
 
 window.getRankByPoints = function(points) {

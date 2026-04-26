@@ -91,10 +91,10 @@
     const cheer = document.getElementById('quizMascotCheer');
     if (cheer) {
       const cheers = [
-        'いっしょに がんばろ！',
-        'じっくり考えて〜',
-        'きみならできる！',
-        'ヒント…かんで覚えよう！'
+        '一緒に頑張ろう！',
+        'じっくり考えてみて',
+        'あなたなら出来る！',
+        '繰り返しで覚えよう'
       ];
       cheer.textContent = cheers[index % cheers.length];
     }
@@ -140,14 +140,14 @@
     if (!correct) buttons[q.answer].classList.add('correct');
 
     const fb = document.getElementById('quizFeedback');
-    fb.innerHTML = (correct ? '🎉 せいかい！' : '😢 ざんねん！') + (q.explain ? `<br>${q.explain}` : '');
+    fb.innerHTML = (correct ? '🎉 正解！' : '😢 残念！') + (q.explain ? `<br>${q.explain}` : '');
     fb.className = 'quiz-feedback ' + (correct ? 'good' : 'bad');
     fb.hidden = false;
 
     // Mascot cheers briefly reflect the result
     const cheer = document.getElementById('quizMascotCheer');
     if (cheer) {
-      cheer.textContent = correct ? 'やったね！✨' : 'おしい！つぎいこう';
+      cheer.textContent = correct ? 'やったね！✨' : 'おしい！次にいこう';
       cheer.classList.remove('pop');
       void cheer.offsetWidth;
       cheer.classList.add('pop');
@@ -160,7 +160,7 @@
 
     const nextBtn = document.getElementById('quizNextBtn');
     nextBtn.hidden = false;
-    nextBtn.textContent = index + 1 < quiz.questions.length ? 'つぎへ →' : 'けっかをみる';
+    nextBtn.textContent = index + 1 < quiz.questions.length ? '次へ →' : '結果を見る';
   }
 
   function next() {
@@ -185,13 +185,13 @@
 
     document.getElementById('quizPlay').hidden = true;
     document.getElementById('quizResult').hidden = false;
-    document.getElementById('quizResultTitle').textContent = perfect ? '全問せいかい！🎉' : 'おつかれさま！';
-    document.getElementById('quizResultScore').textContent = `${correctCount} / ${total} 問せいかい`;
+    document.getElementById('quizResultTitle').textContent = perfect ? '全問正解！🎉' : 'お疲れさま！';
+    document.getElementById('quizResultScore').textContent = `${correctCount} / ${total} 問正解`;
     const bonusEl = document.getElementById('quizResultBonus');
     if (earned > 0) {
-      bonusEl.textContent = `+${earned} pt ゲット！${perfect ? '（全問正解ボーナス +' + PERFECT_BONUS + 'pt）' : ''}`;
+      bonusEl.textContent = `+${earned} pt 獲得！${perfect ? '（全問正解ボーナス +' + PERFECT_BONUS + 'pt）' : ''}`;
     } else {
-      bonusEl.textContent = 'またちょうせんしてみてね';
+      bonusEl.textContent = 'また挑戦してみてね';
     }
 
     UI.refreshHeader();
@@ -214,7 +214,7 @@
     const exitBtn = document.getElementById('quizPlayExit');
     if (exitBtn) exitBtn.addEventListener('click', () => {
       if (!current) return back();
-      if (confirm('クイズをやめて一覧にもどる？')) back();
+      if (confirm('クイズをやめて一覧に戻りますか？')) back();
     });
   }
 

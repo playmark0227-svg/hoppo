@@ -30,7 +30,7 @@
     try {
       await loadJsQR();
     } catch (e) {
-      UI.toast('スキャナの読み込みに失敗。手入力を使ってね', 'bad', 3000);
+      UI.toast('スキャナの読み込みに失敗。手入力をお使いください', 'bad', 3000);
       return;
     }
 
@@ -95,11 +95,11 @@
     const normalized = (code || '').toUpperCase().trim();
     const entry = window.QR_CODES[normalized];
     if (!entry) {
-      UI.toast('このコードは使えないみたい…', 'bad');
+      UI.toast('このコードは使えません…', 'bad');
       return;
     }
     if (Store.isQrUsed(normalized)) {
-      UI.toast('このコードはもう使ったよ！', 'bad', 2600);
+      UI.toast('このコードは既に使用済みです', 'bad', 2600);
       return;
     }
     Store.markQrUsed(normalized);
@@ -124,6 +124,48 @@
     document.getElementById('qrManualInput').addEventListener('keydown', (e) => {
       if (e.key === 'Enter') document.getElementById('qrManualBtn').click();
     });
+
+    // Tap-to-copy demo codes
+    document.querySelectorAll('[data-copy]').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const code = btn.dataset.copy;
+        try {
+          if (navigator.clipboard) {
+            await navigator.clipboard.writeText(code);
+            UI.toast(`「${code}」をコピーしました`, 'good', 1800);
+          } else {
+            // Fallback: paste into manual input directly
+            const input = document.getElementById('qrManualInput');
+            if (input) {
+              input.value = code;
+              input.focus();
+              UI.toast('入力欄に貼り付けました', 'good', 1800);
+            }
+          }
+        } catch (e) {
+          // Final fallback: just paste into input
+          const input = document.getElementById('qrManualInput');
+          if (input) input.value = code;
+          UI.toast('コードを入力欄に貼り付けました', 'good', 1800);
+        }
+      });
+    });
+
+    // "Use a demo code" shortcut button — picks the first unused code
+    const demoBtn = document.getElementById('qrShowDemo');
+    if (demoBtn) {
+      demoBtn.addEventListener('click', () => {
+        const codes = Object.keys(window.QR_CODES || {});
+        const next = codes.find(c => !Store.isQrUsed(c));
+        if (!next) {
+          UI.toast('全てのデモコードが使用済みです', 'bad');
+          return;
+        }
+        if (confirm(`デモコード「${next}」を使用しますか？`)) {
+          redeem(next);
+        }
+      });
+    }
 
     // Stop camera when leaving QR page
     UI.on('page', (page) => {

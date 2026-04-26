@@ -36,7 +36,7 @@
               <button class="shop-item-btn" ${owned || !canBuy ? 'disabled' : ''}
                 data-buy="${item.id}">${btnLabel}</button>
             </div>
-            ${owned ? '<div class="shop-item-owned-stamp">ゲット済</div>' : ''}
+            ${owned ? '<div class="shop-item-owned-stamp">獲得済</div>' : ''}
           </div>
         `;
       }).join('');
@@ -71,19 +71,19 @@
     const item = window.SHOP_ITEMS.find(i => i.id === itemId);
     if (!item) return;
     if (Store.ownsItem(itemId)) {
-      UI.toast('もう持ってるよ！');
+      UI.toast('既に獲得済みです');
       return;
     }
-    const ok = confirm(`「${item.name}」を ${item.price}pt でこうかんしますか？`);
+    const ok = confirm(`「${item.name}」を ${item.price}pt で交換しますか？`);
     if (!ok) return;
     const success = Store.spendPoints(item.price, { type: 'spend', label: item.name });
     if (!success) {
-      UI.toast('ポイントがたりません…', 'bad');
+      UI.toast('ポイントが足りません…', 'bad');
       return;
     }
     Store.ownItem(itemId);
     UI.confetti({ count: 50 });
-    UI.toast(`${item.name} をゲット！🎁`, 'good', 2800);
+    UI.toast(`${item.name} を獲得しました！🎁`, 'good', 2800);
     UI.refreshHeader();
     render();
   }

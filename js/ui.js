@@ -14,6 +14,43 @@
       el.hidden = false;
       clearTimeout(this._toastTimer);
       this._toastTimer = setTimeout(() => { el.hidden = true; }, duration);
+      // Optional haptic feedback for "good"/"bad"
+      try {
+        const settings = window.Store && Store.getSettings ? Store.getSettings() : {};
+        if (settings.haptics && navigator.vibrate) {
+          navigator.vibrate(kind === 'bad' ? [40, 30, 40] : 18);
+        }
+      } catch (e) { /* ignore */ }
+    },
+
+    /* ---------------- Generic modal helpers ---------------- */
+    openModal(id) {
+      const modal = typeof id === 'string' ? document.getElementById(id) : id;
+      if (!modal) return;
+      modal.hidden = false;
+      modal.setAttribute('aria-hidden', 'false');
+      requestAnimationFrame(() => modal.classList.add('show'));
+      // Wire up close handlers (idempotent)
+      if (!modal._wired) {
+        modal.querySelectorAll('[data-close]').forEach(btn => {
+          btn.addEventListener('click', () => UI.closeModal(modal));
+        });
+        modal.addEventListener('keydown', (e) => {
+          if (e.key === 'Escape') UI.closeModal(modal);
+        });
+        modal._wired = true;
+      }
+      document.body.classList.add('no-scroll');
+    },
+    closeModal(id) {
+      const modal = typeof id === 'string' ? document.getElementById(id) : id;
+      if (!modal) return;
+      modal.classList.remove('show');
+      setTimeout(() => {
+        modal.hidden = true;
+        modal.setAttribute('aria-hidden', 'true');
+      }, 240);
+      document.body.classList.remove('no-scroll');
     },
 
     /* ---------------- Navigation ---------------- */
@@ -70,13 +107,15 @@
 
       const bubble = document.getElementById('heroBubble');
       if (bubble) {
+        const namePart = s.name !== 'ゲスト' ? s.name + 'さん、' : '';
         const msgs = [
-          `きょうは何する？<br>${s.name !== 'ゲスト' ? s.name + 'さん、' : ''}がんばろう！`,
-          'クイズに挑戦してポイントをゲット！',
+          `今日は何する？<br>${namePart}頑張ろう！`,
+          'クイズに挑戦してポイント獲得！',
           'イベントのQRコード、もう読んだ？',
-          next ? `あと${next.min - s.points}ptで昇格だよ！` : 'きみは北方領土総理！すごい！'
+          next ? `あと ${next.min - s.points}pt で昇格だよ！` : 'あなたは北方領土総理！すごい！',
+          'タップで違うメッセージに切り替えできるよ'
         ];
-        bubble.innerHTML = msgs[Math.floor(Math.random() * msgs.length)];
+        bubble.innerHTML = `<span>${msgs[Math.floor(Math.random() * msgs.length)]}</span>`;
       }
 
       // Stats strip
@@ -100,8 +139,80 @@
       }
     },
 
+    /* ---------------- Island detail modal ---------------- */
+    showIsland(islandId) {
+      const island = window.getIslandById ? window.getIslandById(islandId) : null;
+      if (!island) return;
+      const photo = document.getElementById('islandPhoto');
+      if (photo) photo.style.backgroundImage = `url('${island.image}')`;
+      document.getElementById('islandKicker').textContent = island.en;
+      document.getElementById('islandModalTitle').textContent = `${island.name}（${island.kana}）`;
+      document.getElementById('islandSub').textContent = island.desc;
+      const facts = document.getElementById('islandFacts');
+      if (facts) {
+        facts.innerHTML = (island.facts || []).map(f =>
+          `<li><span>${f.k}</span><b>${f.v}</b></li>`
+        ).join('');
+      }
+      const body = document.getElementById('islandBody');
+      if (body) body.innerHTML = `<p>${island.body}</p>`;
+      this.openModal('islandModal');
+    },
+
+    /* ---------------- Achievement detail modal ---------------- */
+    showAchieveDetail(def, earned) {
+      if (!def) return;
+      const iconEl = document.getElementById('achieveModalIcon');
+      if (iconEl) iconEl.textContent = earned ? def.icon : '🔒';
+      const stateEl = document.getElementById('achieveModalState');
+      if (stateEl) stateEl.textContent = earned ? '獲得済み' : '未獲得';
+      document.getElementById('achieveModalTitle').textContent = earned ? def.name : '？？？';
+      document.getElementById('achieveModalDesc').textContent = earned
+        ? def.desc
+        : 'まずはアプリで遊んで、いろいろなことに挑戦してみよう！';
+      const meta = document.getElementById('achieveModalMeta');
+      if (meta) {
+        if (earned) {
+          meta.innerHTML = `<span class="achieve-modal-pill">🏅 ${def.id}</span>`;
+        } else {
+          meta.innerHTML = '<span class="achieve-modal-pill achieve-modal-pill-locked">条件は獲得時に判明します</span>';
+        }
+      }
+      this.openModal('achieveModal');
+    },
+
+    /* ---------------- History modal ---------------- */
+    showHistory() {
+      const list = document.getElementById('historyList');
+      if (!list) return;
+      const s = Store.get();
+      const items = (s.history || []).slice(0, 50);
+      if (items.length === 0) {
+        list.innerHTML = `<li class="history-empty">まだ履歴がありません。クイズやQRに挑戦してみよう！</li>`;
+      } else {
+        list.innerHTML = items.map(h => {
+          const d = new Date(h.at);
+          const date = `${d.getMonth() + 1}/${d.getDate()}`;
+          const time = `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+          const sign = h.points >= 0 ? '+' : '';
+          const cls = h.points >= 0 ? 'history-pos' : 'history-neg';
+          return `<li class="history-item">
+            <span class="history-when">${date}<small>${time}</small></span>
+            <span class="history-label">${h.label || ''}</span>
+            <span class="history-points ${cls}">${sign}${h.points}<small>pt</small></span>
+          </li>`;
+        }).join('');
+      }
+      this.openModal('historyModal');
+    },
+
     /* ---------------- Daily welcome modal ---------------- */
     showDailyWelcome(daily) {
+      // Honor user setting
+      try {
+        const settings = window.Store && Store.getSettings ? Store.getSettings() : {};
+        if (settings.notifyDaily === false) return;
+      } catch (e) { /* ignore */ }
       const modal = document.getElementById('welcomeModal');
       if (!modal) return;
       const titleEl = document.getElementById('welcomeTitle');
@@ -113,7 +224,7 @@
       if (kickerEl) {
         kickerEl.textContent = daily.firstLogin
           ? 'はじめまして！ようこそ！'
-          : 'きょうもきてくれて ありがとう！';
+          : '今日も来てくれてありがとう！';
       }
       if (titleEl) titleEl.textContent = daily.firstLogin ? 'ウェルカムボーナス' : 'ログインボーナス';
       if (streakEl) {
@@ -122,8 +233,8 @@
       }
       if (pointsEl) pointsEl.textContent = `+${daily.points} pt`;
       if (subEl) {
-        if (daily.streak < 5) subEl.textContent = '明日もくると さらに +2pt アップ！';
-        else subEl.textContent = `連続ログインさいこう記録：${daily.longestStreak}日！`;
+        if (daily.streak < 5) subEl.textContent = '明日も来ると さらに +2pt アップ！';
+        else subEl.textContent = `連続ログイン最高記録：${daily.longestStreak}日！`;
       }
 
       modal.hidden = false;
@@ -178,6 +289,11 @@
 
     /* ---------------- Confetti ---------------- */
     confetti(options = {}) {
+      // Respect user's "no confetti" / "reduce motion" preferences
+      try {
+        const settings = window.Store && Store.getSettings ? Store.getSettings() : {};
+        if (settings.confetti === false || settings.reduceMotion) return;
+      } catch (e) { /* ignore */ }
       const canvas = document.getElementById('confetti');
       if (!canvas) return;
       const ctx = canvas.getContext('2d');

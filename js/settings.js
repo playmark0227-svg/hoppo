@@ -1,0 +1,378 @@
+/* ============================================================
+   Settings — profile + app preferences page
+   ============================================================ */
+(function() {
+
+  const FRAMES = [
+    { id: 'coral',  label: '珊瑚オレンジ', color: '#f47a5a' },
+    { id: 'ocean',  label: 'オホーツク',   color: '#5aa7d1' },
+    { id: 'gold',   label: 'ゴールド',     color: '#f6b93b' },
+    { id: 'cherry', label: '桜ピンク',     color: '#ff87a9' },
+    { id: 'mint',   label: '流氷ミント',   color: '#6fd1a4' },
+    { id: 'plum',   label: '夜明けプラム', color: '#544668' }
+  ];
+
+  const PATTERNS = [
+    { id: 'wave',  label: '波',     emoji: '🌊' },
+    { id: 'dots',  label: '水玉',   emoji: '⚪' },
+    { id: 'shine', label: 'きらめき', emoji: '✨' },
+    { id: 'plain', label: 'シンプル', emoji: '◯' }
+  ];
+
+  /* ---------------- Render helpers ---------------- */
+
+  function applyAvatarStyle(el, frame, pattern) {
+    if (!el) return;
+    el.dataset.frame = frame || 'coral';
+    el.dataset.pattern = pattern || 'wave';
+  }
+
+  function refreshAllAvatars(frame, pattern) {
+    [
+      document.getElementById('topbarAvatar'),
+      document.getElementById('settingsPreviewAvatar'),
+      document.getElementById('profileShortcutAvatar')
+    ].forEach(el => applyAvatarStyle(el, frame, pattern));
+  }
+
+  function renderFramePicker() {
+    const wrap = document.getElementById('framePicker');
+    if (!wrap) return;
+    const profile = Store.getProfile();
+    wrap.innerHTML = FRAMES.map(f => `
+      <button type="button" class="frame-chip ${profile.avatarFrame === f.id ? 'active' : ''}"
+              data-frame="${f.id}" role="radio" aria-checked="${profile.avatarFrame === f.id}"
+              aria-label="${f.label}">
+        <span class="frame-chip-color" style="background: ${f.color};"></span>
+        <span class="frame-chip-label">${f.label}</span>
+      </button>
+    `).join('');
+    wrap.querySelectorAll('[data-frame]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        Store.updateProfile({ avatarFrame: btn.dataset.frame });
+        renderFramePicker();
+        const p = Store.getProfile();
+        refreshAllAvatars(p.avatarFrame, p.avatarPattern);
+        UI.toast('フレームを変更しました', 'good');
+      });
+    });
+  }
+
+  function renderPatternPicker() {
+    const wrap = document.getElementById('patternPicker');
+    if (!wrap) return;
+    const profile = Store.getProfile();
+    wrap.innerHTML = PATTERNS.map(p => `
+      <button type="button" class="pattern-chip ${profile.avatarPattern === p.id ? 'active' : ''}"
+              data-pattern="${p.id}" role="radio" aria-checked="${profile.avatarPattern === p.id}"
+              aria-label="${p.label}">
+        <span class="pattern-chip-preview" data-pattern="${p.id}">${p.emoji}</span>
+        <span class="pattern-chip-label">${p.label}</span>
+      </button>
+    `).join('');
+    wrap.querySelectorAll('[data-pattern]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        Store.updateProfile({ avatarPattern: btn.dataset.pattern });
+        renderPatternPicker();
+        const p = Store.getProfile();
+        refreshAllAvatars(p.avatarFrame, p.avatarPattern);
+        UI.toast('背景パターンを変更しました', 'good');
+      });
+    });
+  }
+
+  function renderIslandPicker() {
+    const wrap = document.getElementById('islandPicker');
+    if (!wrap) return;
+    const profile = Store.getProfile();
+    wrap.innerHTML = (window.ISLANDS || []).map(island => `
+      <button type="button" class="island-chip ${profile.favoriteIsland === island.id ? 'active' : ''}"
+              data-island="${island.id}" role="radio" aria-checked="${profile.favoriteIsland === island.id}">
+        <span class="island-chip-photo" style="background-image: url('${island.image}');"></span>
+        <span class="island-chip-meta">
+          <span class="island-chip-en">${island.en}</span>
+          <span class="island-chip-name">${island.name}</span>
+          <span class="island-chip-desc">${island.desc}</span>
+        </span>
+        <span class="island-chip-check" aria-hidden="true">✓</span>
+      </button>
+    `).join('');
+    wrap.querySelectorAll('[data-island]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        Store.updateProfile({ favoriteIsland: btn.dataset.island });
+        renderIslandPicker();
+        renderPreview();
+        UI.toast('推しの島を変更しました', 'good');
+      });
+    });
+  }
+
+  function renderPreview() {
+    const s = Store.get();
+    const profile = s.profile;
+    const rank = window.getRankByPoints(s.points);
+
+    const previewName = document.getElementById('settingsPreviewName');
+    if (previewName) previewName.textContent = s.name || 'ゲスト';
+
+    const previewRank = document.getElementById('settingsPreviewRank');
+    if (previewRank) previewRank.textContent = `${rank.emoji} ${rank.name}`;
+
+    const previewBio = document.getElementById('settingsPreviewBio');
+    if (previewBio) {
+      previewBio.textContent = profile.bio
+        || (profile.region ? `${profile.region} から学んでいます` : 'よろしくお願いします！');
+    }
+
+    refreshAllAvatars(profile.avatarFrame, profile.avatarPattern);
+
+    // License page shortcut
+    const shortcutName = document.getElementById('profileShortcutName');
+    if (shortcutName) shortcutName.textContent = s.name || 'ゲスト';
+    const shortcutSub = document.getElementById('profileShortcutSub');
+    if (shortcutSub) {
+      shortcutSub.textContent = profile.bio
+        ? profile.bio
+        : 'ニックネーム・アバター・自己紹介を設定';
+    }
+  }
+
+  function renderInfo() {
+    const s = Store.get();
+    const idEl = document.getElementById('settingsUserId');
+    if (idEl) idEl.textContent = s.userId || '—';
+    const createdEl = document.getElementById('settingsCreatedAt');
+    if (createdEl) {
+      if (s.createdAt) {
+        const d = new Date(s.createdAt);
+        createdEl.textContent = `${d.getFullYear()}.${String(d.getMonth()+1).padStart(2,'0')}.${String(d.getDate()).padStart(2,'0')}`;
+      } else {
+        createdEl.textContent = '—';
+      }
+    }
+  }
+
+  /* ---------------- Form bindings ---------------- */
+
+  function bindBasicFields() {
+    const nameInput = document.getElementById('settingsName');
+    const bioInput = document.getElementById('settingsBio');
+    const bioCount = document.getElementById('settingsBioCount');
+    const regionInput = document.getElementById('settingsRegion');
+    const birthdayInput = document.getElementById('settingsBirthday');
+
+    function syncFromState() {
+      const s = Store.get();
+      const p = s.profile;
+      if (nameInput && document.activeElement !== nameInput) {
+        nameInput.value = s.name === 'ゲスト' ? '' : s.name;
+      }
+      if (bioInput && document.activeElement !== bioInput) {
+        bioInput.value = p.bio || '';
+      }
+      if (bioCount) bioCount.textContent = (bioInput?.value || '').length;
+      if (regionInput && document.activeElement !== regionInput) {
+        regionInput.value = p.region || '';
+      }
+      if (birthdayInput && document.activeElement !== birthdayInput) {
+        birthdayInput.value = p.birthday || '';
+      }
+    }
+
+    if (nameInput) {
+      nameInput.addEventListener('input', () => {
+        Store.setName(nameInput.value);
+        UI.refreshHeader();
+        renderPreview();
+      });
+    }
+    if (bioInput) {
+      bioInput.addEventListener('input', () => {
+        Store.updateProfile({ bio: bioInput.value });
+        if (bioCount) bioCount.textContent = bioInput.value.length;
+        renderPreview();
+      });
+    }
+    if (regionInput) {
+      regionInput.addEventListener('input', () => {
+        Store.updateProfile({ region: regionInput.value });
+        renderPreview();
+      });
+    }
+    if (birthdayInput) {
+      birthdayInput.addEventListener('change', () => {
+        Store.updateProfile({ birthday: birthdayInput.value });
+      });
+    }
+
+    // Re-sync inputs whenever the page is opened
+    UI.on && UI.on('page', (page) => {
+      if (page === 'settings') syncFromState();
+    });
+    // Initial sync
+    syncFromState();
+  }
+
+  function bindToggles() {
+    const map = [
+      { id: 'setSoundEffects', key: 'soundEffects' },
+      { id: 'setConfetti',     key: 'confetti' },
+      { id: 'setHaptics',      key: 'haptics' },
+      { id: 'setReduceMotion', key: 'reduceMotion' },
+      { id: 'setHighContrast', key: 'highContrast' },
+      { id: 'setNotifyDaily',  key: 'notifyDaily' }
+    ];
+    function syncFromState() {
+      const settings = Store.getSettings();
+      map.forEach(m => {
+        const el = document.getElementById(m.id);
+        if (el) el.checked = !!settings[m.key];
+      });
+      applyVisualPrefs(settings);
+    }
+    map.forEach(m => {
+      const el = document.getElementById(m.id);
+      if (!el) return;
+      el.addEventListener('change', () => {
+        Store.updateSettings({ [m.key]: el.checked });
+        applyVisualPrefs(Store.getSettings());
+        UI.toast(el.checked ? 'オンにしました' : 'オフにしました', 'good', 1600);
+      });
+    });
+    syncFromState();
+  }
+
+  function applyVisualPrefs(settings) {
+    document.documentElement.classList.toggle('reduce-motion', !!settings.reduceMotion);
+    document.documentElement.classList.toggle('high-contrast', !!settings.highContrast);
+  }
+
+  /* ---------------- Data buttons ---------------- */
+
+  function bindDataButtons() {
+    const exportBtn = document.getElementById('settingsExportBtn');
+    if (exportBtn) {
+      exportBtn.addEventListener('click', () => {
+        try {
+          const s = Store.get();
+          const json = JSON.stringify(s, null, 2);
+          const blob = new Blob([json], { type: 'application/json' });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          const date = new Date().toISOString().slice(0, 10);
+          a.href = url;
+          a.download = `hoppou-status-${s.userId || 'guest'}-${date}.json`;
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
+          setTimeout(() => URL.revokeObjectURL(url), 2000);
+          UI.toast('データをエクスポートしました', 'good');
+        } catch (e) {
+          console.error(e);
+          UI.toast('エクスポートに失敗しました', 'bad');
+        }
+      });
+    }
+
+    const importBtn = document.getElementById('settingsImportBtn');
+    const importFile = document.getElementById('settingsImportFile');
+    if (importBtn && importFile) {
+      importBtn.addEventListener('click', () => importFile.click());
+      importFile.addEventListener('change', () => {
+        const file = importFile.files && importFile.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = () => {
+          try {
+            const data = JSON.parse(reader.result);
+            if (typeof data !== 'object' || !data) throw new Error('invalid');
+            if (!confirm('現在のデータを上書きしてインポートしますか？')) return;
+            // Merge into store
+            Object.assign(Store.state, data);
+            Store.commit();
+            UI.toast('データをインポートしました', 'good');
+            // Re-render everything
+            UI.refreshHeader();
+            UI.refreshHome();
+            renderPreview();
+            renderInfo();
+            renderFramePicker();
+            renderPatternPicker();
+            renderIslandPicker();
+            if (window.Quiz) Quiz.refresh();
+            if (window.Shop) Shop.refresh();
+            if (window.License) License.refresh();
+          } catch (e) {
+            console.error(e);
+            UI.toast('読み込みに失敗しました', 'bad');
+          } finally {
+            importFile.value = '';
+          }
+        };
+        reader.readAsText(file);
+      });
+    }
+
+    const resetBtn = document.getElementById('settingsResetBtn');
+    if (resetBtn) {
+      resetBtn.addEventListener('click', () => {
+        if (!confirm('全てのデータをリセットします。よろしいですか？\nこの操作は元に戻せません。')) return;
+        Store.reset();
+        UI.toast('データをリセットしました', 'good');
+        UI.refreshHeader();
+        UI.refreshHome();
+        renderPreview();
+        renderInfo();
+        renderFramePicker();
+        renderPatternPicker();
+        renderIslandPicker();
+        if (window.Quiz) Quiz.refresh();
+        if (window.Shop) Shop.refresh();
+        if (window.License) License.refresh();
+      });
+    }
+
+    const creditsBtn = document.getElementById('settingsCreditsBtn');
+    if (creditsBtn) {
+      creditsBtn.addEventListener('click', () => {
+        if (window.UI && UI.openModal) UI.openModal('creditsModal');
+      });
+    }
+  }
+
+  /* ---------------- Init ---------------- */
+
+  function init() {
+    renderFramePicker();
+    renderPatternPicker();
+    renderIslandPicker();
+    renderPreview();
+    renderInfo();
+    bindBasicFields();
+    bindToggles();
+    bindDataButtons();
+
+    // Apply initial visual prefs immediately
+    applyVisualPrefs(Store.getSettings());
+
+    // Apply avatar style on first paint
+    const p = Store.getProfile();
+    refreshAllAvatars(p.avatarFrame, p.avatarPattern);
+
+    // Re-render preview on any state change
+    Store.on('change', () => {
+      renderPreview();
+      renderInfo();
+    });
+  }
+
+  function refresh() {
+    renderFramePicker();
+    renderPatternPicker();
+    renderIslandPicker();
+    renderPreview();
+    renderInfo();
+  }
+
+  window.Settings = { init, refresh };
+})();
