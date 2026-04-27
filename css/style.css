@@ -3755,3 +3755,169 @@ html.high-contrast .stat-value {
   transform: scale(1.15) translateY(4%);
 }
 
+/* ============================================================
+   Responsive — tablet & desktop layouts
+   ============================================================ */
+
+/* ----- Tablet (≥ 768px) ----- */
+@media (min-width: 768px) {
+  :root { --max-w: 720px; }
+
+  .topbar { padding: 12px 18px; }
+  .main { padding: 18px 20px 36px; }
+
+  /* Quick tiles 4 across */
+  .quick-grid { grid-template-columns: repeat(4, 1fr); }
+  .quick-tile-inner { padding: 18px 14px 14px; }
+
+  /* Place strip becomes a 2x2 grid */
+  .place-strip {
+    grid-auto-flow: row;
+    grid-template-columns: repeat(2, 1fr);
+    grid-auto-columns: unset;
+    overflow: visible;
+    margin: 0 0 18px;
+    padding: 0 0 4px;
+    scroll-snap-type: none;
+    gap: 12px;
+  }
+  .place-card { aspect-ratio: 16 / 9; }
+
+  /* Achievements 4 across */
+  .achieve-grid { grid-template-columns: repeat(4, 1fr); }
+
+  /* Shop 3 across */
+  .shop-grid { grid-template-columns: repeat(3, 1fr); }
+
+  /* Frame picker 6 across */
+  .frame-picker { grid-template-columns: repeat(6, 1fr); }
+
+  /* Hero scene proportions */
+  .hero-scene { aspect-ratio: 16 / 9; }
+
+  /* Bottom nav slightly narrower than max-w to feel like a pill */
+  .bottom-nav { width: min(640px, calc(100% - 32px)); }
+}
+
+/* ----- Desktop (≥ 1100px) ----- */
+@media (min-width: 1100px) {
+  :root {
+    --max-w: 1080px;
+    --nav-h: 72px;
+  }
+
+  body { font-size: 15.5px; }
+
+  .app {
+    padding-bottom: calc(var(--nav-h) + 40px);
+  }
+
+  /* Topbar */
+  .topbar { padding: 16px 28px; gap: 24px; }
+  .topbar-name { font-size: 1.05rem; }
+  .topbar-rank { font-size: 1.05rem; }
+  .points-chip { padding: 10px 16px; font-size: 1.05rem; }
+
+  /* Main padding */
+  .main { padding: 28px 28px 56px; }
+
+  /* Page heads bigger */
+  .page-head h2 { font-size: 1.7rem; }
+  .page-head .page-desc { font-size: 1rem; }
+
+  /* Bottom nav: keep as a centered pill, never wider than 720 */
+  .bottom-nav { width: min(720px, calc(100% - 48px)); }
+  .bottom-nav-inner { padding: 8px 16px; }
+
+  /* Hero scene wide & limited height */
+  .hero-scene {
+    aspect-ratio: 21 / 9;
+    max-height: 380px;
+  }
+  .hero-bubble { max-width: 360px; font-size: 1rem; }
+  .hero-stamp { width: 110px; height: 110px; right: 18px; top: 18px; }
+
+  /* Status / level card spacing */
+  .status-card { padding: 22px 24px; }
+
+  /* Place strip — 4 cards in a row */
+  .place-strip {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+  }
+  .place-card { aspect-ratio: 4 / 3; }
+
+  /* Quick tiles padding more relaxed */
+  .quick-tile-inner { padding: 22px 18px 18px; }
+  .quick-icon { font-size: 2.4rem; }
+  .quick-label { font-size: 1.1rem; }
+
+  /* Achievements 4 across with more breathing room */
+  .achieve-grid { gap: 14px; }
+
+  /* Shop 3 across stays */
+  .shop-grid { gap: 16px; }
+
+  /* Settings page two-column flow */
+  .page-settings {
+    column-count: 2;
+    column-gap: 28px;
+  }
+  .page-settings .page-head,
+  .page-settings .settings-preview {
+    column-span: all;
+    -webkit-column-span: all;
+  }
+  .page-settings .settings-section {
+    break-inside: avoid;
+    -webkit-column-break-inside: avoid;
+    page-break-inside: avoid;
+    margin-bottom: 22px;
+  }
+  /* Section card body keep readable max width */
+  .settings-card { padding: 18px 18px; }
+
+  /* Frame picker tighter on desktop (6 cols already) */
+  .frame-picker { gap: 10px; }
+  .pattern-picker { gap: 10px; }
+
+  /* Modal sizing */
+  .modal-card { max-width: 540px; }
+  .detail-card { max-width: 620px; }
+  #historyModal .modal-card { max-width: 600px; }
+
+  /* License page: rank list 2 columns */
+  .rank-list {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 14px;
+  }
+  .rank-list .rank-item { margin: 0; }
+
+  /* License card centered, capped width */
+  .license-card-flipper {
+    max-width: 640px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  /* QR scanner area: show camera + manual side-by-side */
+  .qr-stage { max-width: 480px; margin-left: auto; margin-right: auto; }
+  .qr-manual { max-width: 480px; margin-left: auto; margin-right: auto; }
+  .qr-hint { max-width: 720px; margin-left: auto; margin-right: auto; }
+
+  /* Quiz list cards: 2 cols */
+  .quiz-list { grid-template-columns: repeat(2, 1fr); display: grid; gap: 14px; }
+
+  /* Notice / shortcut centered */
+  .notice-banner { max-width: 720px; margin-left: auto; margin-right: auto; }
+  .home-settings-cta { max-width: 720px; margin-left: auto; margin-right: auto; }
+
+  /* App credit centered */
+  .app-credit { max-width: 720px; margin-left: auto; margin-right: auto; }
+}
+
+/* ----- Wide desktop (≥ 1440px) — keep content focused ----- */
+@media (min-width: 1440px) {
+  :root { --max-w: 1140px; }
+}
