@@ -399,6 +399,105 @@ window.QUIZZES = [
   }
 ];
 
+/* ============================================================
+   Nemuro Furusato Nozei (ふるさと納税) catalog
+   Educational reference — actual donations happen on official portals.
+   ============================================================ */
+window.NEMURO_FURUSATO = [
+  {
+    id: 'hanasaki-crab',
+    name: '花咲ガニ姿茹で 1.0kg',
+    desc: '根室を代表する高級ガニ。濃厚な味わいが絶品',
+    emoji: '🦀',
+    category: 'カニ',
+    amount: 22000,
+    accent: 'coral'
+  },
+  {
+    id: 'salmon-roe',
+    name: 'いくら醤油漬け 500g',
+    desc: '北海道産の鮭から取れた、宝石のようないくら',
+    emoji: '🍣',
+    category: '海鮮',
+    amount: 17000,
+    accent: 'cherry'
+  },
+  {
+    id: 'scallops',
+    name: '北海道産 ホタテ貝柱 1kg',
+    desc: '甘みたっぷりの大粒ホタテ。お刺身にも',
+    emoji: '🐚',
+    category: '海鮮',
+    amount: 14000,
+    accent: 'ocean'
+  },
+  {
+    id: 'sea-urchin',
+    name: 'バフンウニ 折詰 100g',
+    desc: '濃厚クリーミーな根室産ウニ。獲れたて直送',
+    emoji: '🟡',
+    category: '海鮮',
+    amount: 18000,
+    accent: 'gold'
+  },
+  {
+    id: 'oysters',
+    name: '殻付き生牡蠣 5kg（約40〜50個）',
+    desc: '冷たい海で育った濃厚な味の生牡蠣',
+    emoji: '🦪',
+    category: '海鮮',
+    amount: 16000,
+    accent: 'plum'
+  },
+  {
+    id: 'salmon-whole',
+    name: '北海道産 鮭まるごと一本（約2.5kg）',
+    desc: '塩漬けの鮭一本を丸ごとお届け。切り分けて長期保存も可',
+    emoji: '🐟',
+    category: '魚',
+    amount: 23000,
+    accent: 'coral'
+  },
+  {
+    id: 'kelp',
+    name: '根室産 棹前昆布 2kg',
+    desc: '上品な味わいの根室産昆布。出汁・煮物に',
+    emoji: '🌿',
+    category: '乾物',
+    amount: 9000,
+    accent: 'mint'
+  },
+  {
+    id: 'crab-set',
+    name: '花咲ガニ＋毛ガニ 食べ比べセット',
+    desc: '根室名物の二大ガニを贅沢に食べ比べ',
+    emoji: '🦀',
+    category: 'カニ',
+    amount: 35000,
+    accent: 'coral'
+  },
+  {
+    id: 'salmon-roe-trout',
+    name: '醤油いくら＆鮭ハラス 詰合せ',
+    desc: 'ご飯のお供にぴったり。家族で楽しめるセット',
+    emoji: '🍱',
+    category: '海鮮',
+    amount: 13000,
+    accent: 'gold'
+  },
+  {
+    id: 'history-book',
+    name: '北方領土学習図書セット',
+    desc: '元島民の証言や写真をまとめた学習資料',
+    emoji: '📚',
+    category: '文化',
+    amount: 8000,
+    accent: 'ocean'
+  }
+];
+
+window.FURUSATO_PORTAL_URL = 'https://www.city.nemuro.hokkaido.jp/dispatcher.do?url=hr0307';
+
 window.SHOP_ITEMS = [
   {
     id: 'sticker-erika',

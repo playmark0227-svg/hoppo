@@ -15,7 +15,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700;900&family=Kosugi+Maru&family=Yuji+Syuku&family=M+PLUS+Rounded+1c:wght@500;700;800;900&display=swap" rel="stylesheet">
 
-  <link rel="stylesheet" href="css/style.css?v=14">
+  <link rel="stylesheet" href="css/style.css?v=15">
 </head>
 <body>
 
@@ -374,11 +374,60 @@
           <div class="shop-balance-hint">クイズやQRでポイントを貯めよう！</div>
         </div>
 
-        <div id="shopGrid" class="shop-grid"></div>
+        <!-- Tabs: ポイント交換 / ふるさと納税 -->
+        <div class="shop-tabs" role="tablist" aria-label="ショップの種類">
+          <button type="button" class="shop-tab active" id="shopTabPoints"
+                  role="tab" aria-selected="true" aria-controls="shopPanelPoints"
+                  data-shop-tab="points">
+            <span class="shop-tab-icon">🎁</span>
+            <span class="shop-tab-label">ポイント交換</span>
+          </button>
+          <button type="button" class="shop-tab" id="shopTabFurusato"
+                  role="tab" aria-selected="false" aria-controls="shopPanelFurusato"
+                  data-shop-tab="furusato">
+            <span class="shop-tab-icon">🎁</span>
+            <span class="shop-tab-label">ふるさと納税</span>
+            <span class="shop-tab-badge">根室市</span>
+          </button>
+        </div>
 
-        <div class="shop-history">
-          <h3 class="section-title"><span>🧾</span> 交換履歴</h3>
-          <ul id="shopHistory" class="shop-history-list"></ul>
+        <!-- Panel: ポイント交換 -->
+        <div class="shop-panel shop-panel-points active" id="shopPanelPoints"
+             role="tabpanel" aria-labelledby="shopTabPoints">
+          <div id="shopGrid" class="shop-grid"></div>
+
+          <div class="shop-history">
+            <h3 class="section-title"><span>🧾</span> 交換履歴</h3>
+            <ul id="shopHistory" class="shop-history-list"></ul>
+          </div>
+        </div>
+
+        <!-- Panel: ふるさと納税 -->
+        <div class="shop-panel shop-panel-furusato" id="shopPanelFurusato"
+             role="tabpanel" aria-labelledby="shopTabFurusato" hidden>
+          <div class="furusato-intro">
+            <div class="furusato-intro-icon">🌊</div>
+            <div class="furusato-intro-body">
+              <h3 class="furusato-intro-title">ふるさと納税で根室市を応援</h3>
+              <p class="furusato-intro-desc">
+                根室市は北方領土返還運動の拠点。寄附金は元島民支援や啓発活動にも使われます。
+                返礼品は根室名物の海産物を中心にお届け。
+              </p>
+            </div>
+          </div>
+
+          <div id="furusatoGrid" class="furusato-grid"></div>
+
+          <div class="furusato-cta">
+            <a class="furusato-cta-btn" id="furusatoPortalBtn"
+               href="https://www.furusato-tax.jp/city/info/01223" target="_blank" rel="noopener noreferrer">
+              <span>根室市の公式ふるさと納税ページへ</span>
+              <span aria-hidden="true">↗</span>
+            </a>
+            <p class="furusato-disclaimer">
+              ※ 表示の返礼品・金額は参考例です。実際の寄附は公式ポータル（ふるさとチョイス・さとふる等）からお願いします。
+            </p>
+          </div>
         </div>
       </section>
 
@@ -936,15 +985,15 @@
     <canvas id="confetti" class="confetti"></canvas>
   </div>
 
-  <script src="js/data.js?v=14"></script>
-  <script src="js/store.js?v=14"></script>
-  <script src="js/ui.js?v=14"></script>
-  <script src="js/achievements.js?v=14"></script>
-  <script src="js/quiz.js?v=14"></script>
-  <script src="js/shop.js?v=14"></script>
-  <script src="js/qr.js?v=14"></script>
-  <script src="js/license.js?v=14"></script>
-  <script src="js/settings.js?v=14"></script>
-  <script src="js/app.js?v=14"></script>
+  <script src="js/data.js?v=15"></script>
+  <script src="js/store.js?v=15"></script>
+  <script src="js/ui.js?v=15"></script>
+  <script src="js/achievements.js?v=15"></script>
+  <script src="js/quiz.js?v=15"></script>
+  <script src="js/shop.js?v=15"></script>
+  <script src="js/qr.js?v=15"></script>
+  <script src="js/license.js?v=15"></script>
+  <script src="js/settings.js?v=15"></script>
+  <script src="js/app.js?v=15"></script>
 </body>
 </html>

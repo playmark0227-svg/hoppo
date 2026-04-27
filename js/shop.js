@@ -88,5 +88,72 @@
     render();
   }
 
-  window.Shop = { init: render, refresh: render };
+  /* ---------------- Furusato (ふるさと納税) ---------------- */
+
+  function bindTabs() {
+    document.querySelectorAll('[data-shop-tab]').forEach(btn => {
+      btn.addEventListener('click', () => switchTab(btn.dataset.shopTab));
+    });
+  }
+
+  function switchTab(which) {
+    document.querySelectorAll('.shop-tab').forEach(t => {
+      const active = t.dataset.shopTab === which;
+      t.classList.toggle('active', active);
+      t.setAttribute('aria-selected', active ? 'true' : 'false');
+    });
+    const points = document.getElementById('shopPanelPoints');
+    const furu   = document.getElementById('shopPanelFurusato');
+    if (points && furu) {
+      const isPoints = which === 'points';
+      points.classList.toggle('active', isPoints);
+      furu.classList.toggle('active', !isPoints);
+      points.hidden = !isPoints;
+      furu.hidden = isPoints;
+    }
+    if (which === 'furusato') renderFurusato();
+  }
+
+  function renderFurusato() {
+    const grid = document.getElementById('furusatoGrid');
+    if (!grid) return;
+    const items = window.NEMURO_FURUSATO || [];
+    grid.innerHTML = items.map(item => `
+      <div class="furusato-item" data-accent="${item.accent || 'coral'}">
+        <div class="furusato-item-img">
+          <span class="furusato-item-emoji">${item.emoji}</span>
+          <span class="furusato-item-cat">${item.category}</span>
+        </div>
+        <div class="furusato-item-name">${item.name}</div>
+        <div class="furusato-item-desc">${item.desc}</div>
+        <div class="furusato-item-foot">
+          <span class="furusato-item-amount">寄附 ¥${item.amount.toLocaleString()}〜</span>
+          <button class="furusato-item-btn" data-furusato="${item.id}">詳細</button>
+        </div>
+      </div>
+    `).join('');
+    grid.querySelectorAll('[data-furusato]').forEach(btn => {
+      btn.addEventListener('click', () => openFurusatoDetail(btn.dataset.furusato));
+    });
+  }
+
+  function openFurusatoDetail(itemId) {
+    const item = (window.NEMURO_FURUSATO || []).find(i => i.id === itemId);
+    if (!item) return;
+    const ok = confirm(
+      `「${item.name}」\n寄附金額の目安: ¥${item.amount.toLocaleString()}〜\n\n` +
+      `${item.desc}\n\n` +
+      `公式のふるさと納税ポータルで詳細を確認しますか？`
+    );
+    if (ok) {
+      window.open('https://www.furusato-tax.jp/city/info/01223', '_blank', 'noopener');
+    }
+  }
+
+  function init() {
+    bindTabs();
+    render();
+  }
+
+  window.Shop = { init, refresh: render, renderFurusato };
 })();

@@ -1574,6 +1574,241 @@ code { font-family: 'SFMono-Regular', ui-monospace, 'Kosugi Maru', monospace; }
 .shop-balance-value small { font-size: 0.9rem; margin-left: 4px; font-weight: 700; color: var(--c-ink-soft); }
 .shop-balance-hint { font-size: 0.78rem; color: var(--c-ink-soft); font-weight: 500; }
 
+/* ============================================================
+   Shop Tabs (ポイント / ふるさと納税)
+   ============================================================ */
+.shop-tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.6);
+  padding: 6px;
+  border-radius: 16px;
+  margin: 0 0 16px;
+  border: 1.5px solid rgba(255, 255, 255, 0.9);
+  box-shadow: var(--sh-sm);
+}
+.shop-tab {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 12px 10px;
+  border: none;
+  background: transparent;
+  border-radius: 12px;
+  font: inherit;
+  font-weight: 800;
+  font-size: 0.95rem;
+  color: var(--c-ink-soft);
+  cursor: pointer;
+  transition: background 0.18s ease, color 0.18s ease, transform 0.18s var(--ease-pop);
+  position: relative;
+}
+.shop-tab:hover { color: var(--c-ink); transform: translateY(-1px); }
+.shop-tab.active {
+  background: linear-gradient(135deg, #fff, #fff8ec);
+  color: var(--c-coral-deep);
+  box-shadow: 0 4px 10px rgba(244, 122, 90, 0.2);
+}
+.shop-tab-icon { font-size: 1.1rem; }
+.shop-tab-badge {
+  display: inline-block;
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #ff5a36, #ffcf57);
+  color: #fff;
+  font-size: 0.65rem;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+}
+
+/* Panels */
+.shop-panel { display: none; }
+.shop-panel.active { display: block; animation: shopPanelIn 0.32s ease; }
+@keyframes shopPanelIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ============================================================
+   Furusato (ふるさと納税) panel
+   ============================================================ */
+.furusato-intro {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px 18px;
+  border-radius: var(--r-lg);
+  background:
+    linear-gradient(135deg, rgba(90, 167, 209, 0.16), rgba(255, 207, 87, 0.18)),
+    #fff;
+  border: 2px solid #fff;
+  box-shadow: var(--sh-sm);
+  margin-bottom: 18px;
+}
+.furusato-intro-icon {
+  font-size: 2.4rem;
+  flex-shrink: 0;
+  width: 56px; height: 56px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: inset 0 0 0 2px rgba(90, 167, 209, 0.35);
+}
+.furusato-intro-title {
+  margin: 0 0 4px;
+  font-size: 1.05rem;
+  font-weight: 900;
+  color: var(--c-ink);
+}
+.furusato-intro-desc {
+  margin: 0;
+  font-size: 0.85rem;
+  line-height: 1.5;
+  color: var(--c-ink-soft);
+  font-weight: 600;
+}
+
+.furusato-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+.furusato-item {
+  background: #fff;
+  border-radius: var(--r-lg);
+  padding: 12px;
+  border: 2.5px solid #fff;
+  box-shadow: var(--sh-sm);
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.2s var(--ease-pop), box-shadow 0.2s;
+}
+.furusato-item:hover { transform: translateY(-2px); box-shadow: var(--sh-md); }
+.furusato-item-img {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  border-radius: var(--r-md);
+  display: grid; place-items: center;
+  font-size: 3.6rem;
+  margin-bottom: 10px;
+  position: relative;
+  background: linear-gradient(135deg, var(--c-coral-soft), var(--c-gold-soft));
+}
+.furusato-item[data-accent="ocean"]  .furusato-item-img { background: linear-gradient(135deg, var(--c-ocean-soft), #fff8ec); }
+.furusato-item[data-accent="cherry"] .furusato-item-img { background: linear-gradient(135deg, var(--c-cherry-soft), #fff7ec); }
+.furusato-item[data-accent="gold"]   .furusato-item-img { background: linear-gradient(135deg, var(--c-gold-soft),  #fff5ea); }
+.furusato-item[data-accent="mint"]   .furusato-item-img { background: linear-gradient(135deg, #d3f0e0, #fff7ec); }
+.furusato-item[data-accent="plum"]   .furusato-item-img { background: linear-gradient(135deg, #ddd2ff, #fff7ec); }
+.furusato-item-emoji {
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.18));
+  transition: transform 0.3s var(--ease-pop);
+}
+.furusato-item:hover .furusato-item-emoji { transform: scale(1.05) rotate(-3deg); }
+.furusato-item-cat {
+  position: absolute;
+  top: 8px; right: 8px;
+  background: #fff;
+  color: var(--c-coral-deep);
+  font-size: 0.62rem;
+  font-weight: 900;
+  padding: 3px 9px;
+  border-radius: 999px;
+  letter-spacing: 0.04em;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+}
+.furusato-item-name {
+  font-size: 0.95rem;
+  font-weight: 900;
+  margin-bottom: 4px;
+  color: var(--c-ink);
+  line-height: 1.3;
+}
+.furusato-item-desc {
+  font-size: 0.78rem;
+  color: var(--c-ink-soft);
+  line-height: 1.45;
+  margin-bottom: 10px;
+  flex-grow: 1;
+}
+.furusato-item-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+}
+.furusato-item-amount {
+  font-size: 0.85rem;
+  font-weight: 900;
+  color: var(--c-coral-deep);
+}
+.furusato-item-btn {
+  padding: 7px 14px;
+  border-radius: 999px;
+  border: none;
+  background: linear-gradient(180deg, #ff8b6c, #f47a5a);
+  color: #fff;
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 900;
+  cursor: pointer;
+  transition: transform 0.15s var(--ease-pop), box-shadow 0.15s ease;
+  box-shadow: 0 4px 10px rgba(244, 122, 90, 0.3);
+}
+.furusato-item-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 14px rgba(244, 122, 90, 0.4); }
+.furusato-item-btn:active { transform: scale(0.96); }
+
+.furusato-cta {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 10px;
+  padding: 16px;
+  background:
+    linear-gradient(180deg, rgba(255, 252, 246, 0.96), rgba(255, 246, 234, 0.92));
+  border-radius: var(--r-lg);
+  border: 2px solid #fff;
+  box-shadow: var(--sh-sm);
+}
+.furusato-cta-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 14px 18px;
+  background: linear-gradient(135deg, #5aa7d1, #4f8fb8);
+  color: #fff;
+  font-weight: 900;
+  font-size: 0.98rem;
+  border-radius: 14px;
+  text-decoration: none;
+  box-shadow: 0 8px 18px rgba(90, 167, 209, 0.35);
+  transition: transform 0.18s var(--ease-pop), box-shadow 0.18s ease;
+}
+.furusato-cta-btn:hover { transform: translateY(-1px); box-shadow: 0 10px 22px rgba(90, 167, 209, 0.45); }
+.furusato-cta-btn:active { transform: scale(0.98); }
+.furusato-disclaimer {
+  margin: 0;
+  font-size: 0.72rem;
+  color: var(--c-ink-soft);
+  text-align: center;
+  line-height: 1.45;
+  font-weight: 600;
+}
+
+@media (min-width: 768px) {
+  .furusato-grid { grid-template-columns: repeat(3, 1fr); }
+}
+@media (min-width: 1100px) {
+  .furusato-grid { grid-template-columns: repeat(4, 1fr); }
+  .furusato-intro { padding: 20px 24px; }
+}
+
 .shop-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
