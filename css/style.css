@@ -369,13 +369,14 @@ code { font-family: 'SFMono-Regular', ui-monospace, 'Kosugi Maru', monospace; }
    ============================================================ */
 .hero-scene {
   position: relative;
-  height: 280px;
+  height: 300px;
   border-radius: var(--r-xl);
   margin-bottom: 16px;
   overflow: hidden;
   box-shadow: var(--sh-md);
   border: 3px solid #fff;
   isolation: isolate;
+  background: linear-gradient(180deg, #ffd5ad 0%, #ffe7c3 18%, #c9e2ee 50%, #6fa8c9 100%);
 }
 /* Real-photo backdrop blended with illustrated overlay */
 .hero-scene-photo {
@@ -384,20 +385,22 @@ code { font-family: 'SFMono-Regular', ui-monospace, 'Kosugi Maru', monospace; }
   background-image: url('../assets/images/hoppou/kunashir-view.jpg');
   background-size: cover;
   background-position: 50% 55%;
-  filter: blur(1px) saturate(0.95);
-  opacity: 0.85;
-}
-.hero-scene-photo::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background:
-    linear-gradient(180deg, rgba(167, 215, 242, 0.6) 0%, rgba(216, 236, 246, 0.25) 30%, rgba(255, 244, 224, 0.1) 60%, rgba(255, 224, 194, 0.55) 100%);
+  filter: saturate(0.85) brightness(1.02);
+  opacity: 0.4;
+  mix-blend-mode: soft-light;
 }
 .hero-scene-bg {
   position: absolute;
   inset: 0;
-  background: linear-gradient(180deg, rgba(167, 215, 242, 0) 0%, rgba(216, 236, 246, 0.0) 45%, rgba(255, 244, 224, 0.55) 75%, rgba(255, 224, 194, 0.85) 100%);
+  background:
+    radial-gradient(180% 90% at 90% 0%, rgba(255, 174, 110, 0.65) 0%, rgba(255, 174, 110, 0) 40%),
+    linear-gradient(180deg,
+      rgba(255, 213, 173, 0.85) 0%,
+      rgba(255, 231, 195, 0.45) 18%,
+      rgba(201, 226, 238, 0.05) 50%,
+      rgba(111, 168, 201, 0.0) 75%,
+      rgba(64, 117, 156, 0.18) 100%);
+  pointer-events: none;
 }
 
 /* Hero scene badge — round stamp in corner */
@@ -405,17 +408,22 @@ code { font-family: 'SFMono-Regular', ui-monospace, 'Kosugi Maru', monospace; }
   position: absolute;
   top: 14px;
   right: 14px;
-  width: 76px;
-  height: 76px;
+  width: 78px;
+  height: 78px;
   border-radius: 50%;
-  background: rgba(255,255,255,0.82);
+  background: rgba(255,255,255,0.92);
   border: 2px solid #fff;
-  box-shadow: var(--sh-sm);
+  box-shadow: 0 6px 18px rgba(43, 36, 53, 0.22);
   backdrop-filter: blur(6px);
-  z-index: 4;
+  z-index: 8;
   display: grid;
   place-items: center;
   transform: rotate(-6deg);
+  animation: hero-stamp-bob 5s ease-in-out infinite alternate;
+}
+@keyframes hero-stamp-bob {
+  from { transform: rotate(-7deg) translateY(0); }
+  to   { transform: rotate(-4deg) translateY(-2px); }
 }
 .hero-stamp::before {
   content: "";
@@ -436,93 +444,298 @@ code { font-family: 'SFMono-Regular', ui-monospace, 'Kosugi Maru', monospace; }
 .hero-stamp-ring span:nth-child(1) { font-size: 0.56rem; letter-spacing: 0.22em; }
 .hero-stamp-ring span:nth-child(2) { font-size: 0.78rem; margin: 3px 0; letter-spacing: 0.12em; }
 .hero-stamp-ring span:nth-child(3) { font-size: 0.5rem;  letter-spacing: 0.2em; opacity: 0.8; }
+/* ----- Sun + rays ----- */
 .hero-sun {
   position: absolute;
-  top: 18px; right: 24px;
-  width: 72px; height: 72px;
+  top: 22px; right: 30px;
+  width: 78px; height: 78px;
   border-radius: 50%;
-  background: radial-gradient(circle at 40% 40%, #fff8d6, #f6b93b 60%, transparent 75%);
-  filter: blur(0.3px);
-  box-shadow: 0 0 40px rgba(246, 185, 59, 0.6);
+  background:
+    radial-gradient(circle at 38% 38%, #fffaf0 0%, #ffd06b 55%, rgba(255, 169, 86, 0) 78%);
+  filter: blur(0.2px);
+  box-shadow:
+    0 0 30px rgba(255, 196, 102, 0.55),
+    0 0 60px rgba(255, 169, 86, 0.32);
+  animation: hero-sun-glow 4.5s ease-in-out infinite alternate;
+  z-index: 1;
 }
+@keyframes hero-sun-glow {
+  from { box-shadow: 0 0 30px rgba(255,196,102,0.45), 0 0 50px rgba(255,169,86,0.25); }
+  to   { box-shadow: 0 0 38px rgba(255,196,102,0.7),  0 0 70px rgba(255,169,86,0.4); }
+}
+.hero-sun-rays {
+  position: absolute;
+  top: 0; right: 0;
+  width: 220px; height: 220px;
+  background:
+    conic-gradient(from 0deg at 100% 0%,
+      rgba(255, 220, 160, 0) 0deg,
+      rgba(255, 220, 160, 0.18) 18deg,
+      rgba(255, 220, 160, 0) 28deg,
+      rgba(255, 220, 160, 0) 50deg,
+      rgba(255, 220, 160, 0.14) 60deg,
+      rgba(255, 220, 160, 0) 70deg,
+      rgba(255, 220, 160, 0) 100deg,
+      rgba(255, 220, 160, 0.16) 112deg,
+      rgba(255, 220, 160, 0) 122deg,
+      rgba(255, 220, 160, 0) 360deg);
+  pointer-events: none;
+  mix-blend-mode: screen;
+  opacity: 0.85;
+  animation: hero-rays-rotate 38s linear infinite;
+  transform-origin: 100% 0;
+  z-index: 1;
+}
+@keyframes hero-rays-rotate {
+  to { transform: rotate(360deg); }
+}
+
+/* ----- Clouds (fluffy, multi-puff) ----- */
 .hero-cloud {
   position: absolute;
   background: #fff;
   border-radius: 30px;
-  opacity: 0.85;
-  filter: blur(0.2px);
+  opacity: 0.92;
+  z-index: 2;
+}
+.hero-cloud::before, .hero-cloud::after {
+  content: "";
+  position: absolute;
+  background: #fff;
+  border-radius: 50%;
 }
 .hero-cloud-1 {
-  top: 30px; left: 18px;
-  width: 90px; height: 26px;
+  top: 32px; left: 24px;
+  width: 60px; height: 18px;
   box-shadow:
-    20px -14px 0 0 #fff,
-    44px -6px 0 0 #fff;
-  animation: cloud-drift 18s ease-in-out infinite alternate;
+    14px -10px 0 -2px rgba(255,255,255,0.95),
+    32px -4px 0 -2px rgba(255,255,255,0.95),
+    50px -8px 0 -3px rgba(255,255,255,0.92);
+  animation: hero-cloud-drift 22s ease-in-out infinite alternate;
 }
 .hero-cloud-2 {
-  top: 70px; left: 60%;
-  width: 70px; height: 20px;
-  box-shadow: 16px -10px 0 0 #fff;
-  animation: cloud-drift 24s ease-in-out -6s infinite alternate-reverse;
+  top: 76px; left: 38%;
+  width: 50px; height: 14px;
+  opacity: 0.85;
+  box-shadow:
+    12px -6px 0 -2px rgba(255,255,255,0.85),
+    26px -10px 0 -3px rgba(255,255,255,0.82);
+  animation: hero-cloud-drift 28s ease-in-out -8s infinite alternate-reverse;
 }
-@keyframes cloud-drift {
-  from { transform: translateX(-6px); }
-  to   { transform: translateX(10px); }
+.hero-cloud-3 {
+  top: 14px; right: 35%;
+  width: 36px; height: 11px;
+  opacity: 0.75;
+  box-shadow:
+    8px -4px 0 -2px rgba(255,255,255,0.78),
+    18px -6px 0 -3px rgba(255,255,255,0.72);
+  animation: hero-cloud-drift 32s ease-in-out -4s infinite alternate;
 }
+@keyframes hero-cloud-drift {
+  from { transform: translateX(-8px); }
+  to   { transform: translateX(14px); }
+}
+
+/* ----- Birds (silhouette flock drifting) ----- */
+.hero-birds {
+  position: absolute;
+  top: 56px;
+  left: -60px;
+  width: 120px;
+  height: 28px;
+  z-index: 2;
+  opacity: 0.8;
+  animation: hero-birds-fly 28s linear infinite;
+}
+@keyframes hero-birds-fly {
+  0%   { transform: translateX(0)     translateY(0); }
+  35%  { transform: translateX(180px) translateY(-6px); }
+  60%  { transform: translateX(320px) translateY(2px); }
+  100% { transform: translateX(560px) translateY(-4px); }
+}
+
+/* ----- Mountains (3 layered SVG silhouettes for depth) ----- */
+.hero-mountains {
+  position: absolute;
+  left: 0; right: 0;
+  bottom: 70px;
+  width: 100%;
+  height: 110px;
+  z-index: 3;
+  pointer-events: none;
+}
+
+/* ----- Lighthouse ----- */
+.hero-lighthouse {
+  position: absolute;
+  left: 26px;
+  bottom: 96px;
+  width: 14px;
+  height: 38px;
+  z-index: 4;
+  pointer-events: none;
+}
+.hero-lighthouse-body {
+  position: absolute;
+  left: 0; bottom: 0;
+  width: 100%; height: 28px;
+  background: linear-gradient(180deg, #fff 0%, #fff 50%, #d6473d 50%, #d6473d 65%, #fff 65%, #fff 80%, #d6473d 80%, #d6473d 100%);
+  border-radius: 2px 2px 0 0;
+  box-shadow: 0 1px 0 rgba(0,0,0,0.2);
+}
+.hero-lighthouse-cap {
+  position: absolute;
+  left: -3px;
+  bottom: 28px;
+  width: 20px;
+  height: 8px;
+  background: #2a3a4d;
+  border-radius: 8px 8px 2px 2px;
+  box-shadow: inset 0 -1px 0 rgba(0,0,0,0.3);
+}
+.hero-lighthouse-cap::before {
+  content: "";
+  position: absolute;
+  left: 7px;
+  top: -4px;
+  width: 6px; height: 4px;
+  background: #d6473d;
+  border-radius: 1px 1px 0 0;
+}
+.hero-lighthouse-beam {
+  position: absolute;
+  left: 50%; top: 30%;
+  width: 70px;
+  height: 16px;
+  transform: translateY(-50%);
+  background: linear-gradient(90deg, rgba(255, 230, 150, 0.6) 0%, rgba(255, 230, 150, 0) 100%);
+  filter: blur(2px);
+  border-radius: 0 50% 50% 0 / 0 50% 50% 0;
+  transform-origin: 0 50%;
+  animation: hero-lighthouse-sweep 5s ease-in-out infinite alternate;
+  opacity: 0.85;
+}
+@keyframes hero-lighthouse-sweep {
+  from { transform: translateY(-50%) rotate(-12deg); opacity: 0.5; }
+  to   { transform: translateY(-50%) rotate(18deg);  opacity: 0.95; }
+}
+
+/* ----- Sea ----- */
 .hero-sea {
   position: absolute;
   bottom: 0; left: 0; right: 0;
   height: 90px;
   background:
-    radial-gradient(60px 24px at 10% 100%, rgba(255,255,255,0.5), transparent 60%),
-    radial-gradient(60px 24px at 50% 100%, rgba(255,255,255,0.5), transparent 60%),
-    radial-gradient(60px 24px at 85% 100%, rgba(255,255,255,0.5), transparent 60%),
-    linear-gradient(180deg, rgba(90, 167, 209, 0) 0%, var(--c-ocean) 60%, var(--c-ocean-deep) 100%);
-  border-radius: 50% 50% 0 0 / 40% 40% 0 0;
+    linear-gradient(180deg,
+      rgba(140, 197, 220, 0.0) 0%,
+      rgba(95, 156, 188, 0.92) 22%,
+      rgba(58, 116, 152, 0.98) 70%,
+      rgba(38, 92, 128, 1) 100%);
+  z-index: 4;
 }
-.hero-island {
+.hero-sea::before {
+  /* Horizon highlight */
+  content: "";
   position: absolute;
-  bottom: 54px;
-  background: linear-gradient(180deg, #4b7a4b, #2d5a2d);
-  border-radius: 50% 50% 40% 60% / 100% 100% 0 0;
-  box-shadow: inset 0 -4px 0 rgba(0,0,0,0.15);
+  top: 6px; left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255, 220, 180, 0.55) 30%, rgba(255, 220, 180, 0.55) 70%, transparent);
 }
-.hero-island-1 { left: 14px;  width: 70px; height: 28px; }
-.hero-island-2 { left: 38%;   width: 90px; height: 34px; }
-.hero-island-3 { right: 20px; width: 60px; height: 22px; }
+.hero-shimmer {
+  position: absolute;
+  bottom: 0;
+  right: 24%;
+  width: 90px;
+  height: 84px;
+  background: radial-gradient(ellipse 60% 90% at 50% 0%, rgba(255, 209, 130, 0.55) 0%, rgba(255, 169, 86, 0) 70%);
+  filter: blur(1px);
+  z-index: 5;
+  pointer-events: none;
+}
+.hero-waves {
+  position: absolute;
+  bottom: 18px;
+  left: 0; right: 0;
+  width: 100%;
+  height: 26px;
+  z-index: 5;
+  pointer-events: none;
+  opacity: 0.8;
+  animation: hero-waves-shift 8s ease-in-out infinite alternate;
+}
+@keyframes hero-waves-shift {
+  from { transform: translateX(-2px); }
+  to   { transform: translateX(2px); }
+}
+
+/* ----- Drifting particles ----- */
+.hero-particle {
+  position: absolute;
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #fff, rgba(255,255,255,0));
+  filter: blur(0.3px);
+  pointer-events: none;
+  z-index: 6;
+  opacity: 0;
+  animation: hero-particle-float 14s linear infinite;
+}
+.hero-particle-1 { left: 14%;  top: 0; animation-delay: 0s;  }
+.hero-particle-2 { left: 30%;  top: 0; animation-delay: 3s; width: 4px; height: 4px; }
+.hero-particle-3 { left: 58%;  top: 0; animation-delay: 6s; width: 5px; height: 5px; }
+.hero-particle-4 { left: 76%;  top: 0; animation-delay: 9s; width: 4px; height: 4px; }
+.hero-particle-5 { left: 88%;  top: 0; animation-delay: 12s; width: 6px; height: 6px; }
+@keyframes hero-particle-float {
+  0%   { opacity: 0; transform: translateY(-12px) translateX(0); }
+  10%  { opacity: 0.85; }
+  50%  { transform: translateY(150px) translateX(20px); opacity: 0.7; }
+  90%  { opacity: 0.4; }
+  100% { opacity: 0; transform: translateY(280px) translateX(-10px); }
+}
 
 .hero-char-wrap {
   position: absolute;
-  bottom: 12px;
-  left: 50%;
+  bottom: 8px;
+  left: 60%;
   transform: translateX(-50%);
-  width: 58%;
-  max-width: 220px;
-  z-index: 2;
+  width: 48%;
+  max-width: 200px;
+  z-index: 7;
   animation: bob 3.2s ease-in-out infinite;
+}
+.hero-char-wrap::after {
+  /* Subtle ground reflection / shadow */
+  content: "";
+  position: absolute;
+  left: 12%;
+  right: 12%;
+  bottom: -2px;
+  height: 8px;
+  background: radial-gradient(ellipse 50% 100% at 50% 0%, rgba(20, 30, 50, 0.32), rgba(20, 30, 50, 0));
+  filter: blur(1px);
+  pointer-events: none;
 }
 .hero-char {
   width: 100%;
   height: auto;
-  filter: drop-shadow(0 10px 14px rgba(43, 36, 53, 0.18));
+  filter: drop-shadow(0 12px 16px rgba(43, 36, 53, 0.28));
 }
 
 .hero-bubble {
   position: absolute;
   top: 16px;
   left: 16px;
-  max-width: 50%;
+  max-width: 52%;
   background: #fff;
   padding: 12px 16px;
   border-radius: 18px 18px 18px 4px;
   font-weight: 700;
   line-height: 1.4;
   font-size: 0.9rem;
-  box-shadow: 0 6px 16px rgba(43, 36, 53, 0.12);
+  box-shadow: 0 8px 22px rgba(43, 36, 53, 0.18);
   border: 2px solid rgba(43, 36, 53, 0.06);
   cursor: pointer;
-  z-index: 3;
+  z-index: 8;
   animation: bubble-in 0.6s var(--ease-pop) 0.2s backwards;
   transition: transform 0.18s var(--ease-pop), box-shadow 0.18s ease;
 }

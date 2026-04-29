@@ -15,7 +15,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700;900&family=Kosugi+Maru&family=Yuji+Syuku&family=M+PLUS+Rounded+1c:wght@500;700;800;900&display=swap" rel="stylesheet">
 
-  <link rel="stylesheet" href="css/style.css?v=17">
+  <link rel="stylesheet" href="css/style.css?v=18">
 </head>
 <body>
 
@@ -71,22 +71,83 @@
       <section class="page page-home" data-page="home">
         <!-- Hero scene -->
         <div class="hero-scene">
+          <!-- Photo backdrop + atmospheric tint -->
           <div class="hero-scene-photo"></div>
-          <div class="hero-scene-bg">
-            <div class="hero-sun"></div>
-            <div class="hero-cloud hero-cloud-1"></div>
-            <div class="hero-cloud hero-cloud-2"></div>
-            <div class="hero-sea"></div>
-            <div class="hero-island hero-island-1"></div>
-            <div class="hero-island hero-island-2"></div>
-            <div class="hero-island hero-island-3"></div>
+          <div class="hero-scene-bg"></div>
+
+          <!-- Sun + soft rays -->
+          <div class="hero-sun" aria-hidden="true"></div>
+          <div class="hero-sun-rays" aria-hidden="true"></div>
+
+          <!-- Clouds (multi-layer) -->
+          <div class="hero-cloud hero-cloud-1" aria-hidden="true"></div>
+          <div class="hero-cloud hero-cloud-2" aria-hidden="true"></div>
+          <div class="hero-cloud hero-cloud-3" aria-hidden="true"></div>
+
+          <!-- Birds drifting across -->
+          <svg class="hero-birds" viewBox="0 0 60 14" aria-hidden="true">
+            <path d="M2,8 Q5,3 8,8 Q11,3 14,8" stroke="#3a4f6a" stroke-width="1.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M22,5 Q25,1 28,5 Q31,1 34,5" stroke="#3a4f6a" stroke-width="1.2" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity="0.8"/>
+            <path d="M44,9 Q47,5 50,9 Q53,5 56,9" stroke="#3a4f6a" stroke-width="1.3" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity="0.9"/>
+          </svg>
+
+          <!-- Mountains (3 layers — far, mid, near) -->
+          <svg class="hero-mountains" viewBox="0 0 400 110" preserveAspectRatio="none" aria-hidden="true">
+            <defs>
+              <linearGradient id="mtNear" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%"  stop-color="#3a6a3a"/>
+                <stop offset="100%" stop-color="#1f3d20"/>
+              </linearGradient>
+              <linearGradient id="mtMid" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%"  stop-color="#5a89a8"/>
+                <stop offset="100%" stop-color="#3d6788"/>
+              </linearGradient>
+              <linearGradient id="mtFar" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%"  stop-color="#b6cce0"/>
+                <stop offset="100%" stop-color="#7da0c0"/>
+              </linearGradient>
+            </defs>
+            <!-- Far layer -->
+            <path d="M0,62 L18,46 L36,52 L58,32 L82,42 L108,26 L132,38 L160,30 L188,42 L218,32 L246,44 L276,32 L306,42 L338,34 L370,42 L400,38 L400,110 L0,110 Z" fill="url(#mtFar)" opacity="0.55"/>
+            <!-- Mid layer -->
+            <path d="M0,80 L20,66 L46,72 L74,46 L106,58 L138,42 L172,56 L204,52 L236,64 L266,48 L300,58 L334,52 L370,62 L400,58 L400,110 L0,110 Z" fill="url(#mtMid)" opacity="0.92"/>
+            <!-- Near layer with detail (cliffs) -->
+            <path d="M0,94 L22,80 L44,86 L62,68 L84,76 L108,62 L132,72 L154,66 L184,82 L216,72 L250,84 L284,74 L318,84 L348,78 L380,86 L400,82 L400,110 L0,110 Z" fill="url(#mtNear)"/>
+          </svg>
+
+          <!-- Lighthouse on the near coast (left) -->
+          <div class="hero-lighthouse" aria-hidden="true">
+            <div class="hero-lighthouse-cap"></div>
+            <div class="hero-lighthouse-body"></div>
+            <div class="hero-lighthouse-beam"></div>
           </div>
+
+          <!-- Sea + reflections + wave lines -->
+          <div class="hero-sea" aria-hidden="true"></div>
+          <div class="hero-shimmer" aria-hidden="true"></div>
+          <svg class="hero-waves" viewBox="0 0 400 26" preserveAspectRatio="none" aria-hidden="true">
+            <path d="M0,8 Q20,4 40,8 Q60,12 80,8 Q100,4 120,8 Q140,12 160,8 Q180,4 200,8 Q220,12 240,8 Q260,4 280,8 Q300,12 320,8 Q340,4 360,8 Q380,12 400,8" stroke="rgba(255,255,255,0.55)" stroke-width="1.4" fill="none" stroke-linecap="round"/>
+            <path d="M0,18 Q15,15 30,18 Q45,21 60,18 Q75,15 90,18 Q105,21 120,18 Q135,15 150,18 Q165,21 180,18 Q195,15 210,18 Q225,21 240,18 Q255,15 270,18 Q285,21 300,18 Q315,15 330,18 Q345,21 360,18 Q375,15 390,18 Q400,19 400,18" stroke="rgba(255,255,255,0.32)" stroke-width="1.1" fill="none" stroke-linecap="round"/>
+          </svg>
+
+          <!-- Drifting light particles -->
+          <span class="hero-particle hero-particle-1" aria-hidden="true"></span>
+          <span class="hero-particle hero-particle-2" aria-hidden="true"></span>
+          <span class="hero-particle hero-particle-3" aria-hidden="true"></span>
+          <span class="hero-particle hero-particle-4" aria-hidden="true"></span>
+          <span class="hero-particle hero-particle-5" aria-hidden="true"></span>
+
+          <!-- Erika character -->
           <div class="hero-char-wrap">
             <img src="assets/characters/erika-main.png" alt="エリカちゃん" class="hero-char" id="heroChar">
           </div>
+
+          <!-- Speech bubble -->
           <button type="button" class="hero-bubble" id="heroBubble" aria-label="エリカちゃんからのメッセージ — タップで切替">
             <span>こんにちは！<br>今日は何する？</span>
           </button>
+
+          <!-- Stamp -->
           <div class="hero-stamp" aria-hidden="true">
             <div class="hero-stamp-ring">
               <span>NEMURO</span>
@@ -994,15 +1055,15 @@
     <canvas id="confetti" class="confetti"></canvas>
   </div>
 
-  <script src="js/data.js?v=17"></script>
-  <script src="js/store.js?v=17"></script>
-  <script src="js/ui.js?v=17"></script>
-  <script src="js/achievements.js?v=17"></script>
-  <script src="js/quiz.js?v=17"></script>
-  <script src="js/shop.js?v=17"></script>
-  <script src="js/qr.js?v=17"></script>
-  <script src="js/license.js?v=17"></script>
-  <script src="js/settings.js?v=17"></script>
-  <script src="js/app.js?v=17"></script>
+  <script src="js/data.js?v=18"></script>
+  <script src="js/store.js?v=18"></script>
+  <script src="js/ui.js?v=18"></script>
+  <script src="js/achievements.js?v=18"></script>
+  <script src="js/quiz.js?v=18"></script>
+  <script src="js/shop.js?v=18"></script>
+  <script src="js/qr.js?v=18"></script>
+  <script src="js/license.js?v=18"></script>
+  <script src="js/settings.js?v=18"></script>
+  <script src="js/app.js?v=18"></script>
 </body>
 </html>
