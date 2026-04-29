@@ -305,40 +305,55 @@ code { font-family: 'SFMono-Regular', ui-monospace, 'Kosugi Maru', monospace; }
   to   { opacity: 1; transform: translateY(0); }
 }
 
-.page-head { margin: 10px 2px 18px; }
+.page-head {
+  margin: 10px 2px 22px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid rgba(43, 36, 53, 0.08);
+  position: relative;
+}
+.page-head::after {
+  content: "";
+  position: absolute;
+  left: 0; bottom: -1px;
+  width: 56px; height: 3px;
+  background: linear-gradient(90deg, var(--c-coral-deep), var(--c-gold));
+  border-radius: 2px;
+}
 .page-head-kicker {
-  font-size: 0.72rem;
+  font-size: 0.7rem;
   font-weight: 900;
-  letter-spacing: 0.18em;
+  letter-spacing: 0.22em;
   color: var(--c-coral-deep);
   text-transform: uppercase;
-  margin-bottom: 2px;
+  margin-bottom: 4px;
+  font-family: 'Yuji Syuku', 'Zen Maru Gothic', serif;
 }
 .page-head h2 {
   font-size: 1.55rem;
   line-height: 1.25;
   margin: 0;
+  letter-spacing: 0.04em;
 }
-.page-desc { margin: 4px 0 0; color: var(--c-ink-soft); font-size: 0.9rem; }
+.page-desc { margin: 6px 0 0; color: var(--c-ink-soft); font-size: 0.9rem; }
 .page-desc b { color: var(--c-coral-deep); }
 
 .section-title {
-  margin: 28px 6px 14px;
-  font-size: 1.05rem;
+  margin: 30px 4px 14px;
+  font-size: 1rem;
   font-weight: 900;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   color: var(--c-ink);
   position: relative;
+  letter-spacing: 0.02em;
 }
 .section-title::after {
   content: "";
   flex-grow: 1;
-  height: 2px;
-  margin-left: 6px;
-  background: linear-gradient(90deg, rgba(244, 122, 90, 0.32), rgba(244, 122, 90, 0));
-  border-radius: 2px;
+  height: 1px;
+  margin-left: 8px;
+  background: linear-gradient(90deg, rgba(43, 36, 53, 0.18), rgba(43, 36, 53, 0));
 }
 .section-title-center {
   justify-content: center;
@@ -346,12 +361,14 @@ code { font-family: 'SFMono-Regular', ui-monospace, 'Kosugi Maru', monospace; }
 }
 .section-title-center::after { display: none; }
 .section-title span:first-child {
-  font-size: 1.15rem;
   display: inline-grid;
   place-items: center;
   width: 30px; height: 30px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, var(--c-coral-soft), var(--c-gold-soft));
+  border-radius: 8px;
+  background: linear-gradient(135deg, #fff, #fff5e8);
+  border: 1.5px solid rgba(244, 122, 90, 0.25);
+  color: var(--c-coral-deep);
+  font-size: 1rem;
 }
 .section-counter {
   font-size: 0.78rem;
@@ -747,17 +764,16 @@ code { font-family: 'SFMono-Regular', ui-monospace, 'Kosugi Maru', monospace; }
   transform: scale(0.98);
 }
 .hero-bubble::after {
-  content: "💬";
+  content: "";
   position: absolute;
-  top: -8px;
+  top: -6px;
   right: -6px;
-  width: 22px; height: 22px;
+  width: 16px; height: 16px;
   border-radius: 50%;
   background: linear-gradient(135deg, #ff8b6c, #f47a5a);
-  display: grid;
-  place-items: center;
-  font-size: 0.65rem;
-  box-shadow: 0 3px 8px rgba(244, 122, 90, 0.4);
+  box-shadow:
+    0 3px 8px rgba(244, 122, 90, 0.45),
+    inset 0 0 0 2px #fff;
   animation: bubble-pulse 2.4s ease-in-out infinite;
 }
 @keyframes bubble-pulse {
@@ -4829,3 +4845,23 @@ html.high-contrast .stat-value {
   .app { padding-left: 300px; }
   .ds-sidebar { width: 300px; padding: 26px 22px 22px; }
 }
+
+/* ============================================================
+   Icon set — uniform line icons (used to replace emoji UI)
+   ============================================================ */
+.icon-sprite { position: absolute; width: 0; height: 0; pointer-events: none; }
+.icon {
+  display: inline-block;
+  width: 1.15em;
+  height: 1.15em;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  vertical-align: -0.2em;
+  flex-shrink: 0;
+}
+.icon-lg { width: 1.6em; height: 1.6em; stroke-width: 1.6; }
+.icon-xl { width: 2.2em; height: 2.2em; stroke-width: 1.5; }
+.icon-sm { width: 0.95em; height: 0.95em; stroke-width: 1.8; }
