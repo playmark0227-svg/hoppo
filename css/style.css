@@ -587,38 +587,20 @@ code { font-family: 'SFMono-Regular', ui-monospace, 'Kosugi Maru', monospace; }
 }
 .rank-badge-ring {
   position: relative;
-  width: 76px; height: 76px;
+  width: 70px; height: 70px;
   flex-shrink: 0;
   border-radius: 50%;
-  background: conic-gradient(from 0deg,
-    var(--c-coral) 0deg,
-    var(--c-gold) 120deg,
-    var(--c-ocean) 240deg,
-    var(--c-coral) 360deg);
+  background: linear-gradient(135deg, var(--c-coral) 0%, var(--c-gold) 50%, var(--c-ocean) 100%);
   padding: 3px;
-  box-shadow: 0 6px 14px rgba(244, 122, 90, 0.22);
-  animation: rank-ring-spin 14s linear infinite;
-}
-@keyframes rank-ring-spin {
-  to { transform: rotate(360deg); }
-}
-.rank-badge-ring::before {
-  content: "";
-  position: absolute;
-  inset: -6px;
-  border-radius: 50%;
-  background: radial-gradient(circle at 30% 30%, rgba(255, 207, 87, 0.25), transparent 70%);
-  z-index: -1;
+  box-shadow: 0 4px 10px rgba(244, 122, 90, 0.18);
 }
 .rank-badge {
   width: 100%; height: 100%;
   display: grid; place-items: center;
-  font-size: 2.2rem;
+  font-size: 2rem;
   border-radius: 50%;
-  background: radial-gradient(circle at 30% 30%, #fff 0%, #fff8ec 60%, #ffe9d4 100%);
-  border: 3px solid #fff;
-  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.05));
-  animation: rank-ring-spin 14s linear infinite reverse;
+  background: radial-gradient(circle at 30% 30%, #fff 0%, #fff8ec 80%);
+  border: 2px solid #fff;
 }
 .rank-kicker {
   font-size: 0.7rem;
@@ -1721,18 +1703,20 @@ code { font-family: 'SFMono-Regular', ui-monospace, 'Kosugi Maru', monospace; }
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
-  padding: 12px 10px;
+  gap: 5px;
+  padding: 11px 6px;
   border: none;
   background: transparent;
   border-radius: 12px;
   font: inherit;
   font-weight: 800;
-  font-size: 0.95rem;
+  font-size: 0.92rem;
   color: var(--c-ink-soft);
   cursor: pointer;
   transition: background 0.18s ease, color 0.18s ease, transform 0.18s var(--ease-pop);
   position: relative;
+  white-space: nowrap;
+  min-width: 0;
 }
 .shop-tab:hover { color: var(--c-ink); transform: translateY(-1px); }
 .shop-tab.active {
@@ -1740,16 +1724,12 @@ code { font-family: 'SFMono-Regular', ui-monospace, 'Kosugi Maru', monospace; }
   color: var(--c-coral-deep);
   box-shadow: 0 4px 10px rgba(244, 122, 90, 0.2);
 }
-.shop-tab-icon { font-size: 1.1rem; }
-.shop-tab-badge {
-  display: inline-block;
-  padding: 2px 7px;
-  border-radius: 999px;
-  background: linear-gradient(135deg, #ff5a36, #ffcf57);
-  color: #fff;
-  font-size: 0.65rem;
-  font-weight: 900;
-  letter-spacing: 0.04em;
+.shop-tab-emoji { font-size: 1.05rem; line-height: 1; }
+.shop-tab-label { line-height: 1.1; }
+
+@media (max-width: 360px) {
+  .shop-tab { font-size: 0.86rem; gap: 3px; padding: 10px 4px; }
+  .shop-tab-emoji { font-size: 0.95rem; }
 }
 
 /* Panels */
