@@ -15,7 +15,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700;900&family=Kosugi+Maru&family=Yuji+Syuku&family=M+PLUS+Rounded+1c:wght@500;700;800;900&display=swap" rel="stylesheet">
 
-  <link rel="stylesheet" href="css/style.css?v=15">
+  <link rel="stylesheet" href="css/style.css?v=16">
 </head>
 <body>
 
@@ -100,7 +100,9 @@
         <div class="rank-card" id="rankCard">
           <div class="rank-card-inner">
             <div class="rank-card-head">
-              <div class="rank-badge" id="rankBadgeBig">🐚</div>
+              <div class="rank-badge-ring">
+                <div class="rank-badge" id="rankBadgeBig">🐚</div>
+              </div>
               <div class="rank-meta">
                 <div class="rank-kicker">現在のステータス</div>
                 <div class="rank-name" id="rankName">島民見習い</div>
@@ -120,29 +122,33 @@
         <!-- Quick tiles -->
         <div class="quick-grid">
           <button class="quick-tile quick-quiz" data-goto="quiz">
+            <span class="quick-tile-strip" aria-hidden="true"></span>
             <div class="quick-tile-inner">
-              <div class="quick-icon">📝</div>
+              <div class="quick-icon-wrap"><div class="quick-icon">📝</div></div>
               <div class="quick-label">クイズ</div>
               <div class="quick-sub">全問正解でボーナス</div>
             </div>
           </button>
           <button class="quick-tile quick-qr" data-goto="qr">
+            <span class="quick-tile-strip" aria-hidden="true"></span>
             <div class="quick-tile-inner">
-              <div class="quick-icon">📷</div>
+              <div class="quick-icon-wrap"><div class="quick-icon">📷</div></div>
               <div class="quick-label">QR読み取り</div>
               <div class="quick-sub">イベントで獲得</div>
             </div>
           </button>
           <button class="quick-tile quick-shop" data-goto="shop">
+            <span class="quick-tile-strip" aria-hidden="true"></span>
             <div class="quick-tile-inner">
-              <div class="quick-icon">🎁</div>
+              <div class="quick-icon-wrap"><div class="quick-icon">🎁</div></div>
               <div class="quick-label">ショップ</div>
               <div class="quick-sub">ポイントで交換</div>
             </div>
           </button>
           <button class="quick-tile quick-license" data-goto="license">
+            <span class="quick-tile-strip" aria-hidden="true"></span>
             <div class="quick-tile-inner">
-              <div class="quick-icon">🪪</div>
+              <div class="quick-icon-wrap"><div class="quick-icon">🪪</div></div>
               <div class="quick-label">ライセンス</div>
               <div class="quick-sub">あなたの階級は？</div>
             </div>
@@ -151,19 +157,23 @@
 
         <!-- Stats strip -->
         <div class="stats-strip" id="statsStrip">
-          <button type="button" class="stat" data-stat="quizzes" aria-label="クイズ挑戦回数">
+          <button type="button" class="stat" data-stat="quizzes" data-tone="coral" aria-label="クイズ挑戦回数">
+            <div class="stat-icon" aria-hidden="true">📝</div>
             <div class="stat-value" id="statQuizzes">0</div>
             <div class="stat-label">クイズ挑戦</div>
           </button>
-          <button type="button" class="stat" data-stat="events" aria-label="イベント参加回数">
+          <button type="button" class="stat" data-stat="events" data-tone="ocean" aria-label="イベント参加回数">
+            <div class="stat-icon" aria-hidden="true">📷</div>
             <div class="stat-value" id="statEvents">0</div>
             <div class="stat-label">イベント参加</div>
           </button>
-          <button type="button" class="stat stat-streak" data-stat="streak" aria-label="連続ログイン">
+          <button type="button" class="stat stat-streak" data-stat="streak" data-tone="fire" aria-label="連続ログイン">
+            <div class="stat-icon" aria-hidden="true">🔥</div>
             <div class="stat-value" id="statStreak">0<span class="stat-unit">日</span></div>
             <div class="stat-label">連続ログイン</div>
           </button>
-          <button type="button" class="stat" data-stat="total" aria-label="累計獲得ポイント">
+          <button type="button" class="stat" data-stat="total" data-tone="gold" aria-label="累計獲得ポイント">
+            <div class="stat-icon" aria-hidden="true">⭐</div>
             <div class="stat-value" id="statTotal">0</div>
             <div class="stat-label">累計ポイント</div>
           </button>
@@ -985,15 +995,15 @@
     <canvas id="confetti" class="confetti"></canvas>
   </div>
 
-  <script src="js/data.js?v=15"></script>
-  <script src="js/store.js?v=15"></script>
-  <script src="js/ui.js?v=15"></script>
-  <script src="js/achievements.js?v=15"></script>
-  <script src="js/quiz.js?v=15"></script>
-  <script src="js/shop.js?v=15"></script>
-  <script src="js/qr.js?v=15"></script>
-  <script src="js/license.js?v=15"></script>
-  <script src="js/settings.js?v=15"></script>
-  <script src="js/app.js?v=15"></script>
+  <script src="js/data.js?v=16"></script>
+  <script src="js/store.js?v=16"></script>
+  <script src="js/ui.js?v=16"></script>
+  <script src="js/achievements.js?v=16"></script>
+  <script src="js/quiz.js?v=16"></script>
+  <script src="js/shop.js?v=16"></script>
+  <script src="js/qr.js?v=16"></script>
+  <script src="js/license.js?v=16"></script>
+  <script src="js/settings.js?v=16"></script>
+  <script src="js/app.js?v=16"></script>
 </body>
 </html>
