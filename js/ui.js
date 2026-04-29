@@ -58,7 +58,7 @@
       document.querySelectorAll('.page').forEach(p => {
         p.hidden = p.dataset.page !== page;
       });
-      document.querySelectorAll('.nav-btn').forEach(b => {
+      document.querySelectorAll('.nav-btn, .ds-nav-link').forEach(b => {
         b.classList.toggle('active', b.dataset.goto === page);
       });
       window.scrollTo({ top: 0, behavior: 'instant' });
@@ -70,14 +70,23 @@
     refreshHeader() {
       const s = Store.get();
       const rank = window.getRankByPoints(s.points);
+      const pointsTxt = s.points.toLocaleString();
       const pointsEl = document.getElementById('pointsValue');
-      if (pointsEl) pointsEl.textContent = s.points.toLocaleString();
+      if (pointsEl) pointsEl.textContent = pointsTxt;
 
       const rankLabelEl = document.getElementById('userRankLabel');
       if (rankLabelEl) rankLabelEl.textContent = `${rank.emoji} ${rank.name}`;
 
       const nameEl = document.getElementById('userName');
       if (nameEl) nameEl.textContent = s.name || 'ゲスト';
+
+      /* Desktop sidebar mirrors */
+      const dsName = document.getElementById('dsProfileName');
+      if (dsName) dsName.textContent = s.name || 'ゲスト';
+      const dsRank = document.getElementById('dsProfileRank');
+      if (dsRank) dsRank.innerHTML = `<span class="ds-profile-rank-pip">${rank.emoji}</span> ${rank.name}`;
+      const dsPoints = document.getElementById('dsPointsValue');
+      if (dsPoints) dsPoints.textContent = pointsTxt;
     },
 
     refreshHome() {

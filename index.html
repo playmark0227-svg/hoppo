@@ -15,7 +15,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700;900&family=Kosugi+Maru&family=Yuji+Syuku&family=M+PLUS+Rounded+1c:wght@500;700;800;900&display=swap" rel="stylesheet">
 
-  <link rel="stylesheet" href="css/style.css?v=18">
+  <link rel="stylesheet" href="css/style.css?v=19">
 </head>
 <body>
 
@@ -42,6 +42,73 @@
       <div class="bg-blob bg-blob-3"></div>
       <div class="bg-dots"></div>
     </div>
+
+    <!-- Desktop sidebar (only visible at >= 1100px) -->
+    <aside class="ds-sidebar" id="dsSidebar" aria-label="メインナビ（PC版）">
+      <div class="ds-brand">
+        <div class="ds-brand-mark">
+          <img src="assets/characters/erika-main.png" alt="" class="ds-brand-img">
+          <span class="ds-brand-glow" aria-hidden="true"></span>
+        </div>
+        <div class="ds-brand-text">
+          <div class="ds-brand-jp">北方領土</div>
+          <div class="ds-brand-jp">ステータス</div>
+          <div class="ds-brand-en">HOPPOU STATUS</div>
+        </div>
+      </div>
+
+      <button type="button" class="ds-profile-card" data-goto="settings" aria-label="プロフィール・設定を開く">
+        <div class="ds-profile-avatar avatar" data-frame="coral" data-pattern="wave" id="dsProfileAvatar">
+          <img src="assets/characters/erika-main.png" alt="" class="avatar-img">
+          <span class="ds-profile-pip" aria-hidden="true">⚙</span>
+        </div>
+        <div class="ds-profile-meta">
+          <div class="ds-profile-kicker">こんにちは</div>
+          <div class="ds-profile-name" id="dsProfileName">ゲスト</div>
+          <div class="ds-profile-rank" id="dsProfileRank"><span class="ds-profile-rank-pip">🐚</span> 島民見習い</div>
+        </div>
+      </button>
+
+      <nav class="ds-nav" aria-label="メイン">
+        <button type="button" class="ds-nav-link" data-goto="home">
+          <span class="ds-nav-icon">🏠</span>
+          <span class="ds-nav-label">ホーム</span>
+        </button>
+        <button type="button" class="ds-nav-link" data-goto="quiz">
+          <span class="ds-nav-icon">📝</span>
+          <span class="ds-nav-label">クイズ</span>
+        </button>
+        <button type="button" class="ds-nav-link" data-goto="qr">
+          <span class="ds-nav-icon">📷</span>
+          <span class="ds-nav-label">QR読み取り</span>
+        </button>
+        <button type="button" class="ds-nav-link" data-goto="shop">
+          <span class="ds-nav-icon">🎁</span>
+          <span class="ds-nav-label">ショップ</span>
+        </button>
+        <button type="button" class="ds-nav-link" data-goto="license">
+          <span class="ds-nav-icon">🪪</span>
+          <span class="ds-nav-label">ライセンス</span>
+        </button>
+        <button type="button" class="ds-nav-link" data-goto="settings">
+          <span class="ds-nav-icon">⚙️</span>
+          <span class="ds-nav-label">設定</span>
+        </button>
+      </nav>
+
+      <button type="button" class="ds-points-card" id="dsPointsCard" data-open="history" aria-label="ポイント履歴を開く">
+        <div class="ds-points-icon">🌟</div>
+        <div class="ds-points-meta">
+          <div class="ds-points-kicker">手持ちポイント</div>
+          <div class="ds-points-value"><strong id="dsPointsValue">0</strong> pt</div>
+        </div>
+        <span class="ds-points-arrow" aria-hidden="true">›</span>
+      </button>
+
+      <div class="ds-foot">
+        <span>NEMURO HOPPOU 4 ISLANDS</span>
+      </div>
+    </aside>
 
     <!-- Top bar -->
     <header class="topbar">
@@ -1055,15 +1122,15 @@
     <canvas id="confetti" class="confetti"></canvas>
   </div>
 
-  <script src="js/data.js?v=18"></script>
-  <script src="js/store.js?v=18"></script>
-  <script src="js/ui.js?v=18"></script>
-  <script src="js/achievements.js?v=18"></script>
-  <script src="js/quiz.js?v=18"></script>
-  <script src="js/shop.js?v=18"></script>
-  <script src="js/qr.js?v=18"></script>
-  <script src="js/license.js?v=18"></script>
-  <script src="js/settings.js?v=18"></script>
-  <script src="js/app.js?v=18"></script>
+  <script src="js/data.js?v=19"></script>
+  <script src="js/store.js?v=19"></script>
+  <script src="js/ui.js?v=19"></script>
+  <script src="js/achievements.js?v=19"></script>
+  <script src="js/quiz.js?v=19"></script>
+  <script src="js/shop.js?v=19"></script>
+  <script src="js/qr.js?v=19"></script>
+  <script src="js/license.js?v=19"></script>
+  <script src="js/settings.js?v=19"></script>
+  <script src="js/app.js?v=19"></script>
 </body>
 </html>

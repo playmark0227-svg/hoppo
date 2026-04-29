@@ -48,10 +48,10 @@
   }
 
   function bindHistoryChip() {
-    const chip = document.getElementById('pointsChip');
-    if (!chip) return;
-    chip.addEventListener('click', () => {
-      UI.showHistory();
+    ['pointsChip', 'dsPointsCard'].forEach(id => {
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.addEventListener('click', () => UI.showHistory());
     });
   }
 
@@ -96,7 +96,8 @@
     [
       document.getElementById('topbarAvatar'),
       document.getElementById('settingsPreviewAvatar'),
-      document.getElementById('profileShortcutAvatar')
+      document.getElementById('profileShortcutAvatar'),
+      document.getElementById('dsProfileAvatar')
     ].forEach(el => {
       if (!el) return;
       el.dataset.frame = p.avatarFrame || 'coral';
