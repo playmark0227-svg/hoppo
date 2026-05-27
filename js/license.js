@@ -332,9 +332,18 @@ ${s.name || 'ゲスト'} さんは ${rank.emoji} ${rank.name}（${rank.sub}）�
     ctx.fill();
     ctx.clip();
     try {
-      const erikaImg = await loadImage('assets/characters/erika-main.png');
-      const size = portraitR * 2 + 10;
-      ctx.drawImage(erikaImg, portraitCX - size / 2, portraitCY - size / 2 + 10, size, size);
+      const profile = Store.getProfile ? Store.getProfile() : {};
+      const customImg = profile.avatarImage;
+      if (customImg) {
+        // Use user-uploaded avatar — draw as a circular fit (no offset)
+        const img = await loadImage(customImg);
+        const size = portraitR * 2;
+        ctx.drawImage(img, portraitCX - size / 2, portraitCY - size / 2, size, size);
+      } else {
+        const erikaImg = await loadImage('assets/characters/erika-main.png');
+        const size = portraitR * 2 + 10;
+        ctx.drawImage(erikaImg, portraitCX - size / 2, portraitCY - size / 2 + 10, size, size);
+      }
     } catch (e) { /* ignore */ }
     ctx.restore();
 

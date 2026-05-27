@@ -340,6 +340,124 @@
     }
   }
 
+  /* ---------------- Avatar image upload ---------------- */
+
+  const AVATAR_MAX_PX = 320;   // Resize target (square)
+  const AVATAR_JPEG_QUALITY = 0.86;
+  const AVATAR_MAX_FILE_BYTES = 8 * 1024 * 1024; // 8MB pre-resize limit
+
+  function showAvatarNote(text, kind) {
+    const note = document.getElementById('avatarUploadNote');
+    if (!note) return;
+    note.textContent = text || '';
+    note.classList.remove('is-good', 'is-bad');
+    if (kind === 'good') note.classList.add('is-good');
+    if (kind === 'bad')  note.classList.add('is-bad');
+  }
+
+  function renderAvatarImage() {
+    const p = Store.getProfile();
+    const src = p.avatarImage || 'assets/characters/erika-main.png';
+    // Update preview chip in settings page
+    const preview = document.getElementById('avatarUploadPreviewImg');
+    if (preview) preview.src = src;
+    // Update all avatar instances throughout the app
+    document.querySelectorAll('[data-avatar-img] img, .avatar .avatar-img, .ds-profile-avatar img, .settings-preview-avatar img, .profile-shortcut-avatar img, .avatar-upload-img').forEach(img => {
+      if (img.id === 'heroChar') return; // keep hero character separate
+      img.src = src;
+    });
+    // Toggle a "has custom image" data flag for CSS hooks
+    document.documentElement.dataset.hasAvatar = p.avatarImage ? '1' : '0';
+  }
+
+  function readFileAsDataURL(file) {
+    return new Promise((resolve, reject) => {
+      const r = new FileReader();
+      r.onload = () => resolve(r.result);
+      r.onerror = () => reject(new Error('読み込みに失敗しました'));
+      r.readAsDataURL(file);
+    });
+  }
+
+  function loadImage(src) {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => resolve(img);
+      img.onerror = () => reject(new Error('画像を解析できませんでした'));
+      img.src = src;
+    });
+  }
+
+  // Center-crop to square, then resize to AVATAR_MAX_PX × AVATAR_MAX_PX
+  function squareCropResize(img) {
+    const minSide = Math.min(img.naturalWidth, img.naturalHeight);
+    const sx = (img.naturalWidth  - minSide) / 2;
+    const sy = (img.naturalHeight - minSide) / 2;
+
+    const canvas = document.createElement('canvas');
+    canvas.width = AVATAR_MAX_PX;
+    canvas.height = AVATAR_MAX_PX;
+    const ctx = canvas.getContext('2d');
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = 'high';
+    ctx.fillStyle = '#fff';
+    ctx.fillRect(0, 0, AVATAR_MAX_PX, AVATAR_MAX_PX);
+    ctx.drawImage(img, sx, sy, minSide, minSide, 0, 0, AVATAR_MAX_PX, AVATAR_MAX_PX);
+    return canvas.toDataURL('image/jpeg', AVATAR_JPEG_QUALITY);
+  }
+
+  async function handleAvatarFile(file) {
+    if (!file) return;
+    if (!/^image\//.test(file.type)) {
+      showAvatarNote('画像ファイルを選択してください', 'bad');
+      return;
+    }
+    if (file.size > AVATAR_MAX_FILE_BYTES) {
+      showAvatarNote('ファイルが大きすぎます（最大8MB）', 'bad');
+      return;
+    }
+    showAvatarNote('画像を処理しています…');
+    try {
+      const dataUrl = await readFileAsDataURL(file);
+      const img = await loadImage(dataUrl);
+      const cropped = squareCropResize(img);
+      Store.updateProfile({ avatarImage: cropped });
+      renderAvatarImage();
+      const sizeKb = Math.round(cropped.length * 3 / 4 / 1024);
+      showAvatarNote(`画像を保存しました（約 ${sizeKb} KB、端末内のみ）`, 'good');
+      if (window.UI && UI.toast) UI.toast('プロフィール画像を更新しました', 'good', 1800);
+    } catch (e) {
+      console.error(e);
+      showAvatarNote(e.message || '処理に失敗しました', 'bad');
+    }
+  }
+
+  function bindAvatarUpload() {
+    const input  = document.getElementById('avatarUploadInput');
+    const resetBtn = document.getElementById('avatarUploadResetBtn');
+    if (input) {
+      input.addEventListener('change', () => {
+        const file = input.files && input.files[0];
+        if (file) handleAvatarFile(file);
+        input.value = ''; // allow re-selecting same file later
+      });
+    }
+    if (resetBtn) {
+      resetBtn.addEventListener('click', () => {
+        if (!Store.getProfile().avatarImage) {
+          showAvatarNote('現在はデフォルト画像です', 'good');
+          return;
+        }
+        if (!confirm('プロフィール画像をデフォルト（エリカちゃん）に戻しますか？')) return;
+        Store.updateProfile({ avatarImage: '' });
+        renderAvatarImage();
+        showAvatarNote('デフォルト画像に戻しました', 'good');
+        if (window.UI && UI.toast) UI.toast('画像をリセットしました', 'good', 1600);
+      });
+    }
+    renderAvatarImage();
+  }
+
   /* ---------------- Init ---------------- */
 
   function init() {
@@ -351,6 +469,7 @@
     bindBasicFields();
     bindToggles();
     bindDataButtons();
+    bindAvatarUpload();
 
     // Apply initial visual prefs immediately
     applyVisualPrefs(Store.getSettings());
@@ -358,11 +477,13 @@
     // Apply avatar style on first paint
     const p = Store.getProfile();
     refreshAllAvatars(p.avatarFrame, p.avatarPattern);
+    renderAvatarImage();
 
     // Re-render preview on any state change
     Store.on('change', () => {
       renderPreview();
       renderInfo();
+      renderAvatarImage();
     });
   }
 
@@ -372,7 +493,8 @@
     renderIslandPicker();
     renderPreview();
     renderInfo();
+    renderAvatarImage();
   }
 
-  window.Settings = { init, refresh };
+  window.Settings = { init, refresh, renderAvatarImage };
 })();

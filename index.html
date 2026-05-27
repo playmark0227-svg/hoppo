@@ -15,7 +15,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700;900&family=Kosugi+Maru&family=Yuji+Syuku&family=M+PLUS+Rounded+1c:wght@500;700;800;900&display=swap" rel="stylesheet">
 
-  <link rel="stylesheet" href="css/style.css?v=20">
+  <link rel="stylesheet" href="css/style.css?v=21">
 </head>
 <body>
 
@@ -813,10 +813,34 @@
         <!-- Section: アバター -->
         <div class="settings-section">
           <div class="settings-section-head">
-            <span class="settings-section-icon">🎨</span>
+            <span class="settings-section-icon"><svg class="icon"><use href="#i-palette"/></svg></span>
             <span class="settings-section-title">アバターを着せ替え</span>
           </div>
           <div class="settings-card">
+            <!-- Custom avatar image upload -->
+            <div class="settings-sub-label">プロフィール画像</div>
+            <div class="avatar-upload">
+              <div class="avatar-upload-preview" id="avatarUploadPreview">
+                <img src="assets/characters/erika-main.png" alt="" id="avatarUploadPreviewImg" class="avatar-upload-img">
+              </div>
+              <div class="avatar-upload-body">
+                <p class="avatar-upload-desc">お好きな画像をアップロードできます。正方形に切り取られ、端末内のみで保存されます。</p>
+                <div class="avatar-upload-actions">
+                  <label class="btn btn-outline" for="avatarUploadInput">
+                    <svg class="icon icon-sm"><use href="#i-camera"/></svg>
+                    <span>画像を選ぶ</span>
+                  </label>
+                  <input type="file" id="avatarUploadInput" accept="image/png,image/jpeg,image/webp,image/gif" hidden>
+                  <button type="button" class="btn btn-ghost" id="avatarUploadResetBtn">
+                    <span>デフォルトに戻す</span>
+                  </button>
+                </div>
+                <small class="avatar-upload-note" id="avatarUploadNote"></small>
+              </div>
+            </div>
+
+            <div class="settings-divider" aria-hidden="true"></div>
+
             <div class="settings-sub-label">フレームの色</div>
             <div class="frame-picker" id="framePicker" role="radiogroup" aria-label="アバターフレーム"></div>
             <div class="settings-sub-label">背景パターン</div>
@@ -839,7 +863,7 @@
         <!-- Section: 表示・体験 -->
         <div class="settings-section">
           <div class="settings-section-head">
-            <span class="settings-section-icon">✨</span>
+            <span class="settings-section-icon"><svg class="icon"><use href="#i-star"/></svg></span>
             <span class="settings-section-title">表示・体験</span>
           </div>
           <div class="settings-card">
@@ -1146,15 +1170,15 @@
     <canvas id="confetti" class="confetti"></canvas>
   </div>
 
-  <script src="js/data.js?v=20"></script>
-  <script src="js/store.js?v=20"></script>
-  <script src="js/ui.js?v=20"></script>
-  <script src="js/achievements.js?v=20"></script>
-  <script src="js/quiz.js?v=20"></script>
-  <script src="js/shop.js?v=20"></script>
-  <script src="js/qr.js?v=20"></script>
-  <script src="js/license.js?v=20"></script>
-  <script src="js/settings.js?v=20"></script>
-  <script src="js/app.js?v=20"></script>
+  <script src="js/data.js?v=21"></script>
+  <script src="js/store.js?v=21"></script>
+  <script src="js/ui.js?v=21"></script>
+  <script src="js/achievements.js?v=21"></script>
+  <script src="js/quiz.js?v=21"></script>
+  <script src="js/shop.js?v=21"></script>
+  <script src="js/qr.js?v=21"></script>
+  <script src="js/license.js?v=21"></script>
+  <script src="js/settings.js?v=21"></script>
+  <script src="js/app.js?v=21"></script>
 </body>
 </html>
