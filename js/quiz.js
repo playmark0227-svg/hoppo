@@ -26,7 +26,7 @@
           <div class="quiz-item-icon" ${iconStyle}><span>${q.icon}</span></div>
           <div class="quiz-item-meta">
             <div class="quiz-item-title">${q.title}</div>
-            <div class="quiz-item-desc">${q.desc}｜全${q.questions.length}問</div>
+            <div class="quiz-item-desc">${q.desc}<span class="quiz-item-count">全${q.questions.length}問</span></div>
             ${scoreBadge}
           </div>
           <div class="quiz-item-arrow">›</div>

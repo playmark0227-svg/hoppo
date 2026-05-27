@@ -21,7 +21,8 @@
         const owned = Store.ownsItem(item.id);
         const canBuy = s.points >= item.price;
         const state = owned ? 'owned' : (canBuy ? '' : 'locked');
-        const btnLabel = owned ? 'こうかん済' : `${item.price}pt`;
+        const shortage = item.price - s.points;
+        const btnLabel = owned ? '獲得済' : (canBuy ? '交換する' : `あと ${shortage.toLocaleString()}pt`);
         const accent = item.accent || 'coral';
         return `
           <div class="shop-item ${state}" data-item="${item.id}" data-accent="${accent}">
@@ -32,7 +33,7 @@
             <div class="shop-item-name">${item.name}</div>
             <div class="shop-item-desc">${item.desc}</div>
             <div class="shop-item-foot">
-              <span class="shop-item-price">⭐ ${item.price.toLocaleString()}pt</span>
+              <span class="shop-item-price"><svg class="icon icon-sm"><use href="#i-star"/></svg> ${item.price.toLocaleString()}pt</span>
               <button class="shop-item-btn" ${owned || !canBuy ? 'disabled' : ''}
                 data-buy="${item.id}">${btnLabel}</button>
             </div>
