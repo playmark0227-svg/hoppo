@@ -2407,7 +2407,7 @@ code { font-family: 'SFMono-Regular', ui-monospace, 'Kosugi Maru', monospace; }
 .license-card-watermark {
   position: absolute;
   inset: 0;
-  background-image: url('../assets/images/hoppou/four-islands-map.png');
+  background-image: url('../assets/images/hoppou/four-islands-map.jpg');
   background-size: 150% auto;
   background-repeat: no-repeat;
   background-position: 55% 45%;

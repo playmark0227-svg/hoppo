@@ -66,7 +66,7 @@ window.QUIZZES = [
     title: '北方領土 基本クイズ',
     desc: '絶対に知っておきたい基本のキ',
     icon: '🗾',
-    image: 'assets/images/hoppou/four-islands-map.png',
+    image: 'assets/images/hoppou/four-islands-map.jpg',
     questions: [
       {
         q: '北方領土は、いくつの島でできている？',
