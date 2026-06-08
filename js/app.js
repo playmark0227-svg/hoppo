@@ -163,6 +163,19 @@
 
     // hash-based back/forward
     window.addEventListener('hashchange', handleInitialRoute);
+
+    registerServiceWorker();
+  }
+
+  function registerServiceWorker() {
+    if (!('serviceWorker' in navigator)) return;
+    // Only over http(s) — skip file:// previews
+    if (location.protocol !== 'http:' && location.protocol !== 'https:') return;
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('sw.js').catch((err) => {
+        console.warn('SW registration failed:', err);
+      });
+    });
   }
 
   if (document.readyState === 'loading') {
