@@ -5759,3 +5759,207 @@ html[data-island-theme="habomai"] .nav-btn-center {
 @media (min-width: 768px) and (max-width: 1099px) {
   .stamp-grid { grid-template-columns: repeat(4, 1fr); }
 }
+
+/* ============================================================
+   Home social widget — ランキング＆フレンド常設カード
+   ============================================================ */
+.home-social-card {
+  background: #fff;
+  border-radius: var(--r-lg);
+  border: 2px solid #fff;
+  box-shadow: var(--sh-md);
+  padding: 14px 14px 12px;
+  margin-bottom: 16px;
+  position: relative;
+  overflow: hidden;
+}
+.home-social-card::before {
+  content: "";
+  position: absolute;
+  top: -30px; right: -30px;
+  width: 130px; height: 130px;
+  border-radius: 50%;
+  background: var(--c-gold-soft);
+  opacity: 0.35;
+  pointer-events: none;
+}
+.home-social-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+  position: relative;
+}
+.home-social-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 0.95rem;
+  font-weight: 900;
+  color: var(--c-ink);
+}
+.home-social-title .icon { color: var(--c-coral-deep); }
+.home-social-more {
+  border: none;
+  background: transparent;
+  font: inherit;
+  font-size: 0.76rem;
+  font-weight: 800;
+  color: var(--c-coral-deep);
+  cursor: pointer;
+  padding: 6px 8px;
+}
+
+/* 表彰台 */
+.home-podium {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 10px;
+  padding: 6px 4px 0;
+  position: relative;
+}
+.podium-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  flex: 1;
+  max-width: 110px;
+  min-width: 0;
+}
+.podium-medal { font-size: 1.05rem; line-height: 1; }
+.podium-face {
+  width: 46px; height: 46px;
+  border-radius: 50%;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+.podium-face img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
+.podium-face-emoji {
+  display: grid;
+  place-items: center;
+  font-size: 1.4rem;
+  background: #fff;
+}
+.podium-face-emoji[data-frame="coral"]  { box-shadow: inset 0 0 0 2.5px #f47a5a; background: #fff0e8; }
+.podium-face-emoji[data-frame="ocean"]  { box-shadow: inset 0 0 0 2.5px #5aa7d1; background: #eaf6ff; }
+.podium-face-emoji[data-frame="gold"]   { box-shadow: inset 0 0 0 2.5px #f6b93b; background: #fff7e2; }
+.podium-face-emoji[data-frame="cherry"] { box-shadow: inset 0 0 0 2.5px #ff87a9; background: #ffeef3; }
+.podium-face-emoji[data-frame="mint"]   { box-shadow: inset 0 0 0 2.5px #6fd1a4; background: #ebf9f2; }
+.podium-face-emoji[data-frame="plum"]   { box-shadow: inset 0 0 0 2.5px #8a76ab; background: #f1edf7; }
+.podium-col.first .podium-face { width: 56px; height: 56px; }
+.podium-name {
+  font-size: 0.68rem;
+  font-weight: 900;
+  color: var(--c-ink);
+  max-width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.podium-pts {
+  font-size: 0.7rem;
+  font-weight: 900;
+  color: var(--c-coral-deep);
+  font-variant-numeric: tabular-nums;
+}
+.podium-pts small { font-size: 0.58rem; color: var(--c-ink-faint); margin-left: 1px; }
+.podium-base {
+  width: 100%;
+  border-radius: 8px 8px 0 0;
+  background: linear-gradient(180deg, var(--c-coral-soft), var(--c-coral-tint));
+  box-shadow: inset 0 2px 0 rgba(255, 255, 255, 0.7);
+}
+.podium-col.first  .podium-base { height: 34px; background: linear-gradient(180deg, var(--c-gold-soft), #fff3d6); }
+.podium-col.second .podium-base { height: 24px; }
+.podium-col.third  .podium-base { height: 16px; }
+.podium-col.is-me .podium-name { color: var(--c-coral-deep); }
+.podium-col.is-me .podium-base { outline: 2px solid var(--c-coral); outline-offset: -2px; }
+
+/* あなたの順位 */
+.home-myrank {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px 10px;
+  width: 100%;
+  margin-top: 10px;
+  padding: 11px 14px;
+  border: none;
+  border-radius: var(--r-md);
+  background: linear-gradient(135deg, var(--c-coral-tint), #fff);
+  box-shadow: inset 0 0 0 1.5px var(--c-coral-soft);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: transform 0.15s var(--ease-pop);
+}
+.home-myrank:active { transform: scale(0.98); }
+.home-myrank-label {
+  font-size: 0.85rem;
+  font-weight: 800;
+  color: var(--c-ink);
+}
+.home-myrank-label strong {
+  font-size: 1.15rem;
+  font-weight: 900;
+  color: var(--c-coral-deep);
+  margin: 0 1px;
+}
+.home-myrank-label small { color: var(--c-ink-faint); font-weight: 700; }
+.home-myrank-gap {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--c-ink-soft);
+}
+.home-myrank .icon {
+  margin-left: auto;
+  color: var(--c-coral-deep);
+  flex-shrink: 0;
+}
+
+/* フレンド / メッセージ ボタン */
+.home-social-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-top: 10px;
+}
+.home-social-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 11px 8px;
+  border: 1.5px solid var(--c-coral-soft);
+  border-radius: 12px;
+  background: #fff;
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 900;
+  color: var(--c-coral-deep);
+  cursor: pointer;
+  transition: background 0.15s ease, transform 0.15s var(--ease-pop);
+}
+.home-social-btn:hover { background: var(--c-coral-tint); }
+.home-social-btn:active { transform: scale(0.97); }
+.home-social-btn small { font-weight: 800; color: var(--c-ink-soft); }
+
+/* デスクトップ：ホームグリッドに組み込み（rank/statsの直下・全幅） */
+@media (min-width: 1100px) {
+  .page-home {
+    grid-template-areas:
+      "hero hero"
+      "rank stats"
+      "social social"
+      "quick quick"
+      "places-title places-title"
+      "places places"
+      "news cta";
+  }
+  .page-home > .home-social-card { grid-area: social; margin-bottom: 0; }
+  .home-podium { gap: 22px; }
+  .podium-col { max-width: 140px; }
+  .home-social-actions { grid-template-columns: 1fr 1fr; max-width: 480px; margin-left: auto; margin-right: auto; width: 100%; }
+}

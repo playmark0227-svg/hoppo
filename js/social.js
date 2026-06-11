@@ -51,11 +51,8 @@
 
   /* ---------------- Ranking ---------------- */
 
-  function renderRanking() {
-    const list = document.getElementById('rankingList');
-    if (!list) return;
+  function getStandings() {
     const s = Store.get();
-
     const entries = (window.RIVALS || []).map(r => ({
       id: r.id, name: r.name, emoji: r.emoji, frame: r.frame,
       points: rivalPoints(r), me: false
@@ -65,7 +62,14 @@
       points: s.points, me: true
     });
     entries.sort((a, b) => b.points - a.points);
+    return entries;
+  }
 
+  function renderRanking() {
+    const list = document.getElementById('rankingList');
+    if (!list) return;
+
+    const entries = getStandings();
     const myRank = entries.findIndex(e => e.me) + 1;
     const head = document.getElementById('rankingMyRank');
     if (head) head.innerHTML = `あなたの順位：<strong>${myRank}位</strong> / ${entries.length}人中`;
@@ -278,6 +282,75 @@
     }, 1100 + Math.random() * 900);
   }
 
+  /* ---------------- Home widget（ホーム常設ウィジェット） ---------------- */
+
+  function renderHomeWidget() {
+    const podium = document.getElementById('homePodium');
+    const meRow = document.getElementById('homeMyRank');
+    if (!podium && !meRow) return;
+
+    const entries = getStandings();
+    const myIdx = entries.findIndex(e => e.me);
+    const myRank = myIdx + 1;
+    const me = entries[myIdx];
+    const avatarSrc = (Store.getProfile().avatarImage) || 'assets/characters/erika-main.png';
+
+    if (podium) {
+      const top3 = entries.slice(0, 3);
+      // 表彰台の並び：2位・1位・3位
+      const order = [top3[1], top3[0], top3[2]].filter(Boolean);
+      const places = ['second', 'first', 'third'];
+      const medals = { first: '🥇', second: '🥈', third: '🥉' };
+      podium.innerHTML = order.map((e, i) => {
+        const place = places[i];
+        const face = e.me
+          ? `<span class="podium-face avatar" data-frame="${e.frame}"><img src="${avatarSrc}" alt=""></span>`
+          : `<span class="podium-face podium-face-emoji" data-frame="${e.frame}">${e.emoji}</span>`;
+        return `
+          <div class="podium-col ${place} ${e.me ? 'is-me' : ''}">
+            <span class="podium-medal">${medals[place]}</span>
+            ${face}
+            <span class="podium-name">${e.me ? 'あなた' : e.name}</span>
+            <span class="podium-pts">${e.points.toLocaleString()}<small>pt</small></span>
+            <span class="podium-base"></span>
+          </div>
+        `;
+      }).join('');
+    }
+
+    if (meRow) {
+      if (myRank <= 3) {
+        meRow.innerHTML = `
+          <span class="home-myrank-label">🎉 あなたはいま <strong>TOP${myRank}</strong>！この調子！</span>
+          <svg class="icon icon-sm"><use href="#i-arrow-right"/></svg>`;
+      } else {
+        const above = entries[myIdx - 1];
+        const gap = above ? (above.points - me.points + 1) : 0;
+        meRow.innerHTML = `
+          <span class="home-myrank-label">あなたの順位：<strong>${myRank}位</strong><small> / ${entries.length}人中</small></span>
+          <span class="home-myrank-gap">あと ${gap.toLocaleString()}pt で ${above ? above.name : ''} を抜ける！</span>
+          <svg class="icon icon-sm"><use href="#i-arrow-right"/></svg>`;
+      }
+    }
+
+    const fc = document.getElementById('homeFriendCount');
+    if (fc) {
+      const n = Store.get().social.following.length;
+      fc.textContent = n > 0 ? ` ${n}人` : '';
+    }
+  }
+
+  function bindHomeWidget() {
+    const card = document.getElementById('homeSocialCard');
+    if (!card) return;
+    card.addEventListener('click', (e) => {
+      const btn = e.target.closest('[data-social-open]');
+      if (!btn) return;
+      UI.go('social');
+      switchTab(btn.dataset.socialOpen);
+    });
+  }
+
   /* ---------------- Render / init ---------------- */
 
   function render() {
@@ -300,16 +373,21 @@
         if (e.key === 'Enter' && !e.isComposing) { e.preventDefault(); sendDm(); }
       });
     }
-    // ページを離れたらスレッドを閉じる
+    // ページを離れたらスレッドを閉じる／ホームに戻ったらウィジェット更新
     UI.on('page', (page) => {
       if (page !== 'social') closeThread(false);
+      if (page === 'home') renderHomeWidget();
     });
   }
 
   function init() {
     bind();
+    bindHomeWidget();
     render();
+    renderHomeWidget();
+    // ポイント・フォロー・名前の変化をウィジェットに反映
+    Store.on('change', renderHomeWidget);
   }
 
-  window.Social = { init, refresh: render };
+  window.Social = { init, refresh: render, openTab: switchTab, getStandings, renderHomeWidget };
 })();

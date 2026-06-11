@@ -15,7 +15,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700;900&family=Yuji+Syuku&display=swap" rel="stylesheet">
 
-  <link rel="stylesheet" href="css/style.css?v=25">
+  <link rel="stylesheet" href="css/style.css?v=26">
 </head>
 <body>
 
@@ -48,6 +48,7 @@
       <symbol id="i-chat" viewBox="0 0 24 24"><path d="M5 4h14a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1h-9l-4 4v-4H5a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1z"/></symbol>
       <symbol id="i-arrow-right" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></symbol>
       <symbol id="i-medal" viewBox="0 0 24 24"><circle cx="12" cy="15" r="5"/><path d="M8 11L6 3h12l-2 8M12 12v6M10 14l2 2 2-2"/></symbol>
+      <symbol id="i-users" viewBox="0 0 24 24"><circle cx="9" cy="8.5" r="3.5"/><path d="M3 19.5c.8-3 3.2-4.5 6-4.5s5.2 1.5 6 4.5"/><circle cx="17" cy="9.5" r="2.6"/><path d="M16.5 14.6c2.3.2 4 1.5 4.5 3.9"/></symbol>
       <symbol id="i-database" viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="8" ry="2.5"/><path d="M4 5v14c0 1.4 3.6 2.5 8 2.5s8-1.1 8-2.5V5M4 12c0 1.4 3.6 2.5 8 2.5s8-1.1 8-2.5"/></symbol>
       <symbol id="i-palette" viewBox="0 0 24 24"><path d="M12 3a9 9 0 1 0 0 18c1.5 0 2-1 2-2 0-.6-.5-1-.5-1.5s.5-1 1.5-1h2c2 0 4-2 4-4 0-5-4-9.5-9-9.5z"/><circle cx="8" cy="9" r="1.2"/><circle cx="14" cy="6.5" r="1.2"/><circle cx="17.5" cy="11" r="1.2"/></symbol>
       <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8.5h.01"/></symbol>
@@ -280,6 +281,35 @@
             </div>
           </div>
         </div>
+
+        <!-- ランキング＆フレンド（常設ウィジェット） -->
+        <section class="home-social-card" id="homeSocialCard" aria-label="ランキングとフレンド">
+          <div class="home-social-head">
+            <span class="home-social-title">
+              <svg class="icon"><use href="#i-medal"/></svg>
+              ランキング ＆ フレンド
+            </span>
+            <button type="button" class="home-social-more" data-goto="social">すべて見る ›</button>
+          </div>
+
+          <!-- TOP3 表彰台 -->
+          <div class="home-podium" id="homePodium" aria-label="トップ3"></div>
+
+          <!-- あなたの順位 -->
+          <button type="button" class="home-myrank" id="homeMyRank" data-social-open="ranking"></button>
+
+          <!-- フレンド / メッセージへの導線 -->
+          <div class="home-social-actions">
+            <button type="button" class="home-social-btn" data-social-open="friends">
+              <svg class="icon"><use href="#i-users"/></svg>
+              <span>フレンド<small id="homeFriendCount"></small></span>
+            </button>
+            <button type="button" class="home-social-btn" data-social-open="dm">
+              <svg class="icon"><use href="#i-chat"/></svg>
+              <span>メッセージ</span>
+            </button>
+          </div>
+        </section>
 
         <!-- Quick tiles -->
         <div class="quick-grid">
@@ -1340,18 +1370,18 @@
     <canvas id="confetti" class="confetti"></canvas>
   </div>
 
-  <script defer src="js/data.js?v=25"></script>
-  <script defer src="js/store.js?v=25"></script>
-  <script defer src="js/ui.js?v=25"></script>
-  <script defer src="js/achievements.js?v=25"></script>
-  <script defer src="js/quiz.js?v=25"></script>
-  <script defer src="js/shop.js?v=25"></script>
-  <script defer src="js/qr.js?v=25"></script>
-  <script defer src="js/license.js?v=25"></script>
-  <script defer src="js/settings.js?v=25"></script>
-  <script defer src="js/stamps.js?v=25"></script>
-  <script defer src="js/social.js?v=25"></script>
-  <script defer src="js/tutorial.js?v=25"></script>
-  <script defer src="js/app.js?v=25"></script>
+  <script defer src="js/data.js?v=26"></script>
+  <script defer src="js/store.js?v=26"></script>
+  <script defer src="js/ui.js?v=26"></script>
+  <script defer src="js/achievements.js?v=26"></script>
+  <script defer src="js/quiz.js?v=26"></script>
+  <script defer src="js/shop.js?v=26"></script>
+  <script defer src="js/qr.js?v=26"></script>
+  <script defer src="js/license.js?v=26"></script>
+  <script defer src="js/settings.js?v=26"></script>
+  <script defer src="js/stamps.js?v=26"></script>
+  <script defer src="js/social.js?v=26"></script>
+  <script defer src="js/tutorial.js?v=26"></script>
+  <script defer src="js/app.js?v=26"></script>
 </body>
 </html>
