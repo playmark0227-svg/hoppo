@@ -5,8 +5,8 @@
    - Versioned caches; old caches purged on activate
    Bump CACHE_VERSION whenever shipping a new release.
    ============================================================ */
-const CACHE_VERSION = 'v24';
-const ASSET_Q = '?v=24'; // must match the ?v= query in index.html
+const CACHE_VERSION = 'v25';
+const ASSET_Q = '?v=25'; // must match the ?v= query in index.html
 const SHELL_CACHE = `hoppou-shell-${CACHE_VERSION}`;
 const RUNTIME_CACHE = `hoppou-runtime-${CACHE_VERSION}`;
 
@@ -24,6 +24,9 @@ const SHELL_ASSETS = [
   `./js/qr.js${ASSET_Q}`,
   `./js/license.js${ASSET_Q}`,
   `./js/settings.js${ASSET_Q}`,
+  `./js/stamps.js${ASSET_Q}`,
+  `./js/social.js${ASSET_Q}`,
+  `./js/tutorial.js${ASSET_Q}`,
   `./js/app.js${ASSET_Q}`,
   './assets/characters/erika-main.png',
   './assets/images/icon-192.png',

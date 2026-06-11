@@ -104,6 +104,23 @@
       name: '初めてのお買い物',
       desc: 'ショップでアイテムを交換した',
       test: (s) => (s.owned || []).length >= 1
+    },
+    {
+      id: 'stamp-first',
+      icon: '📍',
+      name: 'スタンプデビュー',
+      desc: '初めてご当地スタンプを取得した',
+      test: (s) => Object.keys(s.stamps || {}).length >= 1
+    },
+    {
+      id: 'stamp-complete',
+      icon: '🗾',
+      name: 'スタンプコンプリート',
+      desc: '全てのご当地スタンプを集めた',
+      test: (s) => {
+        const total = (window.STAMPS || []).length;
+        return total > 0 && Object.keys(s.stamps || {}).length >= total;
+      }
     }
   ];
 

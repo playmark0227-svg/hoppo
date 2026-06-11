@@ -93,6 +93,14 @@
 
   function redeem(code) {
     const normalized = (code || '').toUpperCase().trim();
+
+    // ----- スタンプラリーコード -----
+    const stampId = (window.STAMP_CODES || {})[normalized];
+    if (stampId) {
+      redeemStamp(stampId);
+      return;
+    }
+
     const entry = window.QR_CODES[normalized];
     if (!entry) {
       UI.toast('このコードは使えません…', 'bad');
@@ -173,5 +181,30 @@
     });
   }
 
-  window.QR = { init: bind, stop: stopScan };
+  function redeemStamp(stampId) {
+    const stamp = window.getStampById ? window.getStampById(stampId) : null;
+    if (!stamp) {
+      UI.toast('このコードは使えません…', 'bad');
+      return;
+    }
+    if (Store.hasStamp(stampId)) {
+      UI.toast(`「${stamp.name}」のスタンプは取得済みです`, 'bad', 2400);
+      return;
+    }
+    Store.earnStamp(stampId);
+    const pts = window.STAMP_POINTS || 30;
+    Store.addPoints(pts, { type: 'stamp', label: `スタンプ：${stamp.name}` }, { silent: true });
+    UI.flashPoints();
+    UI.confetti();
+    UI.toast(`${stamp.emoji} スタンプ獲得！「${stamp.name}」 +${pts}pt`, 'points', 3000);
+    UI.refreshHeader();
+    UI.refreshHome();
+    if (window.Stamps) Stamps.refresh();
+    // 獲得したスタンプの詳細を見せる
+    if (window.UI && UI.showStamp) {
+      setTimeout(() => UI.showStamp(stampId), 650);
+    }
+  }
+
+  window.QR = { init: bind, stop: stopScan, redeem };
 })();

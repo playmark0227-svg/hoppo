@@ -15,7 +15,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700;900&family=Yuji+Syuku&display=swap" rel="stylesheet">
 
-  <link rel="stylesheet" href="css/style.css?v=24">
+  <link rel="stylesheet" href="css/style.css?v=25">
 </head>
 <body>
 
@@ -107,6 +107,14 @@
         <button type="button" class="ds-nav-link" data-goto="qr">
           <span class="ds-nav-icon"><svg class="icon"><use href="#i-camera"/></svg></span>
           <span class="ds-nav-label">QR読み取り</span>
+        </button>
+        <button type="button" class="ds-nav-link" data-goto="stamps">
+          <span class="ds-nav-icon"><svg class="icon"><use href="#i-pin"/></svg></span>
+          <span class="ds-nav-label">スタンプ</span>
+        </button>
+        <button type="button" class="ds-nav-link" data-goto="social">
+          <span class="ds-nav-icon"><svg class="icon"><use href="#i-medal"/></svg></span>
+          <span class="ds-nav-label">ランキング</span>
         </button>
         <button type="button" class="ds-nav-link" data-goto="shop">
           <span class="ds-nav-icon"><svg class="icon"><use href="#i-gift"/></svg></span>
@@ -305,6 +313,22 @@
               <div class="quick-icon-wrap"><svg class="icon icon-lg"><use href="#i-license"/></svg></div>
               <div class="quick-label">ライセンス</div>
               <div class="quick-sub">あなたの階級は？</div>
+            </div>
+          </button>
+          <button class="quick-tile quick-stamps" data-goto="stamps">
+            <span class="quick-tile-strip" aria-hidden="true"></span>
+            <div class="quick-tile-inner">
+              <div class="quick-icon-wrap"><svg class="icon icon-lg"><use href="#i-pin"/></svg></div>
+              <div class="quick-label">スタンプ</div>
+              <div class="quick-sub">ご当地スタンプ集め</div>
+            </div>
+          </button>
+          <button class="quick-tile quick-social" data-goto="social">
+            <span class="quick-tile-strip" aria-hidden="true"></span>
+            <div class="quick-tile-inner">
+              <div class="quick-icon-wrap"><svg class="icon icon-lg"><use href="#i-medal"/></svg></div>
+              <div class="quick-label">ランキング</div>
+              <div class="quick-sub">仲間と競おう</div>
             </div>
           </button>
         </div>
@@ -763,6 +787,92 @@
       </section>
 
       <!-- SETTINGS -->
+      <!-- STAMPS（スタンプラリー） -->
+      <section class="page page-stamps" data-page="stamps" hidden>
+        <div class="page-head">
+          <div class="page-head-kicker">STAMP RALLY</div>
+          <h2>ご当地スタンプ</h2>
+          <p class="page-desc">根室・北方領土ゆかりの地をめぐって集めよう</p>
+        </div>
+
+        <!-- Progress -->
+        <div class="stamp-progress-card">
+          <div class="stamp-progress-meta">
+            <span class="stamp-progress-label">あつめたスタンプ</span>
+            <span class="stamp-progress-count" id="stampCounter">0 / 10</span>
+          </div>
+          <div class="stamp-progress-bar">
+            <div class="stamp-progress-fill" id="stampProgressFill"></div>
+          </div>
+          <p class="stamp-progress-hint">イベント会場やゆかりの地のQRコードを読み取るとスタンプが押されます</p>
+        </div>
+
+        <!-- Pokédex-style grid -->
+        <div class="stamp-grid" id="stampGrid"></div>
+
+        <!-- Demo codes -->
+        <div class="stamp-demo">
+          <button type="button" class="stamp-demo-toggle" id="stampDemoToggle">
+            <svg class="icon icon-sm"><use href="#i-camera"/></svg>
+            <span>デモ用コードで体験する</span>
+            <svg class="icon icon-sm stamp-demo-caret"><use href="#i-arrow-right"/></svg>
+          </button>
+          <div class="stamp-demo-box" id="stampDemoBox" hidden>
+            <p class="stamp-demo-note">※ 実際はイベント会場・現地のQRコードで取得します。タップすると取得を体験できます。</p>
+            <div class="stamp-demo-list" id="stampDemoList"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SOCIAL（ランキング・フレンド・DM） -->
+      <section class="page page-social" data-page="social" hidden>
+        <div class="page-head">
+          <div class="page-head-kicker">RANKING & FRIENDS</div>
+          <h2>ランキング</h2>
+          <p class="page-desc">登録した名前で、仲間とポイントを競おう</p>
+        </div>
+
+        <!-- Tabs -->
+        <div class="social-tabs" role="tablist" aria-label="ソーシャル">
+          <button type="button" class="social-tab active" data-social-tab="ranking" role="tab" aria-selected="true">ランキング</button>
+          <button type="button" class="social-tab" data-social-tab="friends" role="tab" aria-selected="false">フレンド</button>
+          <button type="button" class="social-tab" data-social-tab="dm" role="tab" aria-selected="false">メッセージ</button>
+        </div>
+
+        <!-- Panel: ランキング -->
+        <div class="social-panel" data-social-panel="ranking">
+          <div class="social-myrank" id="rankingMyRank"></div>
+          <div class="social-list" id="rankingList"></div>
+        </div>
+
+        <!-- Panel: フレンド -->
+        <div class="social-panel" data-social-panel="friends" hidden>
+          <div class="social-list" id="friendList"></div>
+        </div>
+
+        <!-- Panel: メッセージ -->
+        <div class="social-panel" data-social-panel="dm" hidden>
+          <div class="social-list" id="dmThreadList"></div>
+          <div class="dm-chat" id="dmChat" hidden>
+            <div class="dm-chat-head">
+              <button type="button" class="dm-back" id="dmBackBtn" aria-label="スレッド一覧に戻る">
+                <svg class="icon"><use href="#i-arrow-right"/></svg>
+              </button>
+              <span class="dm-chat-name" id="dmChatName"></span>
+            </div>
+            <div class="dm-log" id="dmLog"></div>
+            <div class="dm-inputbar">
+              <input type="text" class="input dm-input" id="dmInput" maxlength="200" placeholder="メッセージを入力…">
+              <button type="button" class="dm-send" id="dmSendBtn" aria-label="送信">
+                <svg class="icon"><use href="#i-chat"/></svg>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <p class="social-disclaimer">※ デモ機能：ランキングのなかま達はアプリ内のキャラクターです。メッセージは端末内のみに保存され、外部には送信されません。</p>
+      </section>
+
       <section class="page page-settings" data-page="settings" hidden>
         <div class="page-head">
           <div class="page-head-kicker">PROFILE &amp; SETTINGS</div>
@@ -857,6 +967,14 @@
           <div class="settings-card">
             <p class="settings-card-desc">あなたが特に応援したい島を選んでください。プロフィールに反映されます。</p>
             <div class="island-picker" id="islandPicker" role="radiogroup" aria-label="推しの島"></div>
+            <label class="settings-toggle settings-toggle-theme">
+              <span class="settings-toggle-meta">
+                <strong>島カラーの着せ替え</strong>
+                <small>推しの島に合わせてアプリ全体の色が変わります</small>
+              </span>
+              <input type="checkbox" id="setIslandTheme">
+              <span class="settings-toggle-track" aria-hidden="true"></span>
+            </label>
           </div>
         </div>
 
@@ -976,6 +1094,14 @@
               <span>運営</span>
               <strong>ViFight</strong>
             </div>
+            <button type="button" class="settings-row-btn" id="settingsTutorialBtn">
+              <span class="settings-row-icon">🎓</span>
+              <span class="settings-row-meta">
+                <strong>チュートリアルを見る</strong>
+                <small>アプリの使い方をもう一度確認</small>
+              </span>
+              <span class="settings-row-arrow">›</span>
+            </button>
             <button type="button" class="settings-row-btn" id="settingsCreditsBtn">
               <span class="settings-row-icon">📜</span>
               <span class="settings-row-meta">
@@ -1022,6 +1148,16 @@
             </svg>
           </span>
           <span class="nav-label">クイズ</span>
+          <span class="nav-pill" aria-hidden="true"></span>
+        </button>
+        <button class="nav-btn" data-goto="stamps" aria-label="スタンプ">
+          <span class="nav-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 21s6.5-6.2 6.5-11A6.5 6.5 0 0 0 5.5 10c0 4.8 6.5 11 6.5 11z"></path>
+              <circle cx="12" cy="9.8" r="2.4"></circle>
+            </svg>
+          </span>
+          <span class="nav-label">スタンプ</span>
           <span class="nav-pill" aria-hidden="true"></span>
         </button>
         <button class="nav-btn nav-btn-center" data-goto="qr" aria-label="QRを読み取る">
@@ -1075,6 +1211,40 @@
         </button>
       </div>
     </nav>
+
+    <!-- Stamp detail modal -->
+    <div id="stampModal" class="modal-layer" hidden aria-hidden="true">
+      <div class="modal-backdrop" data-close></div>
+      <div class="modal-card detail-card" role="dialog" aria-labelledby="stampModalTitle">
+        <button type="button" class="modal-close" data-close aria-label="閉じる">×</button>
+        <div class="detail-photo stamp-photo" id="stampPhoto"></div>
+        <div class="detail-kicker" id="stampKicker">STAMP No.01</div>
+        <h3 class="detail-title" id="stampModalTitle">納沙布岬</h3>
+        <p class="detail-sub" id="stampSub"></p>
+        <ul class="detail-facts" id="stampFacts"></ul>
+        <div class="detail-body" id="stampBody"></div>
+        <button type="button" class="btn btn-primary btn-full" data-close>閉じる</button>
+      </div>
+    </div>
+
+    <!-- Tutorial overlay（初回オンボーディング） -->
+    <div id="tutorialOverlay" class="tut-overlay" hidden>
+      <div class="tut-backdrop" aria-hidden="true"></div>
+      <div class="tut-card" id="tutCard" role="dialog" aria-label="チュートリアル">
+        <div class="tut-visual">
+          <img src="assets/characters/erika-main.png" alt="エリカちゃん" class="tut-erika" id="tutErika">
+          <div class="tut-icon" id="tutIcon" hidden>📝</div>
+        </div>
+        <h3 class="tut-title" id="tutTitle"></h3>
+        <p class="tut-body" id="tutBody"></p>
+        <div class="tut-dots" id="tutDots"></div>
+        <div class="tut-actions">
+          <button type="button" class="tut-prev" id="tutPrevBtn" aria-label="前へ">‹ 前へ</button>
+          <button type="button" class="btn btn-primary tut-next" id="tutNextBtn">次へ</button>
+        </div>
+        <button type="button" class="tut-skip" id="tutSkipBtn">スキップ</button>
+      </div>
+    </div>
 
     <!-- Island detail modal -->
     <div id="islandModal" class="modal-layer" hidden aria-hidden="true">
@@ -1170,15 +1340,18 @@
     <canvas id="confetti" class="confetti"></canvas>
   </div>
 
-  <script defer src="js/data.js?v=24"></script>
-  <script defer src="js/store.js?v=24"></script>
-  <script defer src="js/ui.js?v=24"></script>
-  <script defer src="js/achievements.js?v=24"></script>
-  <script defer src="js/quiz.js?v=24"></script>
-  <script defer src="js/shop.js?v=24"></script>
-  <script defer src="js/qr.js?v=24"></script>
-  <script defer src="js/license.js?v=24"></script>
-  <script defer src="js/settings.js?v=24"></script>
-  <script defer src="js/app.js?v=24"></script>
+  <script defer src="js/data.js?v=25"></script>
+  <script defer src="js/store.js?v=25"></script>
+  <script defer src="js/ui.js?v=25"></script>
+  <script defer src="js/achievements.js?v=25"></script>
+  <script defer src="js/quiz.js?v=25"></script>
+  <script defer src="js/shop.js?v=25"></script>
+  <script defer src="js/qr.js?v=25"></script>
+  <script defer src="js/license.js?v=25"></script>
+  <script defer src="js/settings.js?v=25"></script>
+  <script defer src="js/stamps.js?v=25"></script>
+  <script defer src="js/social.js?v=25"></script>
+  <script defer src="js/tutorial.js?v=25"></script>
+  <script defer src="js/app.js?v=25"></script>
 </body>
 </html>

@@ -11,6 +11,8 @@
         if (page === 'shop') Shop.refresh();
         if (page === 'license') License.refresh();
         if (page === 'settings' && window.Settings) Settings.refresh();
+        if (page === 'stamps' && window.Stamps) Stamps.refresh();
+        if (page === 'social' && window.Social) Social.refresh();
       });
     });
   }
@@ -107,6 +109,10 @@
     const settings = Store.getSettings();
     document.documentElement.classList.toggle('reduce-motion', !!settings.reduceMotion);
     document.documentElement.classList.toggle('high-contrast', !!settings.highContrast);
+
+    // 島カラー着せ替え — 推しの島のパレットをアプリ全体に適用
+    const themeOn = !!p.islandThemeOn;
+    document.documentElement.dataset.islandTheme = themeOn ? (p.favoriteIsland || '') : '';
   }
 
   function hideLoader() {
@@ -118,7 +124,7 @@
 
   function handleInitialRoute() {
     const hash = (location.hash || '#home').replace('#', '');
-    const valid = ['home', 'quiz', 'qr', 'shop', 'license', 'settings'];
+    const valid = ['home', 'quiz', 'qr', 'shop', 'license', 'settings', 'stamps', 'social'];
     UI.go(valid.includes(hash) ? hash : 'home');
   }
 
@@ -141,13 +147,17 @@
     QR.init();
     License.init();
     if (window.Settings) Settings.init();
+    if (window.Stamps) Stamps.init();
+    if (window.Social) Social.init();
+    if (window.Tutorial) Tutorial.init();
 
     // Re-apply avatar style after Store changes (e.g. import)
     Store.on('change', applyAvatarStyleFromStore);
 
     // Daily login bonus — open welcome modal if claimed
+    // （初回はチュートリアルを優先し、ボーナス付与のみ行う）
     const daily = Store.claimDailyLogin();
-    if (daily) {
+    if (daily && Store.getFlag('tutorialSeen')) {
       setTimeout(() => {
         UI.showDailyWelcome(daily);
         UI.refreshHeader();

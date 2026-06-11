@@ -10,6 +10,7 @@
     avatarFrame: 'coral',     // 'coral' | 'ocean' | 'gold' | 'cherry' | 'mint' | 'plum'
     avatarPattern: 'wave',    // 'wave' | 'dots' | 'shine' | 'plain'
     avatarImage: '',          // Data URL of user-uploaded image; falls back to default Erika
+    islandThemeOn: false,     // 推しの島カラーをアプリ全体に適用するか
     region: '',               // 出身・在住地域
     birthday: ''              // YYYY-MM-DD（任意）
   };
@@ -39,6 +40,12 @@
     longestStreak: 0,       // best streak ever
     loginTotal: 0,          // total unique-day logins
     achievements: [],       // earned achievement ids
+    stamps: {},             // { stampId: earnedAtISO } — スタンプラリー
+    social: {               // ローカルデモ・ソーシャル（外部送信なし）
+      following: [],        // followed rival ids
+      dms: {}               // { rivalId: [{ me: bool, text, at }] }
+    },
+    flags: {},              // misc one-time flags (e.g. tutorialSeen)
     profile: { ...DEFAULT_PROFILE },
     settings: { ...DEFAULT_SETTINGS }
   };
@@ -52,6 +59,12 @@
       return {
         ...DEFAULT_STATE,
         ...parsed,
+        stamps: { ...(parsed.stamps || {}) },
+        social: {
+          following: [...((parsed.social && parsed.social.following) || [])],
+          dms: { ...((parsed.social && parsed.social.dms) || {}) }
+        },
+        flags: { ...(parsed.flags || {}) },
         profile: { ...DEFAULT_PROFILE, ...(parsed.profile || {}) },
         settings: { ...DEFAULT_SETTINGS, ...(parsed.settings || {}) }
       };
@@ -234,6 +247,58 @@
     /** Convenience getters. */
     getProfile() { return { ...this.state.profile }; },
     getSettings() { return { ...this.state.settings }; },
+
+    /* ---------------- Stamps (スタンプラリー) ---------------- */
+
+    hasStamp(id) { return !!this.state.stamps[id]; },
+
+    stampCount() { return Object.keys(this.state.stamps).length; },
+
+    /** Earn a stamp. Returns false if already earned. */
+    earnStamp(id) {
+      if (this.state.stamps[id]) return false;
+      this.state.stamps[id] = new Date().toISOString();
+      this.commit();
+      this._emit('stamp', id);
+      return true;
+    },
+
+    /* ---------------- Social (ローカルデモ) ---------------- */
+
+    isFollowing(id) { return this.state.social.following.includes(id); },
+
+    follow(id) {
+      if (!this.state.social.following.includes(id)) {
+        this.state.social.following.push(id);
+        this.commit();
+      }
+    },
+
+    unfollow(id) {
+      this.state.social.following = this.state.social.following.filter(x => x !== id);
+      this.commit();
+    },
+
+    getDms(id) { return (this.state.social.dms[id] || []).slice(); },
+
+    addDm(id, message) {
+      (this.state.social.dms[id] = this.state.social.dms[id] || []).push(message);
+      // Keep each thread bounded
+      if (this.state.social.dms[id].length > 100) {
+        this.state.social.dms[id] = this.state.social.dms[id].slice(-100);
+      }
+      this.commit();
+      this._emit('dm', { id, message });
+    },
+
+    /* ---------------- Flags ---------------- */
+
+    getFlag(key) { return !!this.state.flags[key]; },
+
+    setFlag(key, value = true) {
+      this.state.flags[key] = !!value;
+      this.commit();
+    },
 
     reset() {
       localStorage.removeItem(STORAGE_KEY);

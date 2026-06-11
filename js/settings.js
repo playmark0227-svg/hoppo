@@ -99,12 +99,29 @@
     `).join('');
     wrap.querySelectorAll('[data-island]').forEach(btn => {
       btn.addEventListener('click', () => {
-        Store.updateProfile({ favoriteIsland: btn.dataset.island });
+        // 島を選んだら着せ替えテーマも自動でON
+        Store.updateProfile({ favoriteIsland: btn.dataset.island, islandThemeOn: true });
         renderIslandPicker();
         renderPreview();
-        UI.toast('推しの島を変更しました', 'good');
+        syncIslandThemeToggle();
+        UI.toast('推しの島カラーに着せ替えました！', 'good');
       });
     });
+  }
+
+  function syncIslandThemeToggle() {
+    const el = document.getElementById('setIslandTheme');
+    if (el) el.checked = !!Store.getProfile().islandThemeOn;
+  }
+
+  function bindIslandTheme() {
+    const el = document.getElementById('setIslandTheme');
+    if (!el) return;
+    el.addEventListener('change', () => {
+      Store.updateProfile({ islandThemeOn: el.checked });
+      UI.toast(el.checked ? '島カラーを適用しました' : '標準カラーに戻しました', 'good', 1600);
+    });
+    syncIslandThemeToggle();
   }
 
   function renderPreview() {
@@ -338,6 +355,13 @@
         if (window.UI && UI.openModal) UI.openModal('creditsModal');
       });
     }
+
+    const tutorialBtn = document.getElementById('settingsTutorialBtn');
+    if (tutorialBtn) {
+      tutorialBtn.addEventListener('click', () => {
+        if (window.Tutorial) Tutorial.show(true);
+      });
+    }
   }
 
   /* ---------------- Avatar image upload ---------------- */
@@ -470,6 +494,7 @@
     bindToggles();
     bindDataButtons();
     bindAvatarUpload();
+    bindIslandTheme();
 
     // Apply initial visual prefs immediately
     applyVisualPrefs(Store.getSettings());
