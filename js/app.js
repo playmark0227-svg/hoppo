@@ -12,7 +12,11 @@
         if (page === 'license') License.refresh();
         if (page === 'settings' && window.Settings) Settings.refresh();
         if (page === 'stamps' && window.Stamps) Stamps.refresh();
-        if (page === 'social' && window.Social) Social.refresh();
+        if (page === 'social' && window.Social) {
+          // タブ直行（例：ボトムナビの「メッセージ」→ DMタブ）
+          if (el.dataset.socialOpen) Social.openTab(el.dataset.socialOpen);
+          else Social.refresh();
+        }
       });
     });
   }

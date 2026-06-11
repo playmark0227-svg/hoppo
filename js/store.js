@@ -43,7 +43,8 @@
     stamps: {},             // { stampId: earnedAtISO } — スタンプラリー
     social: {               // ローカルデモ・ソーシャル（外部送信なし）
       following: [],        // followed rival ids
-      dms: {}               // { rivalId: [{ me: bool, text, at }] }
+      dms: {},              // { rivalId: [{ me: bool, text, at }] }
+      dmSeenAt: ''          // メッセージタブを最後に見た時刻（未読バッジ用）
     },
     flags: {},              // misc one-time flags (e.g. tutorialSeen)
     profile: { ...DEFAULT_PROFILE },
@@ -62,7 +63,8 @@
         stamps: { ...(parsed.stamps || {}) },
         social: {
           following: [...((parsed.social && parsed.social.following) || [])],
-          dms: { ...((parsed.social && parsed.social.dms) || {}) }
+          dms: { ...((parsed.social && parsed.social.dms) || {}) },
+          dmSeenAt: (parsed.social && parsed.social.dmSeenAt) || ''
         },
         flags: { ...(parsed.flags || {}) },
         profile: { ...DEFAULT_PROFILE, ...(parsed.profile || {}) },

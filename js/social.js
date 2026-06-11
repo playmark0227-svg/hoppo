@@ -174,10 +174,31 @@
 
   /* ---------------- DM ---------------- */
 
+  function markDmSeen() {
+    Store.state.social.dmSeenAt = new Date().toISOString();
+    Store.commit();
+    updateDmBadge();
+  }
+
+  /** 未読DM（自分宛て・最後に見た時刻より新しい）があればナビに赤ドット */
+  function updateDmBadge() {
+    const dot = document.getElementById('navDmDot');
+    if (!dot) return;
+    const social = Store.get().social;
+    const seen = social.dmSeenAt || '';
+    const hasUnread = Object.values(social.dms || {}).some(thread =>
+      thread.some(m => !m.me && (!seen || m.at > seen))
+    );
+    dot.hidden = !hasUnread;
+  }
+
   function renderDmTab() {
     const threads = document.getElementById('dmThreadList');
     const chat = document.getElementById('dmChat');
     if (!threads || !chat) return;
+
+    // メッセージタブを開いた＝既読
+    markDmSeen();
 
     if (openThreadId) {
       threads.hidden = true;
@@ -254,6 +275,8 @@
           </div>`).join('')
       : `<div class="dm-log-empty">「${r.name}」にメッセージを送ってみよう！</div>`;
     log.scrollTop = log.scrollHeight;
+    // チャットを開いている間に届いた返信も既読扱い
+    markDmSeen();
   }
 
   function escapeHtml(str) {
@@ -385,8 +408,11 @@
     bindHomeWidget();
     render();
     renderHomeWidget();
+    updateDmBadge();
     // ポイント・フォロー・名前の変化をウィジェットに反映
     Store.on('change', renderHomeWidget);
+    // 新着DMで未読バッジを更新（メッセージタブ表示中は既読化される）
+    Store.on('dm', updateDmBadge);
   }
 
   window.Social = { init, refresh: render, openTab: switchTab, getStandings, renderHomeWidget };

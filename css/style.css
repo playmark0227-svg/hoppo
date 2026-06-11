@@ -5963,3 +5963,28 @@ html[data-island-theme="habomai"] .nav-btn-center {
   .podium-col { max-width: 140px; }
   .home-social-actions { grid-template-columns: 1fr 1fr; max-width: 480px; margin-left: auto; margin-right: auto; width: 100%; }
 }
+
+/* ============================================================
+   Bottom nav — 7スロット化（メッセージタブ追加）
+   左3 + FAB + 右3 の対称配置でFABは常に中央
+   ============================================================ */
+.bottom-nav-inner {
+  grid-template-columns: 1fr 1fr 1fr 1.15fr 1fr 1fr 1fr;
+  padding: 8px 6px;
+}
+@media (max-width: 420px) {
+  .nav-label { font-size: 0.52rem; letter-spacing: 0.01em; }
+  .nav-icon { width: 24px; height: 24px; }
+}
+
+/* 未読ドット（メッセージタブ） */
+.nav-icon { position: relative; }
+.nav-dot {
+  position: absolute;
+  top: -2px; right: -3px;
+  width: 9px; height: 9px;
+  border-radius: 50%;
+  background: #ff4d4d;
+  border: 2px solid #fffaf3;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+}
