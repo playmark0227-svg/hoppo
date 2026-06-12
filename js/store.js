@@ -80,6 +80,17 @@
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
     } catch (e) {
+      // 容量超過時は、最も重いアバター画像を捨てて1回だけリトライ
+      const quota = e && (e.name === 'QuotaExceededError' || e.name === 'NS_ERROR_DOM_QUOTA_REACHED' || e.code === 22);
+      if (quota && state.profile && state.profile.avatarImage) {
+        state.profile.avatarImage = '';
+        try {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+          if (window.UI && UI.toast) UI.toast('保存容量が上限のため、プロフィール画像を解除しました', 'bad', 3200);
+          return;
+        } catch (e2) { /* fall through */ }
+      }
+      if (quota && window.UI && UI.toast) UI.toast('保存容量が上限に達しました', 'bad', 3000);
       console.warn('[store] save failed', e);
     }
   }
@@ -131,12 +142,19 @@
       this._emit('change', this.state);
     },
 
+    /** Persist without firing 'change' (for low-importance updates like dmSeenAt). */
+    saveOnly() {
+      save(this.state);
+    },
+
     /** Try to grant daily-login bonus; returns { points, streak, firstLogin } or null if already claimed today. */
     claimDailyLogin() {
       const today = todayString();
       if (this.state.lastLoginDate === today) return null;
 
       const gap = daysBetween(this.state.lastLoginDate, today);
+      // 端末時計の巻き戻り対策：過去日付なら付与も更新もしない
+      if (gap <= 0 && this.state.lastLoginDate) return null;
       const firstLogin = !this.state.lastLoginDate;
 
       let streak;

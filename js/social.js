@@ -88,7 +88,7 @@
           <span class="srow-rank">${medals[i] || (i + 1)}</span>
           ${face}
           <span class="srow-meta">
-            <span class="srow-name">${e.name}${e.me ? '<small class="srow-you">あなた</small>' : ''}</span>
+            <span class="srow-name">${escapeHtml(e.name)}${e.me ? '<small class="srow-you">あなた</small>' : ''}</span>
             <span class="srow-sub">${rankBadge ? rankBadge.emoji + ' ' + rankBadge.name : ''}</span>
           </span>
           <span class="srow-points"><strong>${e.points.toLocaleString()}</strong><small>pt</small></span>
@@ -153,8 +153,8 @@
         <div class="srow">
           <span class="srow-avatar srow-avatar-emoji" data-frame="${r.frame}">${r.emoji}</span>
           <span class="srow-meta">
-            <span class="srow-name">${r.name}</span>
-            <span class="srow-sub srow-lastmsg">${last ? (last.me ? 'あなた：' : '') + last.text : 'メッセージを送ってみよう'}</span>
+            <span class="srow-name">${escapeHtml(r.name)}</span>
+            <span class="srow-sub srow-lastmsg">${last ? (last.me ? 'あなた：' : '') + escapeHtml(last.text) : 'メッセージを送ってみよう'}</span>
           </span>
           <span class="srow-points"><strong>${rivalPoints(r).toLocaleString()}</strong><small>pt</small></span>
           <button type="button" class="srow-dm" data-dm="${r.id}">
@@ -174,9 +174,19 @@
 
   /* ---------------- DM ---------------- */
 
+  function hasUnreadDm() {
+    const social = Store.get().social;
+    const seen = social.dmSeenAt || '';
+    return Object.values(social.dms || {}).some(thread =>
+      thread.some(m => !m.me && (!seen || m.at > seen))
+    );
+  }
+
   function markDmSeen() {
+    // 未読が無ければ何もしない（無駄なlocalStorage書き込みを避ける）
+    if (!hasUnreadDm()) return;
     Store.state.social.dmSeenAt = new Date().toISOString();
-    Store.commit();
+    Store.saveOnly();          // 'change' 連鎖を起こさず保存だけ
     updateDmBadge();
   }
 
@@ -184,12 +194,7 @@
   function updateDmBadge() {
     const dot = document.getElementById('navDmDot');
     if (!dot) return;
-    const social = Store.get().social;
-    const seen = social.dmSeenAt || '';
-    const hasUnread = Object.values(social.dms || {}).some(thread =>
-      thread.some(m => !m.me && (!seen || m.at > seen))
-    );
-    dot.hidden = !hasUnread;
+    dot.hidden = !hasUnreadDm();
   }
 
   function renderDmTab() {
@@ -229,8 +234,8 @@
         <button type="button" class="dm-thread" data-thread="${r.id}">
           <span class="srow-avatar srow-avatar-emoji" data-frame="${r.frame}">${r.emoji}</span>
           <span class="srow-meta">
-            <span class="srow-name">${r.name}</span>
-            <span class="srow-sub srow-lastmsg">${last ? (last.me ? 'あなた：' : '') + last.text : 'まだメッセージはありません'}</span>
+            <span class="srow-name">${escapeHtml(r.name)}</span>
+            <span class="srow-sub srow-lastmsg">${last ? (last.me ? 'あなた：' : '') + escapeHtml(last.text) : 'まだメッセージはありません'}</span>
           </span>
           <svg class="icon icon-sm dm-thread-arrow"><use href="#i-arrow-right"/></svg>
         </button>
@@ -254,7 +259,8 @@
 
   function closeThread(rerender = true) {
     openThreadId = null;
-    if (replyTimer) { clearTimeout(replyTimer); replyTimer = null; }
+    // replyTimer はあえて止めない：送信直後に画面を離れても自動返信は保存され、
+    // 未読バッジで気づける（renderChat 側の openThreadId ガードが描画競合を防ぐ）。
     if (rerender) renderDmTab();
   }
 
@@ -333,7 +339,7 @@
           <div class="podium-col ${place} ${e.me ? 'is-me' : ''}">
             <span class="podium-medal">${medals[place]}</span>
             ${face}
-            <span class="podium-name">${e.me ? 'あなた' : e.name}</span>
+            <span class="podium-name">${e.me ? 'あなた' : escapeHtml(e.name)}</span>
             <span class="podium-pts">${e.points.toLocaleString()}<small>pt</small></span>
             <span class="podium-base"></span>
           </div>
@@ -351,7 +357,7 @@
         const gap = above ? (above.points - me.points + 1) : 0;
         meRow.innerHTML = `
           <span class="home-myrank-label">あなたの順位：<strong>${myRank}位</strong><small> / ${entries.length}人中</small></span>
-          <span class="home-myrank-gap">あと ${gap.toLocaleString()}pt で ${above ? above.name : ''} を抜ける！</span>
+          <span class="home-myrank-gap">あと ${gap.toLocaleString()}pt で ${above ? escapeHtml(above.name) : ''} を抜ける！</span>
           <svg class="icon icon-sm"><use href="#i-arrow-right"/></svg>`;
       }
     }

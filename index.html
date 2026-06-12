@@ -2,20 +2,33 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="theme-color" content="#f47a5a">
   <meta name="description" content="北方領土ステータス — クイズやイベント参加でポイントを貯めて、北方領土について楽しく学ぼう！">
   <title>北方領土ステータス</title>
 
+  <!-- OGP / Twitter Card（URL共有時のプレビュー） -->
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="北方領土ステータス">
+  <meta property="og:title" content="北方領土ステータス">
+  <meta property="og:description" content="クイズ・スタンプラリー・ランキングで、北方領土について楽しく学べるPWAアプリ。">
+  <meta property="og:url" content="https://playmark0227-svg.github.io/hoppo/">
+  <meta property="og:image" content="https://playmark0227-svg.github.io/hoppo/assets/images/icon-512.png">
+  <meta property="og:locale" content="ja_JP">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="北方領土ステータス">
+  <meta name="twitter:description" content="クイズ・スタンプラリー・ランキングで、北方領土について楽しく学べるPWAアプリ。">
+  <meta name="twitter:image" content="https://playmark0227-svg.github.io/hoppo/assets/images/icon-512.png">
+
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="apple-touch-icon" href="assets/images/icon-192.png">
-  <link rel="icon" href="assets/characters/erika-main.png">
+  <link rel="icon" href="assets/images/icon-192.png">
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700;900&family=Yuji+Syuku&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700;900&family=Yuji+Syuku&display=swap" rel="stylesheet" crossorigin="anonymous">
 
-  <link rel="stylesheet" href="css/style.css?v=27">
+  <link rel="stylesheet" href="css/style.css?v=28">
 </head>
 <body>
 
@@ -864,24 +877,24 @@
 
         <!-- Tabs -->
         <div class="social-tabs" role="tablist" aria-label="ソーシャル">
-          <button type="button" class="social-tab active" data-social-tab="ranking" role="tab" aria-selected="true">ランキング</button>
-          <button type="button" class="social-tab" data-social-tab="friends" role="tab" aria-selected="false">フレンド</button>
-          <button type="button" class="social-tab" data-social-tab="dm" role="tab" aria-selected="false">メッセージ</button>
+          <button type="button" class="social-tab active" id="socialTabRanking" data-social-tab="ranking" role="tab" aria-selected="true" aria-controls="socialPanelRanking">ランキング</button>
+          <button type="button" class="social-tab" id="socialTabFriends" data-social-tab="friends" role="tab" aria-selected="false" aria-controls="socialPanelFriends">フレンド</button>
+          <button type="button" class="social-tab" id="socialTabDm" data-social-tab="dm" role="tab" aria-selected="false" aria-controls="socialPanelDm">メッセージ</button>
         </div>
 
         <!-- Panel: ランキング -->
-        <div class="social-panel" data-social-panel="ranking">
+        <div class="social-panel" id="socialPanelRanking" role="tabpanel" aria-labelledby="socialTabRanking" data-social-panel="ranking">
           <div class="social-myrank" id="rankingMyRank"></div>
           <div class="social-list" id="rankingList"></div>
         </div>
 
         <!-- Panel: フレンド -->
-        <div class="social-panel" data-social-panel="friends" hidden>
+        <div class="social-panel" id="socialPanelFriends" role="tabpanel" aria-labelledby="socialTabFriends" data-social-panel="friends" hidden>
           <div class="social-list" id="friendList"></div>
         </div>
 
         <!-- Panel: メッセージ -->
-        <div class="social-panel" data-social-panel="dm" hidden>
+        <div class="social-panel" id="socialPanelDm" role="tabpanel" aria-labelledby="socialTabDm" data-social-panel="dm" hidden>
           <div class="social-list" id="dmThreadList"></div>
           <div class="dm-chat" id="dmChat" hidden>
             <div class="dm-chat-head">
@@ -1257,7 +1270,7 @@
     <!-- Stamp detail modal -->
     <div id="stampModal" class="modal-layer" hidden aria-hidden="true">
       <div class="modal-backdrop" data-close></div>
-      <div class="modal-card detail-card" role="dialog" aria-labelledby="stampModalTitle">
+      <div class="modal-card detail-card" role="dialog" aria-modal="true" aria-labelledby="stampModalTitle">
         <button type="button" class="modal-close" data-close aria-label="閉じる">×</button>
         <div class="detail-photo stamp-photo" id="stampPhoto"></div>
         <div class="detail-kicker" id="stampKicker">STAMP No.01</div>
@@ -1272,7 +1285,7 @@
     <!-- Tutorial overlay（初回オンボーディング） -->
     <div id="tutorialOverlay" class="tut-overlay" hidden>
       <div class="tut-backdrop" aria-hidden="true"></div>
-      <div class="tut-card" id="tutCard" role="dialog" aria-label="チュートリアル">
+      <div class="tut-card" id="tutCard" role="dialog" aria-modal="true" aria-label="チュートリアル">
         <div class="tut-visual">
           <img src="assets/characters/erika-main.png" alt="エリカちゃん" class="tut-erika" id="tutErika">
           <div class="tut-icon" id="tutIcon" hidden>📝</div>
@@ -1291,7 +1304,7 @@
     <!-- Island detail modal -->
     <div id="islandModal" class="modal-layer" hidden aria-hidden="true">
       <div class="modal-backdrop" data-close></div>
-      <div class="modal-card detail-card" role="dialog" aria-labelledby="islandModalTitle">
+      <div class="modal-card detail-card" role="dialog" aria-modal="true" aria-labelledby="islandModalTitle">
         <button type="button" class="modal-close" data-close aria-label="閉じる">×</button>
         <div class="detail-photo" id="islandPhoto"></div>
         <div class="detail-kicker" id="islandKicker">ETOROFU</div>
@@ -1306,7 +1319,7 @@
     <!-- Achievement detail modal -->
     <div id="achieveModal" class="modal-layer" hidden aria-hidden="true">
       <div class="modal-backdrop" data-close></div>
-      <div class="modal-card detail-card detail-card-achieve" role="dialog" aria-labelledby="achieveModalTitle">
+      <div class="modal-card detail-card detail-card-achieve" role="dialog" aria-modal="true" aria-labelledby="achieveModalTitle">
         <button type="button" class="modal-close" data-close aria-label="閉じる">×</button>
         <div class="achieve-modal-medal" id="achieveModalIcon">🏅</div>
         <div class="detail-kicker" id="achieveModalState">獲得済み</div>
@@ -1320,7 +1333,7 @@
     <!-- History / points log modal -->
     <div id="historyModal" class="modal-layer" hidden aria-hidden="true">
       <div class="modal-backdrop" data-close></div>
-      <div class="modal-card detail-card" role="dialog" aria-labelledby="historyModalTitle">
+      <div class="modal-card detail-card" role="dialog" aria-modal="true" aria-labelledby="historyModalTitle">
         <button type="button" class="modal-close" data-close aria-label="閉じる">×</button>
         <div class="detail-kicker">POINTS LOG</div>
         <h3 class="detail-title" id="historyModalTitle">ポイント履歴</h3>
@@ -1333,7 +1346,7 @@
     <!-- Credits modal -->
     <div id="creditsModal" class="modal-layer" hidden aria-hidden="true">
       <div class="modal-backdrop" data-close></div>
-      <div class="modal-card detail-card" role="dialog" aria-labelledby="creditsModalTitle">
+      <div class="modal-card detail-card" role="dialog" aria-modal="true" aria-labelledby="creditsModalTitle">
         <button type="button" class="modal-close" data-close aria-label="閉じる">×</button>
         <div class="detail-kicker">CREDITS</div>
         <h3 class="detail-title" id="creditsModalTitle">クレジット</h3>
@@ -1364,7 +1377,7 @@
     <!-- Welcome / daily check-in modal -->
     <div id="welcomeModal" class="modal-layer" hidden aria-hidden="true">
       <div class="modal-backdrop"></div>
-      <div class="modal-card welcome-card" role="dialog" aria-labelledby="welcomeTitle">
+      <div class="modal-card welcome-card" role="dialog" aria-modal="true" aria-labelledby="welcomeTitle">
         <div class="welcome-burst"></div>
         <div class="welcome-char">
           <img src="assets/characters/erika-main.png" alt="エリカちゃん">
@@ -1382,18 +1395,18 @@
     <canvas id="confetti" class="confetti"></canvas>
   </div>
 
-  <script defer src="js/data.js?v=27"></script>
-  <script defer src="js/store.js?v=27"></script>
-  <script defer src="js/ui.js?v=27"></script>
-  <script defer src="js/achievements.js?v=27"></script>
-  <script defer src="js/quiz.js?v=27"></script>
-  <script defer src="js/shop.js?v=27"></script>
-  <script defer src="js/qr.js?v=27"></script>
-  <script defer src="js/license.js?v=27"></script>
-  <script defer src="js/settings.js?v=27"></script>
-  <script defer src="js/stamps.js?v=27"></script>
-  <script defer src="js/social.js?v=27"></script>
-  <script defer src="js/tutorial.js?v=27"></script>
-  <script defer src="js/app.js?v=27"></script>
+  <script defer src="js/data.js?v=28"></script>
+  <script defer src="js/store.js?v=28"></script>
+  <script defer src="js/ui.js?v=28"></script>
+  <script defer src="js/achievements.js?v=28"></script>
+  <script defer src="js/quiz.js?v=28"></script>
+  <script defer src="js/shop.js?v=28"></script>
+  <script defer src="js/qr.js?v=28"></script>
+  <script defer src="js/license.js?v=28"></script>
+  <script defer src="js/settings.js?v=28"></script>
+  <script defer src="js/stamps.js?v=28"></script>
+  <script defer src="js/social.js?v=28"></script>
+  <script defer src="js/tutorial.js?v=28"></script>
+  <script defer src="js/app.js?v=28"></script>
 </body>
 </html>

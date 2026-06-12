@@ -22,14 +22,18 @@
   }
 
   async function startScan() {
+    // 連打・多重起動を防ぐ（CDN読込待ちの間に再タップされるとカメラがリークする）
+    if (scanning || stream) return;
     const video = document.getElementById('qrVideo');
     const placeholder = document.getElementById('qrPlaceholder');
     const startBtn = document.getElementById('qrStartBtn');
     const stopBtn = document.getElementById('qrStopBtn');
+    startBtn.disabled = true;
 
     try {
       await loadJsQR();
     } catch (e) {
+      startBtn.disabled = false;
       UI.toast('スキャナの読み込みに失敗。手入力をお使いください', 'bad', 3000);
       return;
     }
@@ -42,6 +46,8 @@
     } catch (e) {
       console.warn(e);
       UI.toast('カメラが使えませんでした', 'bad', 3000);
+      stream = null;
+      startBtn.disabled = false;
       return;
     }
 
@@ -50,28 +56,43 @@
     await video.play();
     placeholder.hidden = true;
     startBtn.hidden = true;
+    startBtn.disabled = false;
     stopBtn.hidden = false;
     scanning = true;
+    lastDecode = 0;
     tick();
   }
 
+  let lastDecode = 0;
+  const SCAN_MAX_W = 480;   // デコード用に縮小する最大幅
+  const SCAN_INTERVAL = 160; // デコード間隔(ms) — フレーム毎の重い処理を間引く
+
   function tick() {
     if (!scanning) return;
+    rafId = requestAnimationFrame(tick);
+
+    const now = (window.performance && performance.now) ? performance.now() : Date.now();
+    if (now - lastDecode < SCAN_INTERVAL) return;
+    lastDecode = now;
+
     const video = document.getElementById('qrVideo');
     const canvas = document.getElementById('qrCanvas');
-    if (video.readyState === video.HAVE_ENOUGH_DATA) {
-      canvas.width = video.videoWidth;
-      canvas.height = video.videoHeight;
-      const ctx = canvas.getContext('2d');
-      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-      const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-      const code = window.jsQR(imgData.data, imgData.width, imgData.height, { inversionAttempts: 'dontInvert' });
-      if (code && code.data) {
-        handleCode(code.data.trim());
-        return;
-      }
+    if (video.readyState !== video.HAVE_ENOUGH_DATA) return;
+
+    // フル解像度フレームを縮小してデコード（コストを数分の1に）
+    const vw = video.videoWidth, vh = video.videoHeight;
+    if (!vw || !vh) return;
+    const scale = Math.min(1, SCAN_MAX_W / vw);
+    const w = Math.round(vw * scale), h = Math.round(vh * scale);
+    if (canvas.width !== w) { canvas.width = w; canvas.height = h; }
+
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(video, 0, 0, w, h);
+    const imgData = ctx.getImageData(0, 0, w, h);
+    const code = window.jsQR(imgData.data, imgData.width, imgData.height, { inversionAttempts: 'dontInvert' });
+    if (code && code.data) {
+      handleCode(code.data.trim());
     }
-    rafId = requestAnimationFrame(tick);
   }
 
   function stopScan() {

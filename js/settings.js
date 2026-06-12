@@ -196,25 +196,43 @@
       }
     }
 
+    // タイピング中は state を直接更新＋軽量プレビューのみ。重い保存（JSON.stringify＋
+    // localStorage＋'change'連鎖）は入力が止まった時／フォーカスを外した時に1回だけ。
+    let commitTimer = null;
+    function scheduleCommit() {
+      if (commitTimer) clearTimeout(commitTimer);
+      commitTimer = setTimeout(() => { commitTimer = null; Store.commit(); }, 450);
+    }
+    function flushCommit() {
+      if (commitTimer) { clearTimeout(commitTimer); commitTimer = null; }
+      Store.commit();
+    }
+
     if (nameInput) {
       nameInput.addEventListener('input', () => {
-        Store.setName(nameInput.value);
+        Store.state.name = nameInput.value.trim().slice(0, 12) || 'ゲスト';
         UI.refreshHeader();
         renderPreview();
+        scheduleCommit();
       });
+      nameInput.addEventListener('blur', flushCommit);
     }
     if (bioInput) {
       bioInput.addEventListener('input', () => {
-        Store.updateProfile({ bio: bioInput.value });
+        Store.state.profile.bio = bioInput.value.slice(0, 80);
         if (bioCount) bioCount.textContent = bioInput.value.length;
         renderPreview();
+        scheduleCommit();
       });
+      bioInput.addEventListener('blur', flushCommit);
     }
     if (regionInput) {
       regionInput.addEventListener('input', () => {
-        Store.updateProfile({ region: regionInput.value });
+        Store.state.profile.region = regionInput.value.slice(0, 24);
         renderPreview();
+        scheduleCommit();
       });
+      regionInput.addEventListener('blur', flushCommit);
     }
     if (birthdayInput) {
       birthdayInput.addEventListener('change', () => {
@@ -304,8 +322,22 @@
             const data = JSON.parse(reader.result);
             if (typeof data !== 'object' || !data) throw new Error('invalid');
             if (!confirm('現在のデータを上書きしてインポートしますか？')) return;
-            // Merge into store
-            Object.assign(Store.state, data);
+            // 既知キーのみ取り込む（未知キー・巨大画像の混入を防ぐ）
+            const ALLOWED = ['userId','name','createdAt','points','totalEarned','quizResults',
+              'usedQrCodes','owned','history','lastLoginDate','loginStreak','longestStreak',
+              'loginTotal','achievements','stamps','social','flags','profile','settings'];
+            const clean = {};
+            ALLOWED.forEach(k => { if (k in data) clean[k] = data[k]; });
+            // 名前は12文字に制限
+            if (typeof clean.name === 'string') clean.name = clean.name.trim().slice(0, 12) || 'ゲスト';
+            // アバター画像は妥当な data URL かつ ~200KB 以内のみ許可
+            if (clean.profile && typeof clean.profile === 'object') {
+              const img = clean.profile.avatarImage;
+              if (typeof img !== 'string' || !/^data:image\//.test(img) || img.length > 200000) {
+                clean.profile.avatarImage = '';
+              }
+            }
+            Object.assign(Store.state, clean);
             Store.commit();
             UI.toast('データをインポートしました', 'good');
             // Re-render everything
@@ -379,9 +411,13 @@
     if (kind === 'bad')  note.classList.add('is-bad');
   }
 
+  let _lastAvatarSrc = null;
   function renderAvatarImage() {
     const p = Store.getProfile();
     const src = p.avatarImage || 'assets/characters/erika-main.png';
+    // 画像が変わっていない commit（タイピング・ポイント加算等）では何もしない
+    if (src === _lastAvatarSrc) return;
+    _lastAvatarSrc = src;
     // Update preview chip in settings page
     const preview = document.getElementById('avatarUploadPreviewImg');
     if (preview) preview.src = src;

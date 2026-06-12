@@ -5039,14 +5039,12 @@ html.high-contrast .stat-value {
   }
 }
 
-/* ============================================================
-   Bottom nav — 6スロット化（スタンプタブ追加）
-   左3・右2でもFABが中央に来るよう右側を広めに
-   ============================================================ */
-.bottom-nav-inner {
-  grid-template-columns: 1fr 1fr 1fr 1.25fr 1.5fr 1.5fr;
+/* （旧6スロット定義は7スロット化により撤去 — 現行定義はファイル末尾） */
+
+/* ボタン類のダブルタップズーム抑止（viewportのuser-scalable=no撤廃の代替） */
+button, a, .nav-btn, .quick-tile, .stamp-cell, .srow-follow, .srow-dm {
+  touch-action: manipulation;
 }
-.nav-label { letter-spacing: 0.04em; }
 
 /* ============================================================
    Quick tiles — スタンプ / ランキング

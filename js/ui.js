@@ -27,6 +27,8 @@
     openModal(id) {
       const modal = typeof id === 'string' ? document.getElementById(id) : id;
       if (!modal) return;
+      // 直前のclose非表示タイマーが残っていれば取り消す（連続開閉で消える不具合を防止）
+      if (modal._hideTimer) { clearTimeout(modal._hideTimer); modal._hideTimer = null; }
       modal.hidden = false;
       modal.setAttribute('aria-hidden', 'false');
       requestAnimationFrame(() => modal.classList.add('show'));
@@ -46,11 +48,16 @@
       const modal = typeof id === 'string' ? document.getElementById(id) : id;
       if (!modal) return;
       modal.classList.remove('show');
-      setTimeout(() => {
+      if (modal._hideTimer) clearTimeout(modal._hideTimer);
+      modal._hideTimer = setTimeout(() => {
         modal.hidden = true;
         modal.setAttribute('aria-hidden', 'true');
+        modal._hideTimer = null;
+        // 他に開いているモーダル/オーバーレイが無ければスクロール解除
+        if (!document.querySelector('.modal-layer:not([hidden]), .tut-overlay:not([hidden])')) {
+          document.body.classList.remove('no-scroll');
+        }
       }, 240);
-      document.body.classList.remove('no-scroll');
     },
 
     /* ---------------- Navigation ---------------- */

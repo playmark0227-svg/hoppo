@@ -5,8 +5,8 @@
    - Versioned caches; old caches purged on activate
    Bump CACHE_VERSION whenever shipping a new release.
    ============================================================ */
-const CACHE_VERSION = 'v27';
-const ASSET_Q = '?v=27'; // must match the ?v= query in index.html
+const CACHE_VERSION = 'v28';
+const ASSET_Q = '?v=28'; // must match the ?v= query in index.html
 const SHELL_CACHE = `hoppou-shell-${CACHE_VERSION}`;
 const RUNTIME_CACHE = `hoppou-runtime-${CACHE_VERSION}`;
 
@@ -31,6 +31,18 @@ const SHELL_ASSETS = [
   './assets/characters/erika-main.png',
   './assets/images/icon-192.png',
   './assets/images/icon-512.png',
+  // コンテンツ画像もプリキャッシュ（約1.2MB）— クイズ・島カード・ランク・スタンプが完全オフライン化
+  './assets/images/hoppou/cape-nosappu.jpg',
+  './assets/images/hoppou/clione.jpg',
+  './assets/images/hoppou/drift-ice.jpg',
+  './assets/images/hoppou/easternmost-point.jpg',
+  './assets/images/hoppou/four-islands-map.jpg',
+  './assets/images/hoppou/habomai-map.png',
+  './assets/images/hoppou/hanasaki-crab.jpg',
+  './assets/images/hoppou/iturup-coast.jpg',
+  './assets/images/hoppou/iturup-volcano.jpg',
+  './assets/images/hoppou/kunashir-view.jpg',
+  './assets/images/hoppou/shikotan.jpg',
   './manifest.webmanifest',
 ];
 
@@ -74,11 +86,18 @@ self.addEventListener('fetch', (event) => {
     (req.headers.get('accept') || '').includes('text/html');
 
   if (isHTML) {
+    // アプリのindexナビゲーションのみキャッシュ更新対象にする（404等の誤った
+    // レスポンスや別HTMLで './index.html' を上書きしない）
+    const scopePath = new URL(self.registration.scope).pathname;
+    const isAppIndex = url.origin === self.location.origin &&
+      (url.pathname === scopePath || url.pathname === scopePath + 'index.html');
     event.respondWith(
       fetch(req)
         .then((res) => {
-          const copy = res.clone();
-          caches.open(SHELL_CACHE).then((c) => c.put('./index.html', copy)).catch(() => {});
+          if (res.ok && isAppIndex) {
+            const copy = res.clone();
+            caches.open(SHELL_CACHE).then((c) => c.put('./index.html', copy)).catch(() => {});
+          }
           return res;
         })
         .catch(() => caches.match(req).then((r) => r || caches.match('./index.html')))
@@ -86,18 +105,25 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Static assets + fonts: cache-first, then network (stale-while-revalidate-ish).
+  // Static assets + fonts: 真の cache-first（ヒット時は再フェッチしない）
   if (isFont || isStaticAsset(url.href)) {
+    const isImage = /\.(?:png|jpe?g|webp|gif|svg)(?:\?|$)/i.test(url.href);
     event.respondWith(
       caches.match(req).then((cached) => {
-        const network = fetch(req).then((res) => {
-          if (res && (res.ok || res.type === 'opaque')) {
+        if (cached) return cached;
+        return fetch(req).then((res) => {
+          // CORSレスポンスのみ保存（opaqueはquotaを大きく消費するため除外。
+          // Google Fonts は <link crossorigin> 指定済みなので CORS で取得される）
+          if (res && res.ok) {
             const copy = res.clone();
             caches.open(RUNTIME_CACHE).then((c) => c.put(req, copy)).catch(() => {});
           }
           return res;
-        }).catch(() => cached);
-        return cached || network;
+        }).catch(() => {
+          // オフラインで未キャッシュの画像はエリカちゃんで代替（壊れ画像を防ぐ）
+          if (isImage) return caches.match('./assets/characters/erika-main.png');
+          return undefined;
+        });
       })
     );
     return;
