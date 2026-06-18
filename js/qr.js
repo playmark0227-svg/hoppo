@@ -13,7 +13,13 @@
     jsQRReady = new Promise((resolve, reject) => {
       if (window.jsQR) { resolve(window.jsQR); return; }
       const s = document.createElement('script');
+      // セキュリティ: 参照元を送らず CORS で取得する。CSP で script-src は
+      // 'self' と cdn.jsdelivr.net のみ許可し、connect-src は 'self' に限定して
+      // いるため、万一このスクリプトが改ざんされても端末内データを外部へ送信
+      // できない。（理想は jsQR を同梱して script-src を 'self' のみに絞ること）
       s.src = 'https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js';
+      s.crossOrigin = 'anonymous';
+      s.referrerPolicy = 'no-referrer';
       s.onload = () => resolve(window.jsQR);
       s.onerror = () => reject(new Error('jsQR load failed'));
       document.head.appendChild(s);

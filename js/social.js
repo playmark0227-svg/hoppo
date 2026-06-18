@@ -81,8 +81,8 @@
       const rankBadge = window.getRankByPoints ? window.getRankByPoints(e.points) : null;
       const following = !e.me && Store.isFollowing(e.id);
       const face = e.me
-        ? `<span class="srow-avatar avatar" data-frame="${e.frame}"><img src="${avatarSrc}" alt=""></span>`
-        : `<span class="srow-avatar srow-avatar-emoji" data-frame="${e.frame}">${e.emoji}</span>`;
+        ? `<span class="srow-avatar avatar" data-frame="${escapeHtml(e.frame)}"><img src="${escapeHtml(avatarSrc)}" alt=""></span>`
+        : `<span class="srow-avatar srow-avatar-emoji" data-frame="${escapeHtml(e.frame)}">${e.emoji}</span>`;
       return `
         <div class="srow ${e.me ? 'is-me' : ''}">
           <span class="srow-rank">${medals[i] || (i + 1)}</span>
@@ -151,7 +151,7 @@
       const last = dms[dms.length - 1];
       return `
         <div class="srow">
-          <span class="srow-avatar srow-avatar-emoji" data-frame="${r.frame}">${r.emoji}</span>
+          <span class="srow-avatar srow-avatar-emoji" data-frame="${escapeHtml(r.frame)}">${r.emoji}</span>
           <span class="srow-meta">
             <span class="srow-name">${escapeHtml(r.name)}</span>
             <span class="srow-sub srow-lastmsg">${last ? (last.me ? 'あなた：' : '') + escapeHtml(last.text) : 'メッセージを送ってみよう'}</span>
@@ -232,7 +232,7 @@
       const last = dms[dms.length - 1];
       return `
         <button type="button" class="dm-thread" data-thread="${r.id}">
-          <span class="srow-avatar srow-avatar-emoji" data-frame="${r.frame}">${r.emoji}</span>
+          <span class="srow-avatar srow-avatar-emoji" data-frame="${escapeHtml(r.frame)}">${r.emoji}</span>
           <span class="srow-meta">
             <span class="srow-name">${escapeHtml(r.name)}</span>
             <span class="srow-sub srow-lastmsg">${last ? (last.me ? 'あなた：' : '') + escapeHtml(last.text) : 'まだメッセージはありません'}</span>
@@ -333,8 +333,8 @@
       podium.innerHTML = order.map((e, i) => {
         const place = places[i];
         const face = e.me
-          ? `<span class="podium-face avatar" data-frame="${e.frame}"><img src="${avatarSrc}" alt=""></span>`
-          : `<span class="podium-face podium-face-emoji" data-frame="${e.frame}">${e.emoji}</span>`;
+          ? `<span class="podium-face avatar" data-frame="${escapeHtml(e.frame)}"><img src="${escapeHtml(avatarSrc)}" alt=""></span>`
+          : `<span class="podium-face podium-face-emoji" data-frame="${escapeHtml(e.frame)}">${e.emoji}</span>`;
         return `
           <div class="podium-col ${place} ${e.me ? 'is-me' : ''}">
             <span class="podium-medal">${medals[place]}</span>

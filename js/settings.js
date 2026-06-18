@@ -328,13 +328,41 @@
               'loginTotal','achievements','stamps','social','flags','profile','settings'];
             const clean = {};
             ALLOWED.forEach(k => { if (k in data) clean[k] = data[k]; });
+
+            // --- サニタイズ（不正・悪意あるデータの取り込みを防ぐ多層防御） ---
+            const toInt = (v) => {
+              const n = Math.floor(Number(v));
+              return Number.isFinite(n) && n >= 0 ? n : 0;
+            };
             // 名前は12文字に制限
-            if (typeof clean.name === 'string') clean.name = clean.name.trim().slice(0, 12) || 'ゲスト';
-            // アバター画像は妥当な data URL かつ ~200KB 以内のみ許可
+            if ('name' in clean) {
+              clean.name = (typeof clean.name === 'string' && clean.name.trim().slice(0, 12)) || 'ゲスト';
+            }
+            // ポイント類は非負整数に強制
+            ['points','totalEarned','loginStreak','longestStreak','loginTotal'].forEach(k => {
+              if (k in clean) clean[k] = toInt(clean[k]);
+            });
+            // 配列であるべき項目が配列でなければ取り込まない
+            ['usedQrCodes','owned','history','achievements'].forEach(k => {
+              if (k in clean && !Array.isArray(clean[k])) delete clean[k];
+            });
+            // プロフィール：フレーム/背景/島は既知IDのみ、文字列は長さ制限、
+            // アバター画像は安全な画像 data URL（SVGはスクリプト混入の恐れがあり除外）のみ
             if (clean.profile && typeof clean.profile === 'object') {
-              const img = clean.profile.avatarImage;
-              if (typeof img !== 'string' || !/^data:image\//.test(img) || img.length > 200000) {
-                clean.profile.avatarImage = '';
+              const p = clean.profile;
+              const frameIds = FRAMES.map(f => f.id);
+              const patternIds = PATTERNS.map(f => f.id);
+              const islandIds = (window.ISLANDS || []).map(i => i.id);
+              if (!frameIds.includes(p.avatarFrame)) p.avatarFrame = 'coral';
+              if (!patternIds.includes(p.avatarPattern)) p.avatarPattern = 'wave';
+              if (islandIds.length && !islandIds.includes(p.favoriteIsland)) p.favoriteIsland = islandIds[0];
+              p.bio = (typeof p.bio === 'string') ? p.bio.slice(0, 80) : '';
+              p.region = (typeof p.region === 'string') ? p.region.slice(0, 24) : '';
+              const img = p.avatarImage;
+              if (typeof img !== 'string' ||
+                  !/^data:image\/(png|jpe?g|webp|gif|avif);base64,/i.test(img) ||
+                  img.length > 200000) {
+                p.avatarImage = '';
               }
             }
             Object.assign(Store.state, clean);
