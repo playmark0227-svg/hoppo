@@ -5,8 +5,8 @@
    - Versioned caches; old caches purged on activate
    Bump CACHE_VERSION whenever shipping a new release.
    ============================================================ */
-const CACHE_VERSION = 'v30';
-const ASSET_Q = '?v=30'; // must match the ?v= query in index.html
+const CACHE_VERSION = 'v31';
+const ASSET_Q = '?v=31'; // must match the ?v= query in index.html
 const SHELL_CACHE = `hoppou-shell-${CACHE_VERSION}`;
 const RUNTIME_CACHE = `hoppou-runtime-${CACHE_VERSION}`;
 
@@ -91,8 +91,10 @@ self.addEventListener('fetch', (event) => {
     const scopePath = new URL(self.registration.scope).pathname;
     const isAppIndex = url.origin === self.location.origin &&
       (url.pathname === scopePath || url.pathname === scopePath + 'index.html');
+    // HTMLは必ずサーバー最新を取得（ブラウザHTTPキャッシュの古いindexを掴まない）。
+    // これでデプロイ後リロード1回で確実に新版が表示される。
     event.respondWith(
-      fetch(req)
+      fetch(req, { cache: 'no-store' })
         .then((res) => {
           if (res.ok && isAppIndex) {
             const copy = res.clone();
