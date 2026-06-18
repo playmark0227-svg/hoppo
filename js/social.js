@@ -75,7 +75,7 @@
     if (head) head.innerHTML = `あなたの順位：<strong>${myRank}位</strong> / ${entries.length}人中`;
 
     const medals = ['🥇', '🥈', '🥉'];
-    const avatarSrc = (Store.getProfile().avatarImage) || 'assets/characters/erika-main.png';
+    const avatarSrc = (Store.getProfile().avatarImage) || 'assets/characters/placeholder.png';
 
     list.innerHTML = entries.map((e, i) => {
       const rankBadge = window.getRankByPoints ? window.getRankByPoints(e.points) : null;
@@ -322,7 +322,7 @@
     const myIdx = entries.findIndex(e => e.me);
     const myRank = myIdx + 1;
     const me = entries[myIdx];
-    const avatarSrc = (Store.getProfile().avatarImage) || 'assets/characters/erika-main.png';
+    const avatarSrc = (Store.getProfile().avatarImage) || 'assets/characters/placeholder.png';
 
     if (podium) {
       const top3 = entries.slice(0, 3);

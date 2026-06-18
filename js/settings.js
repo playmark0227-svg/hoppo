@@ -414,7 +414,7 @@
   let _lastAvatarSrc = null;
   function renderAvatarImage() {
     const p = Store.getProfile();
-    const src = p.avatarImage || 'assets/characters/erika-main.png';
+    const src = p.avatarImage || 'assets/characters/placeholder.png';
     // 画像が変わっていない commit（タイピング・ポイント加算等）では何もしない
     if (src === _lastAvatarSrc) return;
     _lastAvatarSrc = src;
@@ -508,7 +508,7 @@
           showAvatarNote('現在はデフォルト画像です', 'good');
           return;
         }
-        if (!confirm('プロフィール画像をデフォルト（エリカちゃん）に戻しますか？')) return;
+        if (!confirm('プロフィール画像をデフォルト画像に戻しますか？')) return;
         Store.updateProfile({ avatarImage: '' });
         renderAvatarImage();
         showAvatarNote('デフォルト画像に戻しました', 'good');
