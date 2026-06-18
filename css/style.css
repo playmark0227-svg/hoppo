@@ -5986,11 +5986,3 @@ html[data-island-theme="habomai"] .nav-btn-center {
   border: 2px solid #fffaf3;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
 }
-
-/* ============================================================
-   マスコットキャラクター 一時非表示（使用許可の都合・新キャラ準備中）
-   → 新マスコット完成時はこのブロックを削除すれば復活する。
-   ヒーローは風景のみ表示。アバター枠は中立プレースホルダー画像を使用。
-   ============================================================ */
-.hero-char-wrap { display: none !important; }
-.hero-bubble { display: none !important; }

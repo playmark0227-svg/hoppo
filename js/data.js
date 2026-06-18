@@ -501,7 +501,7 @@ window.FURUSATO_PORTAL_URL = 'https://www.city.nemuro.hokkaido.jp/dispatcher.do?
 window.SHOP_ITEMS = [
   {
     id: 'sticker-erika',
-    name: 'オリジナルステッカー',
+    name: 'エリカちゃんステッカー',
     desc: 'ノートやPCに貼れるよ！',
     emoji: '✨',
     accent: 'cherry',
@@ -520,7 +520,7 @@ window.SHOP_ITEMS = [
   {
     id: 'plush-mini',
     name: 'ミニぬいぐるみ',
-    desc: '手のひらサイズのマスコット',
+    desc: '手のひらサイズのエリカちゃん',
     emoji: '🧸',
     accent: 'coral',
     price: 300,
@@ -565,7 +565,7 @@ window.SHOP_ITEMS = [
   {
     id: 'tote',
     name: 'トートバッグ',
-    desc: '四島デザインプリント',
+    desc: 'エリカちゃんプリント',
     emoji: '👜',
     accent: 'ocean',
     price: 500,
