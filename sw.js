@@ -49,12 +49,20 @@ const SHELL_ASSETS = [
   './manifest.webmanifest',
 ];
 
+// Images and the manifest are precached at a bare URL (no ?v= query), so a
+// returning user still has the previous deploy's bytes in the browser HTTP
+// cache. A plain cache.addAll() would copy those stale bytes straight into the
+// new versioned cache, and the cache-first fetch handler below never
+// revalidates — the old art would then stick around until the *next* version
+// bump. Requesting with cache:'reload' forces a network fetch on install.
+const freshRequest = (url) => new Request(url, { cache: 'reload' });
+
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(SHELL_CACHE)
-      .then((cache) => cache.addAll(SHELL_ASSETS).catch(() => {
+      .then((cache) => cache.addAll(SHELL_ASSETS.map(freshRequest)).catch(() => {
         // Don't fail install if one asset 404s — cache what we can.
-        return Promise.allSettled(SHELL_ASSETS.map((u) => cache.add(u)));
+        return Promise.allSettled(SHELL_ASSETS.map((u) => cache.add(freshRequest(u))));
       }))
       .then(() => self.skipWaiting())
   );

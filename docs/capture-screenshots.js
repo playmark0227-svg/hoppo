@@ -1,18 +1,22 @@
-// Capture screenshots of all main screens via Puppeteer
-// Run: node capture-screenshots.js
+// Capture screenshots of all main screens.
+// Serve the repo root first, then run:  node capture-screenshots.js
+//   python3 -m http.server 8765 --bind 127.0.0.1
 const path = require('path');
 const fs = require('fs');
-const puppeteer = require('/opt/homebrew/lib/node_modules/puppeteer');
+const { chromium } = require('playwright');
 
 const OUT = path.join(__dirname, 'screenshots');
-const URL = 'http://localhost:8765/';
+const URL = process.env.HOPPO_URL || 'http://127.0.0.1:8765/';
+// Chromium bundled with Playwright, or set CHROMIUM_PATH to override.
+const EXECUTABLE = process.env.CHROMIUM_PATH || undefined;
 
-const MOBILE = { width: 390, height: 844, deviceScaleFactor: 2 };
-const DESKTOP = { width: 1280, height: 800, deviceScaleFactor: 1 };
+const MOBILE = { width: 390, height: 844 };
+const DESKTOP = { width: 1280, height: 800 };
 
-async function shot(page, name, options = {}) {
-  const filePath = path.join(OUT, `${name}.png`);
-  await page.screenshot({ path: filePath, fullPage: options.full || false });
+const sleep = (ms) => new Promise(r => setTimeout(r, ms));
+
+async function shot(page, name) {
+  await page.screenshot({ path: path.join(OUT, `${name}.png`) });
   console.log('  ✓', `${name}.png`);
 }
 
@@ -21,157 +25,129 @@ async function nav(page, route, settle = 700) {
     window.UI.go(r);
     window.scrollTo(0, 0);
   }, route);
-  await new Promise(r => setTimeout(r, settle));
+  await sleep(settle);
+}
+
+async function dismissOverlays(page) {
+  await page.evaluate(() => {
+    document.querySelectorAll('.modal-layer, .tut-overlay').forEach(m => {
+      m.classList.remove('show');
+      m.hidden = true;
+    });
+    document.body.classList.remove('no-scroll');
+  });
+  await sleep(300);
 }
 
 async function seedState(page) {
-  // Add some points so shop shows mix of can-buy / can't-buy
+  // Add some points so the shop shows a mix of can-buy / can't-buy
   await page.evaluate(() => {
-    window.Store.spendPoints(window.Store.get().points, { type:'seed', label:'reset' });
-    window.Store.addPoints(200, { type:'seed', label:'seed' });
+    window.Store.spendPoints(window.Store.get().points, { type: 'seed', label: 'reset' });
+    window.Store.addPoints(200, { type: 'seed', label: 'seed' });
     window.UI.refreshHeader();
     window.UI.refreshHome();
   });
-  await new Promise(r => setTimeout(r, 300));
+  await sleep(300);
 }
 
 (async () => {
   if (!fs.existsSync(OUT)) fs.mkdirSync(OUT, { recursive: true });
 
-  const browser = await puppeteer.launch({ headless: 'new' });
+  const browser = await chromium.launch(EXECUTABLE ? { executablePath: EXECUTABLE } : {});
 
-  // ===== Mobile screenshots =====
+  // ===== Mobile =====
   console.log('— Mobile —');
-  const page = await browser.newPage();
-  await page.setViewport(MOBILE);
-  await page.goto(URL, { waitUntil: 'networkidle0', timeout: 30000 });
-  // Wait for loader to fade
-  await new Promise(r => setTimeout(r, 1500));
-  // Dismiss any welcome modal
-  await page.evaluate(() => {
-    document.querySelectorAll('.modal-layer.show').forEach(m => {
-      m.classList.remove('show');
-      m.hidden = true;
-    });
-    document.body.classList.remove('no-scroll');
+  let ctx = await browser.newContext({
+    viewport: MOBILE, deviceScaleFactor: 2, serviceWorkers: 'block',
   });
+  let page = await ctx.newPage();
+  await page.goto(URL, { waitUntil: 'load', timeout: 30000 });
+  await sleep(1800);            // let the loader fade and the tutorial mount
+  await dismissOverlays(page);
   await seedState(page);
 
-  // Home
   await nav(page, 'home');
   await shot(page, '01-mobile-home');
 
-  // Quiz list
   await nav(page, 'quiz');
   await shot(page, '02-mobile-quiz-list');
 
-  // Quiz playing (click first quiz)
   await page.evaluate(() => {
     const card = document.querySelector('[data-quiz="basics"]');
     if (card) card.click();
   });
-  await new Promise(r => setTimeout(r, 800));
+  await sleep(800);
   await shot(page, '03-mobile-quiz-play');
 
-  // Back to quiz list
   await nav(page, 'quiz');
 
-  // QR page
   await nav(page, 'qr');
   await shot(page, '04-mobile-qr');
 
-  // Shop — point tab
   await nav(page, 'shop');
   await shot(page, '05-mobile-shop-points');
 
-  // Shop — furusato tab
-  await page.evaluate(() => {
-    document.querySelector('[data-shop-tab="furusato"]').click();
-  });
-  await new Promise(r => setTimeout(r, 600));
+  await page.evaluate(() => document.querySelector('[data-shop-tab="furusato"]').click());
+  await sleep(600);
   await shot(page, '06-mobile-shop-furusato');
 
-  // License
-  await nav(page, 'license');
-  await new Promise(r => setTimeout(r, 800));
+  await nav(page, 'license', 800);
   await shot(page, '07-mobile-license');
 
-  // Settings
   await nav(page, 'settings');
   await shot(page, '08-mobile-settings-top');
 
-  // Settings scrolled to avatar upload
   await page.evaluate(() => window.scrollTo(0, 750));
-  await new Promise(r => setTimeout(r, 400));
+  await sleep(400);
   await shot(page, '09-mobile-settings-avatar');
 
-  // Island modal
-  await nav(page, 'home');
-  await new Promise(r => setTimeout(r, 500));
+  await nav(page, 'home', 500);
   await page.evaluate(() => {
     window.scrollTo(0, 0);
     window.UI.showIsland('etorofu');
   });
-  await new Promise(r => setTimeout(r, 700));
+  await sleep(700);
   await shot(page, '10-mobile-island-modal');
 
-  // Close island modal
-  await page.evaluate(() => {
-    document.querySelectorAll('.modal-layer').forEach(m => { m.classList.remove('show'); m.hidden = true; });
-    document.body.classList.remove('no-scroll');
-  });
-  await new Promise(r => setTimeout(r, 300));
+  await dismissOverlays(page);
 
-  // History modal
   await page.evaluate(() => window.UI.showHistory());
-  await new Promise(r => setTimeout(r, 700));
+  await sleep(700);
   await shot(page, '11-mobile-history-modal');
 
-  // Close
-  await page.evaluate(() => {
-    document.querySelectorAll('.modal-layer').forEach(m => { m.classList.remove('show'); m.hidden = true; });
-    document.body.classList.remove('no-scroll');
-  });
+  await ctx.close();
 
-  // ===== Desktop screenshots =====
+  // ===== Desktop =====
   console.log('— Desktop —');
-  await page.setViewport(DESKTOP);
-  await page.reload({ waitUntil: 'networkidle0' });
-  await new Promise(r => setTimeout(r, 1500));
-  await page.evaluate(() => {
-    document.querySelectorAll('.modal-layer.show').forEach(m => {
-      m.classList.remove('show');
-      m.hidden = true;
-    });
-    document.body.classList.remove('no-scroll');
+  ctx = await browser.newContext({
+    viewport: DESKTOP, deviceScaleFactor: 1, serviceWorkers: 'block',
   });
+  page = await ctx.newPage();
+  await page.goto(URL, { waitUntil: 'load', timeout: 30000 });
+  await sleep(1800);
+  await dismissOverlays(page);
   await seedState(page);
 
-  // Home
   await nav(page, 'home');
   await shot(page, '12-desktop-home');
 
-  // Quiz
   await nav(page, 'quiz');
   await shot(page, '13-desktop-quiz-list');
 
-  // Shop — point + furusato (one shot each)
   await nav(page, 'shop');
   await shot(page, '14-desktop-shop-points');
 
-  await page.evaluate(() => { document.querySelector('[data-shop-tab="furusato"]').click(); });
-  await new Promise(r => setTimeout(r, 600));
+  await page.evaluate(() => document.querySelector('[data-shop-tab="furusato"]').click());
+  await sleep(600);
   await shot(page, '15-desktop-shop-furusato');
 
-  // License
-  await nav(page, 'license');
-  await new Promise(r => setTimeout(r, 800));
+  await nav(page, 'license', 800);
   await shot(page, '16-desktop-license');
 
-  // Settings
   await nav(page, 'settings');
   await shot(page, '17-desktop-settings');
 
+  await ctx.close();
   await browser.close();
   console.log('Done.');
 })().catch(e => { console.error(e); process.exit(1); });
