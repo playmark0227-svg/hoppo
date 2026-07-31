@@ -9,7 +9,7 @@
     favoriteIsland: 'kunashiri', // 'etorofu' | 'kunashiri' | 'shikotan' | 'habomai'
     avatarFrame: 'coral',     // 'coral' | 'ocean' | 'gold' | 'cherry' | 'mint' | 'plum'
     avatarPattern: 'wave',    // 'wave' | 'dots' | 'shine' | 'plain'
-    avatarImage: '',          // Data URL of user-uploaded image; falls back to default Erika
+    avatarImage: '',          // Data URL of user-uploaded image; falls back to the default mascot
     islandThemeOn: false,     // 推しの島カラーをアプリ全体に適用するか
     region: '',               // 出身・在住地域
     birthday: ''              // YYYY-MM-DD（任意）

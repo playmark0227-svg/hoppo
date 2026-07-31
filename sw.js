@@ -5,8 +5,8 @@
    - Versioned caches; old caches purged on activate
    Bump CACHE_VERSION whenever shipping a new release.
    ============================================================ */
-const CACHE_VERSION = 'v32';
-const ASSET_Q = '?v=32'; // must match the ?v= query in index.html
+const CACHE_VERSION = 'v33';
+const ASSET_Q = '?v=33'; // must match the ?v= query in index.html
 const SHELL_CACHE = `hoppou-shell-${CACHE_VERSION}`;
 const RUNTIME_CACHE = `hoppou-runtime-${CACHE_VERSION}`;
 
@@ -28,9 +28,12 @@ const SHELL_ASSETS = [
   `./js/social.js${ASSET_Q}`,
   `./js/tutorial.js${ASSET_Q}`,
   `./js/app.js${ASSET_Q}`,
-  './assets/characters/erika-main.png',
+  './assets/characters/mascot-main.png',
+  './assets/characters/mascot-face.png',
+  './assets/characters/mascot-tea.png',
   './assets/images/icon-192.png',
   './assets/images/icon-512.png',
+  './assets/images/icon-maskable-512.png',
   // コンテンツ画像もプリキャッシュ（約1.2MB）— クイズ・島カード・ランク・スタンプが完全オフライン化
   './assets/images/hoppou/cape-nosappu.jpg',
   './assets/images/hoppou/clione.jpg',
@@ -122,8 +125,8 @@ self.addEventListener('fetch', (event) => {
           }
           return res;
         }).catch(() => {
-          // オフラインで未キャッシュの画像はエリカちゃんで代替（壊れ画像を防ぐ）
-          if (isImage) return caches.match('./assets/characters/erika-main.png');
+          // オフラインで未キャッシュの画像はマスコットで代替（壊れ画像を防ぐ）
+          if (isImage) return caches.match('./assets/characters/mascot-main.png');
           return undefined;
         });
       })

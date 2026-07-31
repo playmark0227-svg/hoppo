@@ -500,8 +500,8 @@ window.FURUSATO_PORTAL_URL = 'https://www.city.nemuro.hokkaido.jp/dispatcher.do?
 
 window.SHOP_ITEMS = [
   {
-    id: 'sticker-erika',
-    name: 'エリカちゃんステッカー',
+    id: 'sticker-erika', // legacy id — persisted in save data, do not rename
+    name: 'しろくまくんステッカー',
     desc: 'ノートやPCに貼れるよ！',
     emoji: '✨',
     accent: 'cherry',
@@ -520,7 +520,7 @@ window.SHOP_ITEMS = [
   {
     id: 'plush-mini',
     name: 'ミニぬいぐるみ',
-    desc: '手のひらサイズのエリカちゃん',
+    desc: '手のひらサイズのしろくまくん',
     emoji: '🧸',
     accent: 'coral',
     price: 300,
@@ -565,7 +565,7 @@ window.SHOP_ITEMS = [
   {
     id: 'tote',
     name: 'トートバッグ',
-    desc: 'エリカちゃんプリント',
+    desc: 'しろくまくんプリント',
     emoji: '👜',
     accent: 'ocean',
     price: 500,
@@ -861,7 +861,8 @@ window.getStampById = function(id) {
    ============================================================ */
 window.RIVALS = [
   {
-    id: 'r-erika-fan', name: 'エトピリカ大好き', emoji: '🐧', frame: 'coral',
+    id: 'r-erika-fan', // legacy id — keys persisted DM threads, do not rename
+    name: 'エトピリカ大好き', emoji: '🐧', frame: 'coral',
     base: 2350, rate: 6,
     greeting: 'フォローありがとう！一緒に北方領土マスターを目指そうね🐧',
     lines: ['今日もクイズ全問正解しちゃった！', 'エトピリカって本当にかわいいよね', '納沙布岬の朝日、一度は見てほしいな！', 'そのアバター素敵だね！']
