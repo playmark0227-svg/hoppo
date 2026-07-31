@@ -712,14 +712,28 @@ code { font-family: 'SFMono-Regular', ui-monospace, 'Kosugi Maru', monospace; }
 .hero-char-wrap {
   position: absolute;
   bottom: 8px;
-  left: 60%;
-  transform: translateX(-50%);
+  /* Anchored from the right, NOT `left: 60%; transform: translateX(-50%)`.
+     Two reasons that pairing does not work here:
+     1. `bob` animates `transform` and never stops, so the animated value wins
+        and the centering translate is silently dropped — the box was really
+        anchored by its left edge at 60%.
+     2. With `width: auto` and only `left` set, an absolutely positioned box
+        shrink-to-fits into (containing block − left) = 40% of the scene. The
+        portrait mascot needs more than that on narrow phones, so `img
+        { max-width: 100% }` clamped the width while `height: 100%` held —
+        squashing the character horizontally by up to 25% at 320px. */
+  right: 6%;
   height: 78%;
   width: auto;
   /* above the corner stamp (z-index 8): the taller mascot now reaches it,
      and it should read as foreground against a background sticker */
   z-index: 9;
   animation: bob 3.2s ease-in-out infinite;
+}
+/* The mascot is portrait, so on narrow scenes its width grows fast relative to
+   the scene. Ease the height down so it never crowds the speech bubble. */
+@media (max-width: 400px) {
+  .hero-char-wrap { height: 68%; }
 }
 .hero-char-wrap::after {
   /* Subtle ground reflection / shadow */
@@ -3222,7 +3236,7 @@ code { font-family: 'SFMono-Regular', ui-monospace, 'Kosugi Maru', monospace; }
    ============================================================ */
 @media (max-width: 360px) {
   .quick-label { font-size: 0.95rem; }
-  .hero-char-wrap { height: 80%; }
+  .hero-char-wrap { height: 62%; }
   .nav-label { font-size: 0.52rem; letter-spacing: 0.04em; }
   .nav-icon { width: 24px; height: 24px; }
   .license-card-main { grid-template-columns: 100px 1fr; }
