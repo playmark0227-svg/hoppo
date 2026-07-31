@@ -340,9 +340,9 @@ ${s.name || 'ゲスト'} さんは ${rank.emoji} ${rank.name}（${rank.sub}）�
         const size = portraitR * 2;
         ctx.drawImage(img, portraitCX - size / 2, portraitCY - size / 2, size, size);
       } else {
-        const erikaImg = await loadImage('assets/characters/erika-main.png');
-        const size = portraitR * 2 + 10;
-        ctx.drawImage(erikaImg, portraitCX - size / 2, portraitCY - size / 2 + 10, size, size);
+        const mascotImg = await loadImage('assets/characters/mascot-face.png');
+        const size = portraitR * 2;
+        ctx.drawImage(mascotImg, portraitCX - size / 2, portraitCY - size / 2, size, size);
       }
     } catch (e) { /* ignore */ }
     ctx.restore();

@@ -7,10 +7,10 @@
 
   const SLIDES = [
     {
-      icon: '🐧',
+      icon: '🐻',
       title: 'ようこそ！\n北方領土ステータスへ',
-      body: '北方領土のことを、クイズやスタンプで楽しく学べるアプリです。マスコットの「エリカちゃん」（エトピリカ）が案内します。登録もログインも不要、データはこの端末の中だけに保存されます。',
-      erika: true
+      body: '北方領土のことを、クイズやスタンプで楽しく学べるアプリです。マスコットの「しろくまくん」が案内します。登録もログインも不要、データはこの端末の中だけに保存されます。',
+      mascot: true
     },
     {
       icon: '📝',
@@ -48,14 +48,14 @@
     const iconEl = el('tutIcon');
     const titleEl = el('tutTitle');
     const bodyEl = el('tutBody');
-    const erikaEl = el('tutErika');
+    const mascotEl = el('tutMascot');
     const card = el('tutCard');
 
     if (iconEl) iconEl.textContent = s.icon;
     if (titleEl) titleEl.innerHTML = s.title.replace(/\n/g, '<br>');
     if (bodyEl) bodyEl.textContent = s.body;
-    if (erikaEl) erikaEl.hidden = !s.erika;
-    if (iconEl) iconEl.hidden = !!s.erika;
+    if (mascotEl) mascotEl.hidden = !s.mascot;
+    if (iconEl) iconEl.hidden = !!s.mascot;
 
     // dots
     const dots = el('tutDots');

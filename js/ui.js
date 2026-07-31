@@ -3,6 +3,15 @@
    ============================================================ */
 (function() {
   const UI = {
+    /* ---------------- Security: HTML escaping ----------------
+       innerHTML に流し込む前に、利用者由来の文字列（名前・履歴ラベル等）を
+       必ずこれでエスケープする。CSP と併せた多層防御。 */
+    escapeHtml(str) {
+      return String(str == null ? '' : str).replace(/[&<>"']/g, c => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+      }[c]));
+    },
+
     /* ---------------- Toast ---------------- */
     _toastTimer: null,
     toast(message, kind = '', duration = 2400) {
@@ -123,7 +132,7 @@
 
       const bubble = document.getElementById('heroBubble');
       if (bubble) {
-        const namePart = s.name !== 'ゲスト' ? s.name + 'さん、' : '';
+        const namePart = s.name !== 'ゲスト' ? this.escapeHtml(s.name) + 'さん、' : '';
         const msgs = [
           `今日は何する？<br>${namePart}頑張ろう！`,
           'クイズに挑戦してポイント獲得！',
@@ -210,12 +219,13 @@
           const d = new Date(h.at);
           const date = `${d.getMonth() + 1}/${d.getDate()}`;
           const time = `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
-          const sign = h.points >= 0 ? '+' : '';
-          const cls = h.points >= 0 ? 'history-pos' : 'history-neg';
+          const pts = Number(h.points) || 0;
+          const sign = pts >= 0 ? '+' : '';
+          const cls = pts >= 0 ? 'history-pos' : 'history-neg';
           return `<li class="history-item">
             <span class="history-when">${date}<small>${time}</small></span>
-            <span class="history-label">${h.label || ''}</span>
-            <span class="history-points ${cls}">${sign}${h.points}<small>pt</small></span>
+            <span class="history-label">${this.escapeHtml(h.label || '')}</span>
+            <span class="history-points ${cls}">${sign}${pts}<small>pt</small></span>
           </li>`;
         }).join('');
       }

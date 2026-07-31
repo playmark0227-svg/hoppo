@@ -10,10 +10,14 @@
 
 ## Character / キャラクター
 
-### `assets/characters/erika-main.png`
-- **名称:** エリカちゃん
-- **モデル:** エトピリカ（Tufted Puffin, *Fratercula cirrhata*）
-- **備考:** 根室市の市の鳥、北海道東部の海鳥をモチーフにしたオリジナルキャラクター。ユーザーより提供され、使用許諾を得て掲載しています。
+### `assets/characters/mascot-main.png` / `mascot-tea.png` / `mascot-face.png`
+- **名称:** しろくまくん
+- **モデル:** しろくま（北の海のイメージ）
+- **著作者:** 久保歩夢（屋号 ViFight）
+- **権利:** © 久保歩夢 / ViFight — 本アプリのために描き下ろされたオリジナルキャラクター。
+- **備考:** `mascot-main.png` は正面ポーズ、`mascot-tea.png` はお茶を持つポーズ、`mascot-face.png` は
+  丸型アバター・階級認定証・アプリアイコン用のバストアップ。いずれも同一の原画から生成しています。
+  `assets/images/icon-192.png` / `icon-512.png` / `icon-maskable-512.png` も同キャラクターから作成。
 
 ---
 
@@ -69,7 +73,7 @@
 ### `assets/images/hoppou/tufted-puffin.jpg` (エトピリカ)
 - **Photographer:** Gregory Smith (via Flickr → Wikimedia Commons)
 - **License:** CC BY-SA 2.0
-- **Usage:** 参考素材（エリカちゃんのモデルであるエトピリカ）
+- **Usage:** 参考素材（根室市の市の鳥・エトピリカ。配色パレットのモチーフ）
 
 ### `assets/images/hoppou/clione.jpg` (クリオネ)
 - **Source:** NOAA (via Wikimedia Commons)

@@ -64,7 +64,9 @@
     ul.innerHTML = purchases.map(h => {
       const d = new Date(h.at);
       const date = `${d.getMonth() + 1}/${d.getDate()}`;
-      return `<li><span>${date} ${h.label}</span><strong>${h.points}pt</strong></li>`;
+      const label = UI.escapeHtml(h.label || '');
+      const pts = Number(h.points) || 0;
+      return `<li><span>${date} ${label}</span><strong>${pts}pt</strong></li>`;
     }).join('');
   }
 
