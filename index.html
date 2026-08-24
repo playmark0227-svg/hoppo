@@ -5,14 +5,18 @@
 
   <!-- ============================================================
        セキュリティ — Content Security Policy（データ流出対策の要）
-       このアプリは完全にブラウザ内で動作し、利用者のデータ（ポイント・
-       名前・履歴など）は端末の localStorage にのみ保存され、外部へ送信
-       されません。万一スクリプトが注入・改ざんされても、connect-src を
-       自分自身に限定しているため、データを外部サーバーへ持ち出せません。
-       - script-src: 自分自身 + jsQR(CDN) のみ実行可。インラインJSは不許可
-       - connect-src 'self': fetch/XHR/WebSocket/Beacon の外部送信を全面遮断
-       - img-src: 自分自身 / data: / blob: のみ（画像ビーコンによる持ち出し遮断）
+       このアプリは基本的にブラウザ内で完結し、利用者のデータ（ポイント・
+       名前・履歴など）は端末の localStorage にのみ保存されます。
+       - script-src: 自分自身 + jsQR(CDN) + LIFF SDK のみ実行可。インラインJS不許可
+       - img-src: 自分自身 / data: / blob: + LINEのアイコン配信元のみ
        - object/base/form/frame: クリックジャッキング・乗っ取りを抑止
+
+       connect-src について（重要・以前からの変更点）
+       もとは connect-src 'self' で外部への送信経路を全面遮断していました。
+       LINE（LIFF）でログインする以上、LINEのAPIとの通信は避けられないため、
+       api.line.me だけを例外として許可しています。許可先は LINE の正規
+       ドメインに限定しているため、任意の外部サーバーへデータを持ち出す
+       経路は依然として塞がっています。詳細は SECURITY.md を参照。
        ============================================================ -->
   <meta http-equiv="Content-Security-Policy" content="
     default-src 'self';
@@ -20,13 +24,13 @@
     object-src 'none';
     frame-src 'none';
     frame-ancestors 'none';
-    form-action 'self';
-    script-src 'self' https://cdn.jsdelivr.net;
+    form-action 'self' https://access.line.me;
+    script-src 'self' https://cdn.jsdelivr.net https://static.line-scdn.net;
     style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
     font-src 'self' https://fonts.gstatic.com;
-    img-src 'self' data: blob:;
+    img-src 'self' data: blob: https://profile.line-scdn.net https://obs.line-scdn.net;
     media-src 'self' blob:;
-    connect-src 'self';
+    connect-src 'self' https://api.line.me https://static.line-scdn.net;
     worker-src 'self';
     manifest-src 'self';
     upgrade-insecure-requests">
@@ -59,7 +63,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700;900&family=Yuji+Syuku&display=swap" rel="stylesheet" crossorigin="anonymous">
 
-  <link rel="stylesheet" href="css/style.css?v=34">
+  <link rel="stylesheet" href="css/style.css?v=35">
 </head>
 <body>
 
@@ -967,6 +971,29 @@
           </div>
         </div>
 
+        <!-- Section: LINE連携（js/config.js に liffId を設定したときだけ表示） -->
+        <div class="settings-section" id="lineSection" hidden>
+          <div class="settings-section-head">
+            <span class="settings-section-icon line-section-icon">LINE</span>
+            <span class="settings-section-title">LINE連携</span>
+          </div>
+          <div class="settings-card">
+            <div class="line-status" id="lineStatus">
+              <div class="line-status-avatar avatar" data-frame="mint" data-pattern="plain">
+                <img src="assets/characters/mascot-face.png" alt="" id="lineStatusAvatar" class="avatar-img">
+              </div>
+              <div class="line-status-body">
+                <div class="line-status-state" id="lineStatusState">未連携</div>
+                <div class="line-status-name" id="lineStatusName">LINEでログインすると、名前とアイコンが自動で入ります</div>
+              </div>
+            </div>
+            <div class="line-actions" id="lineActions"></div>
+            <p class="settings-card-desc" id="lineNote">
+              連携してもポイントや履歴はこの端末の中だけに保存されます。LINEへ送信されることはありません。
+            </p>
+          </div>
+        </div>
+
         <!-- Section: 基本情報 -->
         <div class="settings-section">
           <div class="settings-section-head">
@@ -1426,18 +1453,20 @@
     <canvas id="confetti" class="confetti"></canvas>
   </div>
 
-  <script defer src="js/data.js?v=34"></script>
-  <script defer src="js/store.js?v=34"></script>
-  <script defer src="js/ui.js?v=34"></script>
-  <script defer src="js/achievements.js?v=34"></script>
-  <script defer src="js/quiz.js?v=34"></script>
-  <script defer src="js/shop.js?v=34"></script>
-  <script defer src="js/qr.js?v=34"></script>
-  <script defer src="js/license.js?v=34"></script>
-  <script defer src="js/settings.js?v=34"></script>
-  <script defer src="js/stamps.js?v=34"></script>
-  <script defer src="js/social.js?v=34"></script>
-  <script defer src="js/tutorial.js?v=34"></script>
-  <script defer src="js/app.js?v=34"></script>
+  <script defer src="js/config.js?v=35"></script>
+  <script defer src="js/data.js?v=35"></script>
+  <script defer src="js/store.js?v=35"></script>
+  <script defer src="js/ui.js?v=35"></script>
+  <script defer src="js/achievements.js?v=35"></script>
+  <script defer src="js/quiz.js?v=35"></script>
+  <script defer src="js/shop.js?v=35"></script>
+  <script defer src="js/qr.js?v=35"></script>
+  <script defer src="js/license.js?v=35"></script>
+  <script defer src="js/settings.js?v=35"></script>
+  <script defer src="js/stamps.js?v=35"></script>
+  <script defer src="js/social.js?v=35"></script>
+  <script defer src="js/liff.js?v=35"></script>
+  <script defer src="js/tutorial.js?v=35"></script>
+  <script defer src="js/app.js?v=35"></script>
 </body>
 </html>

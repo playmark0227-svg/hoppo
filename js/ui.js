@@ -12,6 +12,19 @@
       }[c]));
     },
 
+    /* ---------------- 表示用アバターのURL ----------------
+       優先順： アップロード画像 → LINEのアイコン → マスコット。
+       LINEのアイコンは外部URLなので **canvas に描いてはいけない**
+       （汚染されてライセンス証のPNG保存が SecurityError で壊れる）。
+       ライセンス証は data URL のアップロード画像だけを使うこと。 */
+    avatarSrc() {
+      const p = (window.Store && Store.getProfile) ? Store.getProfile() : {};
+      if (p.avatarImage) return p.avatarImage;
+      const line = (window.Store && Store.getLine) ? Store.getLine() : {};
+      if (line.pictureUrl) return line.pictureUrl;
+      return 'assets/characters/mascot-face.png';
+    },
+
     /* ---------------- Toast ---------------- */
     _toastTimer: null,
     toast(message, kind = '', duration = 2400) {

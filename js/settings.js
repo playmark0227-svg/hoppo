@@ -289,7 +289,9 @@
     if (exportBtn) {
       exportBtn.addEventListener('click', () => {
         try {
-          const s = Store.get();
+          // LINE連携の情報はバックアップに含めない。他人に渡ったファイルから
+          // LINEのユーザーIDが読めてしまうし、連携はログインし直せば復元できる。
+          const { line, ...s } = Store.get();
           const json = JSON.stringify(s, null, 2);
           const blob = new Blob([json], { type: 'application/json' });
           const url = URL.createObjectURL(blob);
@@ -323,6 +325,8 @@
             if (typeof data !== 'object' || !data) throw new Error('invalid');
             if (!confirm('現在のデータを上書きしてインポートしますか？')) return;
             // 既知キーのみ取り込む（未知キー・巨大画像の混入を防ぐ）
+            // 'line' は意図的に除外：細工したファイルで他人のLINE IDを
+            // 埋め込まれないようにする。連携はLINEでログインし直して復元する。
             const ALLOWED = ['userId','name','createdAt','points','totalEarned','quizResults',
               'usedQrCodes','owned','history','lastLoginDate','loginStreak','longestStreak',
               'loginTotal','achievements','stamps','social','flags','profile','settings'];
@@ -441,8 +445,7 @@
 
   let _lastAvatarSrc = null;
   function renderAvatarImage() {
-    const p = Store.getProfile();
-    const src = p.avatarImage || 'assets/characters/mascot-face.png';
+    const src = UI.avatarSrc();
     // 画像が変わっていない commit（タイピング・ポイント加算等）では何もしない
     if (src === _lastAvatarSrc) return;
     _lastAvatarSrc = src;
@@ -455,7 +458,9 @@
       img.src = src;
     });
     // Toggle a "has custom image" data flag for CSS hooks
-    document.documentElement.dataset.hasAvatar = p.avatarImage ? '1' : '0';
+    // （マスコット既定画像以外なら「独自アイコンあり」扱い）
+    const isDefault = src === 'assets/characters/mascot-face.png';
+    document.documentElement.dataset.hasAvatar = isDefault ? '0' : '1';
   }
 
   function readFileAsDataURL(file) {
@@ -548,12 +553,117 @@
 
   /* ---------------- Init ---------------- */
 
+  /* ---------------- LINE連携カード ----------------
+     js/config.js に liffId を入れていない場合はセクションごと非表示にする。 */
+  function renderLine() {
+    const section = document.getElementById('lineSection');
+    if (!section) return;
+    if (!window.Line || !Line.isConfigured) { section.hidden = true; return; }
+    section.hidden = false;
+
+    const st = Line.getState();
+    const saved = Store.getLine();
+    const linked = !!saved.userId;
+
+    const avatarEl = document.getElementById('lineStatusAvatar');
+    const stateEl = document.getElementById('lineStatusState');
+    const nameEl = document.getElementById('lineStatusName');
+    const actions = document.getElementById('lineActions');
+    const note = document.getElementById('lineNote');
+    if (!actions) return;
+
+    if (avatarEl) {
+      avatarEl.src = saved.pictureUrl || UI.avatarSrc();
+      // LINEのアイコンが読めなかったらマスコットに戻す（壊れ画像を出さない）
+      avatarEl.onerror = () => { avatarEl.onerror = null; avatarEl.src = 'assets/characters/mascot-face.png'; };
+    }
+
+    actions.innerHTML = '';
+    const addBtn = (label, cls, onClick) => {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'btn ' + cls;
+      b.textContent = label;
+      b.addEventListener('click', onClick);
+      actions.appendChild(b);
+      return b;
+    };
+
+    if (linked) {
+      stateEl.textContent = st.inClient ? 'LINEアプリ内で連携中' : '連携済み';
+      nameEl.textContent = saved.displayName || '(名前を取得できませんでした)';
+      addBtn('LINEの名前を使う', 'btn-outline', () => {
+        if (!saved.displayName) { UI.toast('LINEの名前を取得できていません', 'bad'); return; }
+        Store.setName(saved.displayName.slice(0, 12));
+        UI.refreshHeader(); UI.refreshHome(); refresh();
+        UI.toast('ニックネームをLINEの名前にしました', 'good');
+      });
+      addBtn('LINEのアイコンを使う', 'btn-outline', async () => {
+        UI.toast('アイコンを取り込んでいます…');
+        const r = await Line.importPictureAsAvatar();
+        if (r.ok) {
+          renderAvatarImage(); renderPreview(); refresh();
+          UI.toast('プロフィール画像をLINEのアイコンにしました', 'good');
+        } else if (r.reason === 'cors') {
+          UI.toast('このアイコンは取り込めませんでした（表示のみ利用します）', 'bad', 3200);
+        } else {
+          UI.toast('アイコンを取り込めませんでした', 'bad');
+        }
+      });
+      addBtn('連携を解除', 'btn-ghost', () => {
+        if (!confirm('LINE連携を解除しますか？\nポイントや履歴はこの端末に残ります。')) return;
+        Line.logout();
+        refresh(); UI.refreshHeader(); UI.refreshHome();
+        UI.toast('LINE連携を解除しました', 'good');
+      });
+      if (note) {
+        note.textContent = 'ポイントや履歴はこの端末の中だけに保存されます。'
+          + '別の端末で開くと引き継がれない点にご注意ください。';
+      }
+      return;
+    }
+
+    // ---- 未連携 ----
+    if (!st.ready) {
+      stateEl.textContent = 'LINE連携を準備できませんでした';
+      nameEl.textContent = st.error === 'not-configured'
+        ? 'LIFF ID が設定されていません'
+        : 'しばらくしてから、もう一度お試しください';
+      if (note) note.textContent = 'LINE連携が使えなくても、アプリは通常どおりご利用いただけます。';
+      return;
+    }
+
+    stateEl.textContent = '未連携';
+    nameEl.textContent = 'LINEでログインすると、名前とアイコンが自動で入ります';
+    // 分岐ごとに必ず文言を書き戻す。初回描画は LIFF 初期化前（ready=false）を通るため、
+    // ここで戻さないと「準備できませんでした」の文言が残ってしまう。
+    if (note) {
+      note.textContent = '連携してもポイントや履歴はこの端末の中だけに保存されます。'
+        + 'LINEへ送信されることはありません。';
+    }
+    addBtn('LINEでログイン', 'btn-primary', () => {
+      // ユーザー操作起点でのみログインへ遷移する（自動リダイレクトはしない）
+      if (!Line.login()) UI.toast('LINEログインを開始できませんでした', 'bad');
+    });
+    if (Line.addFriendUrl) {
+      const a = document.createElement('a');
+      a.className = 'btn btn-outline';
+      a.href = Line.addFriendUrl;
+      a.target = '_blank';
+      a.rel = 'noopener noreferrer';
+      a.textContent = '公式アカウントを友だち追加';
+      actions.appendChild(a);
+    }
+  }
+
   function init() {
     renderFramePicker();
     renderPatternPicker();
     renderIslandPicker();
     renderPreview();
     renderInfo();
+    renderLine();
+    if (window.Line) Line.on(renderLine);
     bindBasicFields();
     bindToggles();
     bindDataButtons();
@@ -582,6 +692,7 @@
     renderIslandPicker();
     renderPreview();
     renderInfo();
+    renderLine();
     renderAvatarImage();
   }
 

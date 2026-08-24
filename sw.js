@@ -5,8 +5,8 @@
    - Versioned caches; old caches purged on activate
    Bump CACHE_VERSION whenever shipping a new release.
    ============================================================ */
-const CACHE_VERSION = 'v34';
-const ASSET_Q = '?v=34'; // must match the ?v= query in index.html
+const CACHE_VERSION = 'v35';
+const ASSET_Q = '?v=35'; // must match the ?v= query in index.html
 const SHELL_CACHE = `hoppou-shell-${CACHE_VERSION}`;
 const RUNTIME_CACHE = `hoppou-runtime-${CACHE_VERSION}`;
 
@@ -15,6 +15,7 @@ const SHELL_ASSETS = [
   './',
   './index.html',
   `./css/style.css${ASSET_Q}`,
+  `./js/config.js${ASSET_Q}`,
   `./js/data.js${ASSET_Q}`,
   `./js/store.js${ASSET_Q}`,
   `./js/ui.js${ASSET_Q}`,
@@ -26,6 +27,7 @@ const SHELL_ASSETS = [
   `./js/settings.js${ASSET_Q}`,
   `./js/stamps.js${ASSET_Q}`,
   `./js/social.js${ASSET_Q}`,
+  `./js/liff.js${ASSET_Q}`,
   `./js/tutorial.js${ASSET_Q}`,
   `./js/app.js${ASSET_Q}`,
   './assets/characters/mascot-main.png',
@@ -115,6 +117,14 @@ self.addEventListener('fetch', (event) => {
         })
         .catch(() => caches.match(req).then((r) => r || caches.match('./index.html')))
     );
+    return;
+  }
+
+  // LINE(LIFF)のSDKはキャッシュしない。ここの cache-first は再検証しないため、
+  // 一度掴むと次のCACHE_VERSION更新まで古いSDKが固定されてしまう。
+  // LINE側が随時更新する前提のURLなので、常にネットワークから取得する。
+  if (url.hostname.endsWith('.line-scdn.net') || url.hostname === 'api.line.me') {
+    event.respondWith(fetch(req));
     return;
   }
 

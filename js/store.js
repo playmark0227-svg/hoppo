@@ -25,6 +25,13 @@
     autoFlipLicense: false    // ライセンス画面で自動的に裏面を覗き見
   };
 
+  const DEFAULT_LINE = {
+    userId: '',               // LINEのユーザーID（U から始まる文字列）
+    displayName: '',          // LINEの表示名
+    pictureUrl: '',           // LINEのアイコンURL（表示専用。canvasには使わない）
+    linkedAt: ''              // 連携した日時（ISO文字列）
+  };
+
   const DEFAULT_STATE = {
     userId: null,
     name: 'ゲスト',
@@ -47,6 +54,9 @@
       dmSeenAt: ''          // メッセージタブを最後に見た時刻（未読バッジ用）
     },
     flags: {},              // misc one-time flags (e.g. tutorialSeen)
+    // LINE連携の情報。state.userId はライセンス証に印字する通し番号なので、
+    // LINEのユーザーIDで上書きしてはいけない（別枠で持つ）。
+    line: { ...DEFAULT_LINE },
     profile: { ...DEFAULT_PROFILE },
     settings: { ...DEFAULT_SETTINGS }
   };
@@ -67,6 +77,7 @@
           dmSeenAt: (parsed.social && parsed.social.dmSeenAt) || ''
         },
         flags: { ...(parsed.flags || {}) },
+        line: { ...DEFAULT_LINE, ...(parsed.line || {}) },
         profile: { ...DEFAULT_PROFILE, ...(parsed.profile || {}) },
         settings: { ...DEFAULT_SETTINGS, ...(parsed.settings || {}) }
       };
@@ -266,6 +277,26 @@
 
     /** Convenience getters. */
     getProfile() { return { ...this.state.profile }; },
+
+    /* ---- LINE連携 ---- */
+    getLine() { return { ...this.state.line }; },
+    isLineLinked() { return !!(this.state.line && this.state.line.userId); },
+    setLine(patch) {
+      const next = { ...this.state.line };
+      // 文字列以外・極端に長い値は弾く（保存データを壊さないため）
+      ['userId', 'displayName', 'pictureUrl', 'linkedAt'].forEach((k) => {
+        if (!(k in patch)) return;
+        const v = patch[k];
+        next[k] = typeof v === 'string' ? v.slice(0, 500) : '';
+      });
+      this.state.line = next;
+      this.commit();
+      return next;
+    },
+    clearLine() {
+      this.state.line = { ...DEFAULT_LINE };
+      this.commit();
+    },
     getSettings() { return { ...this.state.settings }; },
 
     /* ---------------- Stamps (スタンプラリー) ---------------- */

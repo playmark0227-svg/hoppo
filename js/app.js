@@ -126,10 +126,21 @@
     setTimeout(() => loader.remove(), 1200);
   }
 
+  const VALID_PAGES = ['home', 'quiz', 'qr', 'shop', 'license', 'settings', 'stamps', 'social'];
+
   function handleInitialRoute() {
-    const hash = (location.hash || '#home').replace('#', '');
-    const valid = ['home', 'quiz', 'qr', 'shop', 'license', 'settings', 'stamps', 'social'];
-    UI.go(valid.includes(hash) ? hash : 'home');
+    // LIFF はエンドポイントURLに付いたクエリを渡してくれるが、フラグメント(#)は
+    // 確実には引き継がれない。リッチメニューからの遷移先は ?page= で受ける。
+    let target = '';
+    try {
+      const q = new URLSearchParams(location.search).get('page');
+      if (q && VALID_PAGES.includes(q)) target = q;
+    } catch (e) { /* ignore */ }
+    if (!target) {
+      const hash = (location.hash || '#home').replace('#', '');
+      target = VALID_PAGES.includes(hash) ? hash : 'home';
+    }
+    UI.go(target);
   }
 
   function init() {
@@ -178,7 +189,23 @@
     // hash-based back/forward
     window.addEventListener('hashchange', handleInitialRoute);
 
+    initLine();
     registerServiceWorker();
+  }
+
+  /* LINE連携。await しないのは、LINEのSDK取得が遅い・失敗する場合でも
+     アプリの表示を1ミリ秒も待たせないため。連携できたら後から反映する。
+     config.liffId が未設定なら通信は一切発生しない。 */
+  function initLine() {
+    if (!window.Line || !Line.isConfigured) return;
+    Line.init().then((st) => {
+      if (!st.ready) return;
+      // LINEアプリ内なら追加操作なしでログイン済み＝名前とアイコンが入る
+      UI.refreshHeader();
+      UI.refreshHome();
+      applyAvatarStyleFromStore();
+      if (window.Settings && Settings.refresh) Settings.refresh();
+    });
   }
 
   function registerServiceWorker() {

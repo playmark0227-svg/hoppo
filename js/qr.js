@@ -36,6 +36,20 @@
     const stopBtn = document.getElementById('qrStopBtn');
     startBtn.disabled = true;
 
+    // LINEアプリ内では純正のコードリーダーを使う。
+    // LINEのアプリ内ブラウザは getUserMedia が使えない環境があり、
+    // その場合 jsQR 経路はカメラを取得できずに失敗するため。
+    if (window.Line && Line.canScan()) {
+      try {
+        const value = await Line.scan();
+        if (value) handleCode(value);
+        else UI.toast('読み取りをキャンセルしました');
+      } finally {
+        startBtn.disabled = false;
+      }
+      return;
+    }
+
     try {
       await loadJsQR();
     } catch (e) {
