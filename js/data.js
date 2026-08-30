@@ -500,7 +500,7 @@ window.FURUSATO_PORTAL_URL = 'https://www.city.nemuro.hokkaido.jp/dispatcher.do?
 
 window.SHOP_ITEMS = [
   {
-    id: 'sticker-erika', // legacy id — persisted in save data, do not rename
+    id: 'sticker-mascot',
     name: 'しろくまくんステッカー',
     desc: 'ノートやPCに貼れるよ！',
     emoji: '✨',
@@ -861,11 +861,11 @@ window.getStampById = function(id) {
    ============================================================ */
 window.RIVALS = [
   {
-    id: 'r-erika-fan', // legacy id — keys persisted DM threads, do not rename
-    name: 'エトピリカ大好き', emoji: '🐧', frame: 'coral',
+    id: 'r-shirokuma-fan',
+    name: 'しろくまくん大好き', emoji: '🐻‍❄️', frame: 'ocean',
     base: 2350, rate: 6,
-    greeting: 'フォローありがとう！一緒に北方領土マスターを目指そうね🐧',
-    lines: ['今日もクイズ全問正解しちゃった！', 'エトピリカって本当にかわいいよね', '納沙布岬の朝日、一度は見てほしいな！', 'そのアバター素敵だね！']
+    greeting: 'フォローありがとう！一緒に北方領土マスターを目指そうね🐻‍❄️',
+    lines: ['今日もクイズ全問正解しちゃった！', 'しろくまくんって本当にかわいいよね', '納沙布岬の朝日、一度は見てほしいな！', 'そのアバター素敵だね！']
   },
   {
     id: 'r-ryuhyo', name: '流氷パトロール', emoji: '🧊', frame: 'ocean',

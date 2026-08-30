@@ -1,10 +1,10 @@
 /* ============================================================
-   HoppouStatus — Etopirika Coast theme
-   Palette inspired by the Etopirika (tufted puffin) coast of Nemuro
+   HoppouStatus — Nemuro Coast theme
+   Palette drawn from the Nemuro coastline: sunrise coral, ocean blue, drift-ice white
    ============================================================ */
 
 :root {
-  /* ---- Etopirika Coast palette ---- */
+  /* ---- Nemuro Coast palette ---- */
   --c-ink:        #2b2435;
   --c-ink-soft:   #6b6279;
   --c-ink-faint:  #a59ab4;
@@ -13,7 +13,7 @@
   --c-cream:      #fff4e0;
   --c-cream-deep: #ffe9c2;
 
-  /* Etopirika beak / feet — coral orange */
+  /* Sunrise over Cape Nosappu — coral orange */
   --c-coral:      #f47a5a;
   --c-coral-deep: #d9573a;
   --c-coral-soft: #ffd5c4;

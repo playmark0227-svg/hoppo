@@ -23,7 +23,7 @@
 
 ## Maps / 地図
 
-### `assets/images/hoppou/four-islands-map.png`
+### `assets/images/hoppou/four-islands-map.jpg`
 - **Title:** Kuril Islands - Japanese claim
 - **Source:** Wikimedia Commons
 - **License:** Public Domain
@@ -47,7 +47,7 @@
 - **Source:** Wikimedia Commons
 - **License:** CC BY-SA 4.0
 
-### `assets/images/hoppou/kunashir.jpg` / `kunashir-view.jpg` (国後島)
+### `assets/images/hoppou/kunashir-view.jpg` (国後島)
 - **Source:** Wikimedia Commons
 - **License:** CC BY-SA 3.0 / 4.0
 - **Usage:** ホーム画面ヒーロー背景、ゴールドランクイメージ、"四つの島" カード
@@ -69,11 +69,6 @@
 ---
 
 ## Nature / 自然
-
-### `assets/images/hoppou/tufted-puffin.jpg` (エトピリカ)
-- **Photographer:** Gregory Smith (via Flickr → Wikimedia Commons)
-- **License:** CC BY-SA 2.0
-- **Usage:** 参考素材（根室市の市の鳥・エトピリカ。配色パレットのモチーフ）
 
 ### `assets/images/hoppou/clione.jpg` (クリオネ)
 - **Source:** NOAA (via Wikimedia Commons)

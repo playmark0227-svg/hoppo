@@ -66,6 +66,7 @@
       const raw = localStorage.getItem(STORAGE_KEY);
       if (!raw) return null;
       const parsed = JSON.parse(raw);
+      migrateRivalIds(parsed);
       // Deep-merge nested objects so older saves still get default fields.
       return {
         ...DEFAULT_STATE,
@@ -84,6 +85,48 @@
     } catch (e) {
       console.warn('[store] load failed', e);
       return null;
+    }
+  }
+
+  /* ---- 保存データのID付け替え ----
+     マスコット差し替えに伴い、旧キャラの名前が入っていたIDを改名した。
+     IDは localStorage に保存済みなので、そのまま変えるとフォロー中の相手・
+     DM履歴・購入済みアイテムが「存在しないID」を指したまま取り残される。
+     読み込み時にここで付け替える。将来の改名もこの表に足すだけでよい。 */
+  const RIVAL_ID_MIGRATIONS = {
+    'r-erika-fan': 'r-shirokuma-fan'
+  };
+  const ITEM_ID_MIGRATIONS = {
+    'sticker-erika': 'sticker-mascot'
+  };
+
+  function migrateRivalIds(parsed) {
+    if (!parsed) return;
+
+    const social = parsed.social;
+    if (social) {
+      Object.entries(RIVAL_ID_MIGRATIONS).forEach(([oldId, newId]) => {
+        if (Array.isArray(social.following)) {
+          social.following = social.following.map(id => (id === oldId ? newId : id));
+          // 旧IDと新IDの両方が入っていた場合に備えて重複を除去
+          social.following = [...new Set(social.following)];
+        }
+        if (social.dms && oldId in social.dms) {
+          const oldThread = social.dms[oldId] || [];
+          const newThread = social.dms[newId] || [];
+          // 既に新IDのスレッドがあれば時系列で統合する
+          social.dms[newId] = [...newThread, ...oldThread]
+            .sort((a, b) => new Date(a.at || 0) - new Date(b.at || 0));
+          delete social.dms[oldId];
+        }
+      });
+    }
+
+    // 購入済みアイテム（これを変え損ねると「獲得済」が消えて買い直しになる）
+    if (Array.isArray(parsed.owned)) {
+      parsed.owned = [...new Set(
+        parsed.owned.map(id => ITEM_ID_MIGRATIONS[id] || id)
+      )];
     }
   }
 
