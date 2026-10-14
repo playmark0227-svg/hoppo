@@ -24,6 +24,8 @@ async function main() {
     assert.equal(await page.evaluate(() => Store.get().points), 0, 'preview points must never migrate');
     await page.evaluate(() => UI.go('settings')); await page.locator('[data-auth-open]').first().click();
     await page.waitForFunction(() => !document.getElementById('authRegisterBtn').disabled);
+    const authBox = await page.locator('.auth-card').boundingBox();
+    assert.ok(Math.abs(authBox.x + authBox.width / 2 - width / 2) <= 1, 'login panel must be centered');
     console.log(label, 'auth ready');
     const email = `browser-${width}-${Date.now()}@example.test`;
     await page.locator('#authEmail').fill(email); await page.locator('#authPassword').fill('password-test-12345');

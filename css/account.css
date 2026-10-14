@@ -5,7 +5,8 @@
 .cloud-profile-controls { width: 100%; border-top: 1px solid #d2dbe0; margin-top: 20px; padding-top: 16px; }
 .cloud-profile-controls label, .auth-consent { display: flex; gap: 10px; align-items: start; font-size: .88rem; line-height: 1.8; margin: 10px 0; }
 .cloud-profile-controls input, .auth-consent input { flex: 0 0 auto; width: 18px; height: 18px; margin-top: 4px; accent-color: #2c7467; }
-.auth-card { width: min(480px, calc(100vw - 28px)); max-height: calc(100dvh - 40px); overflow-y: auto; padding: 28px 24px; border-radius: 8px; text-align: left; }
+#authModal { grid-template-columns: minmax(0, 1fr); padding: 20px 14px; }
+.auth-card { width: min(480px, 100%); max-width: 480px; max-height: calc(100dvh - 40px); overflow-y: auto; padding: 28px 24px; border-radius: 8px; text-align: left; }
 .auth-card h2 { font-size: 1.35rem; line-height: 1.6; padding-right: 24px; margin: 6px 0; }
 .auth-card .field { margin-top: 14px; }
 .auth-card input.input { width: 100%; min-width: 0; }

@@ -25,6 +25,7 @@ async function main() {
       await page.screenshot({ path: path.join(dir, `${label}-login.png`) });
       const box = await page.locator('.auth-card').boundingBox();
       assert.ok(box.x >= 0 && box.x + box.width <= width + 1, 'login panel horizontal overflow');
+      assert.ok(Math.abs(box.x + box.width / 2 - width / 2) <= 1, 'login panel must be centered');
       await page.locator('#authModal [data-close]').last().click();
       await page.waitForTimeout(300);
       await page.evaluate(() => UI.go('social'));
