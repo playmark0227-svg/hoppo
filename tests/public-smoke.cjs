@@ -20,10 +20,20 @@ async function main() {
       });
       const page = await context.newPage();
       const pageErrors = [];
+      const failedRequests = [];
       page.on('pageerror', error => pageErrors.push(error.message));
+      page.on('requestfailed', request => failedRequests.push(`${request.url()}: ${request.failure()?.errorText}`));
       const response = await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 30000 });
       assert.equal(response.status(), 200, `${name}: page HTTP status`);
-      await page.locator('#loader').waitFor({ state: 'detached', timeout: 15000 });
+      try {
+        await page.locator('#loader').waitFor({ state: 'detached', timeout: 15000 });
+      } catch (error) {
+        await page.screenshot({ path: path.join(output, `${name}-public-load-error-v45.png`) });
+        console.error('Runtime errors:', pageErrors);
+        console.error('Failed requests:', failedRequests);
+        console.error('Script state:', await page.evaluate(() => ({ app: !!window.App, cloud: !!window.Cloud, ready: document.readyState })));
+        throw error;
+      }
       await page.screenshot({ path: path.join(output, `${name}-public-home-v45.png`) });
       await page.evaluate(() => UI.go('settings'));
       await page.locator('[data-auth-open]').first().click();
@@ -38,7 +48,9 @@ async function main() {
       assert.ok(panel.x >= 0 && panel.x + panel.width <= width + 1, `${name}: modal overflow`);
       await page.screenshot({ path: path.join(output, `${name}-public-login-v45.png`) });
       assert.deepEqual(pageErrors, [], `${name}: runtime errors`);
-      console.log(`${name}: 200, LINE and email login shown, no overflow or runtime errors`);
+      const signInReady = await page.locator('#authLineBtn').isEnabled();
+      const authStatus = await page.locator('#authStatus').innerText();
+      console.log(`${name}: 200, LINE and email login shown, no overflow or runtime errors; sign-in ${signInReady ? 'enabled' : 'blocked'} (${authStatus})`);
       await context.close();
     }
   } finally {
