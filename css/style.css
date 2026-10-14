@@ -359,7 +359,7 @@ code { font-family: 'SFMono-Regular', ui-monospace, 'Kosugi Maru', monospace; }
   text-align: center;
 }
 .section-title-center::after { display: none; }
-.section-title span:first-child {
+.section-title:not(.section-title-center) > span:first-child {
   display: inline-grid;
   place-items: center;
   width: 30px; height: 30px;
@@ -1660,6 +1660,7 @@ code { font-family: 'SFMono-Regular', ui-monospace, 'Kosugi Maru', monospace; }
    QR
    ============================================================ */
 .qr-scanner { display: flex; flex-direction: column; gap: 14px; align-items: center; }
+.qr-controls { display: flex; flex-direction: column; align-items: center; gap: 14px; width: 100%; min-width: 0; }
 .qr-frame {
   width: 100%;
   aspect-ratio: 1 / 1;
@@ -1901,7 +1902,7 @@ code { font-family: 'SFMono-Regular', ui-monospace, 'Kosugi Maru', monospace; }
 .qr-manual summary { font-weight: 700; cursor: pointer; color: var(--c-ink-soft); }
 .qr-manual[open] summary { color: var(--c-ink); margin-bottom: 8px; }
 .qr-manual-inner { display: flex; gap: 8px; margin-top: 6px; }
-.qr-manual-inner .input { flex: 1; }
+.qr-manual-inner .input { flex: 1; min-width: 0; }
 .qr-hint { width: 100%; background: var(--c-cream); border-radius: var(--r-sm); padding: 12px 14px; font-size: 0.85rem; }
 .qr-hint-title { font-weight: 900; margin-bottom: 6px; }
 .qr-hint-codes { display: flex; flex-wrap: wrap; gap: 6px; }
@@ -4410,8 +4411,21 @@ html.high-contrast .stat-value {
   /* Frame picker 6 across */
   .frame-picker { grid-template-columns: repeat(6, 1fr); }
 
-  /* Hero scene proportions */
-  .hero-scene { aspect-ratio: 16 / 9; }
+  /* A fixed-height hero should fill its column instead of shrinking to its ratio. */
+  .hero-scene { width: 100%; height: 340px; aspect-ratio: auto; }
+
+  .qr-scanner {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    align-items: start;
+    gap: 20px;
+  }
+  .qr-frame { max-width: 520px; justify-self: end; }
+  .qr-controls { align-items: stretch; }
+  .qr-actions { justify-content: flex-start; }
+  .qr-actions .btn { flex: 1; }
+  .qr-manual, .qr-hint { max-width: none; margin: 0; }
+  .qr-history-btn { margin-top: 0; }
 
   /* Bottom nav slightly narrower than max-w to feel like a pill */
   .bottom-nav { width: min(640px, calc(100% - 32px)); }
@@ -4473,23 +4487,24 @@ html.high-contrast .stat-value {
   /* Achievements 4 across with more breathing room */
   .achieve-grid { gap: 14px; }
 
-  /* Shop 3 across stays */
+  /* Shop cards remain readable at narrower desktop widths */
   .shop-grid { gap: 16px; }
 
-  /* Settings page two-column flow */
+  /* Keep related settings in fixed rows even when account controls expand. */
   .page-settings {
-    column-count: 2;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     column-gap: 28px;
+    align-items: start;
   }
-  .page-settings .page-head,
-  .page-settings .settings-preview {
-    column-span: all;
-    -webkit-column-span: all;
+  .page-settings > .page-head,
+  .page-settings > .account-panel,
+  .page-settings > .settings-preview,
+  .page-settings > .app-credit {
+    grid-column: 1 / -1;
   }
-  .page-settings .settings-section {
-    break-inside: avoid;
-    -webkit-column-break-inside: avoid;
-    page-break-inside: avoid;
+  .page-settings > .settings-section {
+    min-width: 0;
     margin-bottom: 22px;
   }
   /* Section card body keep readable max width */
@@ -4511,6 +4526,7 @@ html.high-contrast .stat-value {
     gap: 14px;
   }
   .rank-list .rank-item { margin: 0; }
+  .rank-journey-line { display: none; }
 
   /* License card centered, capped width */
   .license-card-flipper {
@@ -4518,11 +4534,6 @@ html.high-contrast .stat-value {
     margin-left: auto;
     margin-right: auto;
   }
-
-  /* QR scanner area: show camera + manual side-by-side */
-  .qr-stage { max-width: 480px; margin-left: auto; margin-right: auto; }
-  .qr-manual { max-width: 480px; margin-left: auto; margin-right: auto; }
-  .qr-hint { max-width: 720px; margin-left: auto; margin-right: auto; }
 
   /* Quiz list cards: 2 cols */
   .quiz-list { grid-template-columns: repeat(2, 1fr); display: grid; gap: 14px; }
@@ -4854,7 +4865,15 @@ html.high-contrast .stat-value {
     gap: 18px;
     align-items: start;
   }
-  .page-home > .hero-scene { grid-area: hero; margin-bottom: 0; height: 360px; }
+  .page-home > .hero-scene {
+    grid-area: hero;
+    width: 100%;
+    min-width: 0;
+    height: 360px;
+    max-height: none;
+    aspect-ratio: auto;
+    margin-bottom: 0;
+  }
   .page-home > .rank-card { grid-area: rank; margin-bottom: 0; }
   .page-home > .stats-strip { grid-area: stats; margin-bottom: 0; }
   .page-home > .quick-grid { grid-area: quick; margin-bottom: 0; grid-template-columns: repeat(4, 1fr); }
@@ -4878,8 +4897,8 @@ html.high-contrast .stat-value {
   .stats-strip .stat + .stat::before { display: none; }
   .stats-strip .stat:nth-child(2n) { border-left: 1px solid rgba(43, 36, 53, 0.05); }
 
-  /* Generic page heads centered max-width */
-  .page-head { max-width: 920px; margin-left: auto; margin-right: auto; }
+  /* Page headings share the content edge across dashboard views. */
+  .page-head { max-width: none; margin-left: 2px; margin-right: 2px; }
 
   /* Override the existing >=1100px max-width since sidebar shifts */
   :root { --max-w: 100%; }
@@ -4889,6 +4908,7 @@ html.high-contrast .stat-value {
 @media (min-width: 1440px) {
   .app { padding-left: 300px; }
   .ds-sidebar { width: 300px; padding: 26px 22px 22px; }
+  .shop-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 }
 
 /* ============================================================
@@ -5767,7 +5787,7 @@ html[data-island-theme="habomai"] .nav-btn-center {
    Desktop adjustments for new pages
    ============================================================ */
 @media (min-width: 1100px) {
-  .page-home > .quick-grid { grid-template-columns: repeat(6, 1fr); }
+  .page-home > .quick-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .stamp-grid { grid-template-columns: repeat(5, 1fr); gap: 12px; }
   .stamp-demo-list { grid-template-columns: repeat(3, 1fr); }
   .page-stamps, .page-social { max-width: 920px; margin-left: auto; margin-right: auto; }
@@ -5776,6 +5796,15 @@ html[data-island-theme="habomai"] .nav-btn-center {
 }
 @media (min-width: 768px) and (max-width: 1099px) {
   .stamp-grid { grid-template-columns: repeat(4, 1fr); }
+}
+@media (min-width: 900px) and (max-width: 1099px) {
+  :root { --max-w: 820px; }
+}
+@media (min-width: 1100px) and (max-width: 1279px) {
+  .page-settings { display: block; max-width: 760px; margin: 0 auto; }
+}
+@media (min-width: 1360px) {
+  .page-home > .quick-grid { grid-template-columns: repeat(6, minmax(0, 1fr)); }
 }
 
 /* ============================================================

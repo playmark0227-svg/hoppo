@@ -418,7 +418,7 @@
       status('FirebaseまたはApp Checkの設定が未完了です。', true); return;
     }
     try {
-      sdk = await import('./vendor/firebase.js?v=46');
+      sdk = await import('./vendor/firebase.js?v=47');
       const app = sdk.initializeApp(config.firebase);
       auth = sdk.getAuth(app); db = sdk.getFirestore(app); functions = sdk.getFunctions(app, config.region || 'asia-northeast1');
       auth.languageCode = 'ja';
