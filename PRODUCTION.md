@@ -1,6 +1,6 @@
 # 本番接続・公開手順
 
-この変更は GitHub の `137f91f`（v34）を土台にしています。現在の `js/cloud-config.js` は `enabled: false` です。公開プレビューでアカウント作成やDM送信ができるという意味ではありません。
+この変更は GitHub の `137f91f`（v34）を土台にしています。v36は専用Firebaseに接続した試験公開です。正式公開には実端末・メール到達・運営方針の確認も必要です。
 
 ## 構成
 
@@ -9,6 +9,21 @@
 - LINE：LIFFの生のIDトークンを callable `exchangeLineToken` に渡し、LINE verify APIで検証後、Firebaseカスタムトークンを発行。未設定時はボタンを非表示。LINEプロフィールを認証の証拠として信用しません。
 - データ：Firestore。ブラウザからの書き込みは全て拒否し、Cloud Functionsが登録、ポイント、フォロー、DMを操作。
 - App Check：reCAPTCHA Enterprise。全callableで必須（ローカルエミュレーター以外）。Firestoreもコンソールで強制適用してください。
+
+## 設定状況（2026-10-14）
+
+- 会社アカウントで専用プロジェクト `hoppo-status-vifight` とWebアプリを作成。
+- Firestoreは東京 `asia-northeast1`、削除保護あり。ルールとインデックスは配備済み。
+- Email/Passwordを有効化。パスワード12文字以上、メール列挙保護、日本語メール設定を反映。
+- 公開ドメインに限定したreCAPTCHA EnterpriseサイトキーとApp CheckのWeb設定を登録。
+- 管理者がChrome画面でBlazeの請求先接続を完了。Firebase APIでも有効化を確認。
+- FirestoreのApp Check強制適用は設定済み。ビルドイメージの保持期間は7日。
+- 管理者の承認で専用サーバーアカウントに必要権限を設定し、13個のCloud Functionsを配備済み。秘密鍵ファイルは発行していません。
+- 月10米ドルの目安として承認された月1,500円（請求通貨JPY）の予算通知を、このプロジェクトだけに設定。実績50/90/100%および月末予測100%で通知。支出の自動停止は設定していません。
+- 公開可能なWeb設定を入力し `enabled: true` に変更。LINEは依頼どおりコードのみ、LIFF未設定。実メール到達は未検証。
+- 13個の関数はACTIVE。`allUsers`へのInvoker付与は会社の組織ポリシーで拒否されました。管理者の明示承認を得て、組織全体のルールを変えずにこの13サービスだけGoogle推奨の `invokerIamDisabled` によるHTTP入口を設定。全サービスの正常稼働と、App Checkなしの実HTTPリクエストが401になることを確認。Firebase認証・メール確認・App Checkは保持します。
+- `functions/index.cjs` の `invoker: 'private'` は `allUsers` IAM付与を避けるためです。承認後に各サービスのIAMチェックだけを別途設定し、再配備後にもHTTP入口の状態を確認してください。
+- Googleは会社アカウントのMFAを2026-10-20までに設定するよう案内。本人による設定が必要。
 
 ## ポイントとコミュニティ
 
@@ -26,7 +41,7 @@
 
 1. Firebaseプロジェクトを作成し、Webアプリを登録します。Firestoreのロケーションを選んでください（後から容易には変更できません）。Functionsは `asia-northeast1` です。
 2. AuthenticationのEmail/Passwordを有効にします。承認済みドメインに `playmark0227-svg.github.io` を追加。確認・再設定メールの日本語文面、送信者と戻り先URLを設定。パスワードポリシーを12文字以上にし、メール列挙保護を有効にします。
-3. Cloud Functions利用の課金プラン・予算通知・監視を管理者が確認して設定します。この作業では課金設定や本番プロジェクトの作成は行っていません。予算通知は支出の自動停止ではありません。
+3. Cloud Functions利用の課金プラン・予算通知・監視を管理者が確認して設定します。専用プロジェクト・Blaze接続・月1,500円の予算通知は設定済み。予算通知は支出の自動停止ではありません。
 4. App CheckにWebアプリとreCAPTCHA Enterpriseサイトキーを登録し、配信ドメインを承認します。
 5. Node 22とJava 21以上で依存を用意して検証します。
 

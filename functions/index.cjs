@@ -8,8 +8,9 @@ const P = require('./policy.cjs');
 const catalog = require('./catalog.json');
 initializeApp();
 const db = getFirestore();
-const lineChannelId = defineString('LINE_CHANNEL_ID', { default: '' });
-const options = { region: 'asia-northeast1', maxInstances: 10, timeoutSeconds: 30,
+const lineChannelId = defineString('LINE_CHANNEL_ID', { default: 'disabled' });
+// Domain-restricted organizations use a per-service HTTP entry setting, not allUsers IAM grants.
+const options = { region: 'asia-northeast1', maxInstances: 10, timeoutSeconds: 30, invoker: 'private',
   enforceAppCheck: process.env.FUNCTIONS_EMULATOR !== 'true' };
 const fail = (code, text) => { throw new HttpsError(code, text); };
 function uid(req) {
@@ -44,7 +45,7 @@ function consume(tx, ref, snap, max, now) {
 }
 exports.exchangeLineToken = onCall(options, async (req) => {
   const clientId = lineChannelId.value();
-  if (!clientId) fail('failed-precondition', 'LINEログインは準備中です。');
+  if (!/^\d+$/.test(clientId)) fail('failed-precondition', 'LINEログインは準備中です。');
   const token = req.data?.idToken;
   if (typeof token !== 'string' || token.length < 20 || token.length > 10000) fail('invalid-argument', 'IDトークンが無効です。');
   const response = await fetch('https://api.line.me/oauth2/v2.1/verify', {

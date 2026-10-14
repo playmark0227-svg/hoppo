@@ -87,6 +87,7 @@
     try { await connectAccount(epoch); } catch (error) { status(errorMessage(error), true); }
   }
   function renderAccount() {
+    document.getElementById('authLaunchNotice').textContent = `${config.enabled ? '現在は試験公開中です。' : '現在は公開準備中です。'}利用条件・データ保持期間・問い合わせ窓口は正式公開前に確定します。`;
     const signed = !!currentUser;
     const verified = signed && (currentUser.emailVerified || currentUser.providerData.length === 0);
     document.getElementById('authFields').hidden = signed;
@@ -178,12 +179,19 @@
       if (config.emulator && ['localhost', '127.0.0.1'].includes(location.hostname)) {
         sdk.connectAuthEmulator(auth, 'http://127.0.0.1:9099'); sdk.connectFirestoreEmulator(db, '127.0.0.1', 8080); sdk.connectFunctionsEmulator(functions, '127.0.0.1', 5001);
       } else {
-        sdk.initializeAppCheck(app, { provider: new sdk.ReCaptchaEnterpriseProvider(config.appCheckSiteKey), isTokenAutoRefreshEnabled: true });
+        status('安全な接続を確認しています。');
+        const appCheck = sdk.initializeAppCheck(app, { provider: new sdk.ReCaptchaEnterpriseProvider(config.appCheckSiteKey), isTokenAutoRefreshEnabled: true });
+        await sdk.getAppCheckToken(appCheck);
+        document.getElementById('authModal').dataset.appCheck = 'verified';
       }
       await sdk.setPersistence(auth, sdk.browserLocalPersistence);
       sdk.onAuthStateChanged(auth, session);
       renderAccount(); status('ログイン、または新規登録を選んでください。');
-    } catch (error) { sdk = null; status(errorMessage(error), true); renderAccount(); }
+    } catch (error) {
+      sdk = null;
+      status(error?.code?.startsWith('appCheck/') ? '安全な接続を確認できません。通信環境を確認して再読み込みしてください。' : errorMessage(error), true);
+      renderAccount();
+    }
   }
   let liffPromise;
   async function lineLogin() {

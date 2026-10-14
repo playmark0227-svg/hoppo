@@ -10,4 +10,4 @@ export {
   connectFirestoreEmulator
 } from 'firebase/firestore';
 export { getFunctions, httpsCallable, connectFunctionsEmulator } from 'firebase/functions';
-export { initializeAppCheck, ReCaptchaEnterpriseProvider } from 'firebase/app-check';
+export { initializeAppCheck, ReCaptchaEnterpriseProvider, getToken as getAppCheckToken } from 'firebase/app-check';

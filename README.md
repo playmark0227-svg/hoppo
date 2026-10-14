@@ -12,7 +12,7 @@
 - Firebase上の実ユーザーランキング・フォロー・DM・ブロック・通報。
 - ポイントのサーバー採点・日本日付での日次付与・期限付きQR・再取得対策。
 
-**Firebase接続情報は未設定、`enabled: false` です。** プレビューで実ログイン・DMが開始済みという意味ではありません。架空の競争相手や自動返信は表示しません。端末内ポイントは本番に引き継ぎません。
+**v36は専用Firebaseに接続した試験公開です。** メールログイン・13個のサーバー機能・予算通知を設定済み。実メール到達・複数の実端末での利用と、運営窓口・保存期間・利用条件の確定も別途必要です。架空の競争相手や自動返信は表示しません。端末内ポイントは本番に引き継ぎません。
 
 実物グッズ交換・配送・送料決済は未実装。ふるさと納税は外部サイトの案内です。既存配布資料は旧仕様を含みます。
 
@@ -26,7 +26,7 @@ npm test
 python3 -m http.server 8765
 ```
 
-`http://localhost:8765/` でプレビュー。UIは既存のvanilla JS、Firebase SDKはesbuildでローカル配信用に生成し、有効設定時だけ読み込みます。Node22、Java21以上を推奨。
+`http://localhost:8765/` で画面を表示。公開設定のApp Checkは公開ドメインだけを許可しているため、ローカルでクラウド操作を試すにはエミュレーター用設定が必要です（`tests/browser-cloud.cjs` 参照）。外観だけならローカル設定を `enabled: false` にしてください。UIはvanilla JS、SDKはesbuildで生成。Node22、Java21以上を推奨。
 
 Cloud Functions・Firestoreルール・LINE・運用の接続手順は [PRODUCTION.md](PRODUCTION.md)、セキュリティは [SECURITY.md](SECURITY.md)、素材は [CREDITS.md](CREDITS.md)。クイズの出典・解説の確認、運営窓口・利用条件・保存期間は本番公開前に確定が必要です。
 
