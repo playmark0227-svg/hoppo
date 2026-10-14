@@ -4,7 +4,8 @@
   "version": "2.0.0",
   "scripts": {
     "build": "esbuild client/firebase-entry.js --bundle --format=esm --minify --outfile=js/vendor/firebase.js",
-    "test": "node --test tests/policy.test.cjs tests/store.test.cjs tests/auth.test.cjs",
+    "sync:quizzes": "node scripts/catalog.cjs",
+    "test": "node scripts/catalog.cjs --check && node --test tests/policy.test.cjs tests/store.test.cjs tests/auth.test.cjs tests/quiz-catalog.test.cjs",
     "test:rules": "firebase emulators:exec --project demo-hoppo --only firestore 'node --test tests/rules.test.cjs'",
     "test:integration": "firebase emulators:exec --project demo-hoppo --only auth,firestore,functions 'node --test tests/integration.test.cjs'"
   },

@@ -1254,6 +1254,8 @@ code { font-family: 'SFMono-Regular', ui-monospace, 'Kosugi Maru', monospace; }
   z-index: 1;
   filter: drop-shadow(0 2px 4px rgba(255,255,255,0.65));
 }
+.quiz-item-symbol { color: #184e68; font-size: 0.93rem; font-weight: 900; }
+.quiz-item-symbol span { filter: none; }
 .quiz-item-meta { flex: 1; line-height: 1.3; min-width: 0; }
 .quiz-item-title { font-weight: 900; font-size: 1rem; }
 .quiz-item-desc {
@@ -1288,6 +1290,28 @@ code { font-family: 'SFMono-Regular', ui-monospace, 'Kosugi Maru', monospace; }
   border-radius: 99px;
   letter-spacing: 0.04em;
 }
+.quiz-level {
+  display: inline-block;
+  margin-top: 5px;
+  padding: 2px 7px;
+  border: 1px solid #cbd7d2;
+  border-radius: 3px;
+  color: #37665d;
+  font-size: 0.68rem;
+  font-weight: 800;
+}
+.quiz-level[data-level="上級"] { border-color: #d9af70; color: #775727; }
+.quiz-level[data-level="超難問"] { border-color: #9d8a91; color: #6b3c52; }
+.quiz-source-link {
+  display: inline-block;
+  margin-top: 8px;
+  color: #185a72;
+  font-size: 0.78rem;
+  font-weight: 800;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.quiz-feedback p { margin: 5px 0 0; }
 .quiz-item-arrow { color: var(--c-coral); font-weight: 900; font-size: 1.4rem; }
 .quiz-item.cleared {
   border-color: var(--c-mint);
@@ -1509,6 +1533,8 @@ code { font-family: 'SFMono-Regular', ui-monospace, 'Kosugi Maru', monospace; }
   box-shadow: 0 6px 12px rgba(26, 25, 48, 0.2);
   flex-shrink: 0;
 }
+.quiz-play-banner-icon.quiz-play-banner-symbol { color: #185a72; font-size: 0.95rem; font-weight: 900; }
+.quiz-in-progress .bottom-nav { display: none !important; }
 .quiz-play-banner-meta { min-width: 0; }
 .quiz-play-banner-kicker {
   font-size: 0.7rem;

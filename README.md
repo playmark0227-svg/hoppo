@@ -8,7 +8,7 @@ LINE公式アカウント：https://lin.ee/zHLPt21
 
 ## 現在の実装
 
-- クイズ、イベントQR、島の紹介、プロフィール・島カラー、ライセンス、スタンプ図鑑。
+- 内閣府・外務省の公表資料に基づく12コース・100問のクイズ、イベントQR、島の紹介、プロフィール・島カラー、ライセンス、スタンプ図鑑。
 - メール・パスワードの通常Webログイン、登録確認メール、パスワード再設定、永続ログイン、ログアウト、アカウント削除。
 - LINEログイン（LIFF→サーバー側でIDトークンを検証→Firebaseカスタム認証）と、メール確認済みアカウントからの明示的なLINE連携。LIFFとサーバー設定済み。実LINEアカウントでの一連の操作は未検証。
 - LINE公式アカウントの6分割リッチメニュー。ホーム、クイズ、QR、スタンプ、ランキング、マイページに移動。
@@ -31,7 +31,7 @@ python3 -m http.server 8765
 
 `http://localhost:8765/` で画面を表示。公開設定のApp Checkは公開ドメインだけを許可しているため、ローカルでクラウド操作を試すにはエミュレーター用設定が必要です（`tests/browser-cloud.cjs` 参照）。外観だけならローカル設定を `enabled: false` にしてください。UIはvanilla JS、SDKはesbuildで生成。Node22、Java21以上を推奨。
 
-Cloud Functions・Firestoreルール・LINE・運用の接続状況は [PRODUCTION.md](PRODUCTION.md)、セキュリティは [SECURITY.md](SECURITY.md)、素材は [CREDITS.md](CREDITS.md)。クイズの出典・解説の確認、運営窓口・利用条件・保存期間は正式公開前に確定が必要です。
+Cloud Functions・Firestoreルール・LINE・運用の接続状況は [PRODUCTION.md](PRODUCTION.md)、セキュリティは [SECURITY.md](SECURITY.md)、素材は [CREDITS.md](CREDITS.md)、問題の根拠と更新手順は [docs/QUIZ_SOURCES.md](docs/QUIZ_SOURCES.md)。クイズの最終校閲、運営窓口・利用条件・保存期間は正式公開前に確定が必要です。
 
 ## 検証
 

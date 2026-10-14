@@ -184,7 +184,8 @@ exports.answerQuiz = onCall(options, async (req) => {
         total: quiz.questions.length, lastPlayedAt: now.toISOString(), quizId: quiz.id };
       tx.set(userRef, next); publish(tx, id, next);
     }
-    const result = { correct, answer: question.answer, explain: question.explain || '', done, earned, correctCount: count };
+    const result = { correct, answer: question.answer, explain: question.explain || '',
+      source: question.source, done, earned, correctCount: count };
     tx.update(ref, { index: session.index + 1, correct: count, lastChoice: data.choice, lastResponse: result });
     return result;
   });

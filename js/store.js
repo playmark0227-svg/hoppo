@@ -31,6 +31,7 @@
     createdAt: null,
     points: 0,
     totalEarned: 0,
+    quizCatalogVersion: '',
     quizResults: {},        // { quizId: { bestScore, timesPlayed, lastPlayedAt } }
     usedQrCodes: [],        // list of one-time QR code strings already redeemed
     owned: [],              // list of shop item ids purchased
@@ -136,6 +137,11 @@
       }
       if (!state.userId) state.userId = generateUserId();
       if (!state.createdAt) state.createdAt = new Date().toISOString();
+      const edition = window.QUIZ_CATALOG_VERSION || '';
+      if (edition && state.quizCatalogVersion !== edition) {
+        state.quizResults = {};
+        state.quizCatalogVersion = edition;
+      }
       this.state = state;
       // clearRemote loads newer device preferences; do not overwrite them with legacy state.
       if (!window.Cloud?.enabled) save(state);
@@ -161,8 +167,12 @@
         'loginStreak', 'longestStreak', 'loginTotal', 'createdAt'];
       keys.forEach(key => { if (user[key] !== undefined) this.state[key] = structuredClone(user[key]); });
       this.state.quizResults = {};
-      Object.values(user.quizResults || {}).forEach(result => {
-        if (result.quizId) this.state.quizResults[result.quizId] = result;
+      const edition = window.QUIZ_CATALOG_VERSION || '';
+      this.state.quizCatalogVersion = edition;
+      Object.entries(user.quizResults || {}).forEach(([key, result]) => {
+        if (result.quizId && (!edition || key.startsWith(`${edition}:`))) {
+          this.state.quizResults[result.quizId] = result;
+        }
       });
       if (hydrateProfile) {
         this.state.name = user.profile.name;

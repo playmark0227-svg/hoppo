@@ -11,7 +11,9 @@
     const list = document.getElementById('quizList');
     if (!list) return;
     const s = Store.get();
-    list.innerHTML = window.QUIZZES.map(q => {
+    const levelOrder = ['入門', '初級', '中級', '上級', '超難問'];
+    const sorted = [...window.QUIZZES].sort((a, b) => levelOrder.indexOf(a.level) - levelOrder.indexOf(b.level));
+    list.innerHTML = sorted.map(q => {
       const res = s.quizResults[q.id];
       const cleared = res && res.bestScore === q.questions.length;
       const played = res && res.timesPlayed > 0;
@@ -23,10 +25,11 @@
         : '';
       return `
         <div class="quiz-item ${cleared ? 'cleared' : ''}" data-quiz="${q.id}">
-          <div class="quiz-item-icon" ${iconStyle}><span>${q.icon}</span></div>
+          <div class="quiz-item-icon ${/^[\u4e00-\u9fff]{2}$/.test(q.icon) ? 'quiz-item-symbol' : ''}" ${iconStyle}><span>${q.icon}</span></div>
           <div class="quiz-item-meta">
             <div class="quiz-item-title">${q.title}</div>
             <div class="quiz-item-desc">${q.desc}<span class="quiz-item-count">全${q.questions.length}問</span></div>
+            <span class="quiz-level" data-level="${q.level}">${q.level}</span>
             ${scoreBadge}
           </div>
           <div class="quiz-item-arrow">›</div>
@@ -54,13 +57,17 @@
     document.getElementById('quizList').hidden = true;
     document.getElementById('quizResult').hidden = true;
     document.getElementById('quizPlay').hidden = false;
+    document.body.classList.add('quiz-in-progress');
 
     // Populate banner with quiz-specific imagery
     const bannerBg = document.getElementById('quizPlayBannerBg');
     const icon = document.getElementById('quizPlayIcon');
     const title = document.getElementById('quizPlayTitle');
     if (bannerBg) bannerBg.style.backgroundImage = quiz.image ? `url('${quiz.image}')` : '';
-    if (icon) icon.textContent = quiz.icon || '📝';
+    if (icon) {
+      icon.textContent = quiz.icon || '';
+      icon.classList.toggle('quiz-play-banner-symbol', /^[\u4e00-\u9fff]{2}$/.test(quiz.icon));
+    }
     if (title) title.textContent = quiz.title;
 
     // Reset star track
@@ -69,17 +76,11 @@
   }
 
   function renderProgressStars() {
-    const { quiz, correctCount, index } = current;
+    const { quiz, index } = current;
     const stars = document.getElementById('quizProgStars');
     if (!stars) return;
     const total = quiz.questions.length;
-    let html = '';
-    for (let i = 0; i < total; i++) {
-      let cls = 'quiz-star';
-      if (i < index) cls += ' answered';
-      stars.dataset.total = total;
-    }
-    // dot sequence
+    stars.dataset.total = total;
     const dots = Array.from({ length: total }, (_, i) => {
       if (i < index) return '<span class="quiz-dot done"></span>';
       if (i === index) return '<span class="quiz-dot current"></span>';
@@ -152,7 +153,7 @@
       try {
         const result = await Cloud.call('answerQuiz', { sessionId: run.sessionId, index, choice: choiceIndex });
         if (current !== run) return;
-        correct = result.correct; q.answer = result.answer; q.explain = result.explain;
+        correct = result.correct; q.answer = result.answer; q.explain = result.explain; q.source = result.source;
         if (result.done) run.earned = result.earned;
       } catch (error) {
         if (current === run) buttons.forEach(b => b.disabled = false);
@@ -163,7 +164,25 @@
     if (!correct) buttons[q.answer].classList.add('correct');
 
     const fb = document.getElementById('quizFeedback');
-    fb.innerHTML = (correct ? '🎉 正解！' : '😢 残念！') + (q.explain ? `<br>${q.explain}` : '');
+    fb.replaceChildren();
+    const status = document.createElement('strong');
+    status.textContent = correct ? '正解' : '不正解';
+    fb.append(status);
+    if (q.explain) {
+      const detail = document.createElement('p');
+      detail.textContent = q.explain;
+      fb.append(detail);
+    }
+    const source = window.QUIZ_SOURCES?.[q.source];
+    if (source) {
+      const link = document.createElement('a');
+      link.href = source.url;
+      link.target = '_blank';
+      link.rel = 'noopener noreferrer';
+      link.className = 'quiz-source-link';
+      link.textContent = `出典：${source.label} ↗`;
+      fb.append(link);
+    }
     fb.className = 'quiz-feedback ' + (correct ? 'good' : 'bad');
     fb.hidden = false;
 
@@ -207,6 +226,7 @@
     }
 
     document.getElementById('quizPlay').hidden = true;
+    document.body.classList.remove('quiz-in-progress');
     document.getElementById('quizResult').hidden = false;
     document.getElementById('quizResultTitle').textContent = perfect ? '全問正解！🎉' : 'お疲れさま！';
     document.getElementById('quizResultScore').textContent = `${correctCount} / ${total} 問正解`;
@@ -225,6 +245,7 @@
 
   function back() {
     current = null;
+    document.body.classList.remove('quiz-in-progress');
     document.getElementById('quizPlay').hidden = true;
     document.getElementById('quizResult').hidden = true;
     document.getElementById('quizList').hidden = false;

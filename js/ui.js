@@ -71,6 +71,7 @@
 
     /* ---------------- Navigation ---------------- */
     go(page) {
+      if (page !== 'quiz') document.body.classList.remove('quiz-in-progress');
       document.querySelectorAll('.page').forEach(p => {
         p.hidden = p.dataset.page !== page;
       });
