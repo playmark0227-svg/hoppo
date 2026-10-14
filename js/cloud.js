@@ -28,6 +28,34 @@
     const node = document.getElementById('authStatus');
     node.textContent = text; node.classList.toggle('error', bad);
   }
+  function clearFieldError(id) {
+    const input = document.getElementById(id), error = document.getElementById(`${id}Error`);
+    if (error.textContent && document.getElementById('authStatus').textContent === error.textContent) status('');
+    input.removeAttribute('aria-invalid'); error.hidden = true; error.textContent = '';
+  }
+  function fieldError(id, message) {
+    const input = document.getElementById(id), error = document.getElementById(`${id}Error`);
+    input.setAttribute('aria-invalid', 'true'); error.textContent = message; error.hidden = false;
+    status(message, true); input.focus(); return false;
+  }
+  function validateEmail() {
+    const email = document.getElementById('authEmail');
+    clearFieldError('authEmail'); email.value = email.value.trim();
+    if (!email.value) return fieldError('authEmail', 'メールアドレスを入力してください。');
+    if (!email.validity.valid) return fieldError('authEmail', 'メールアドレスの形式を確認してください（例：name@example.com）。');
+    return true;
+  }
+  function validatePassword(register = false) {
+    const password = document.getElementById('authPassword');
+    clearFieldError('authPassword');
+    if (!password.value) return fieldError('authPassword', 'パスワードを入力してください。');
+    if (register && password.value.length < 12) return fieldError('authPassword', 'パスワードが短すぎます。新規登録は12文字以上にしてください。');
+    return true;
+  }
+  function updatePasswordCount() {
+    const length = document.getElementById('authPassword').value.length;
+    document.getElementById('authPasswordCount').textContent = length ? `現在${length}文字` : '未入力';
+  }
   async function call(name, data = {}) {
     await ready;
     if (!sdk || !config.enabled) throw new Error('not-configured');
@@ -116,6 +144,9 @@
   }
   function open() { UI.openModal('authModal'); document.getElementById('authEmail').focus(); }
   async function init() {
+    document.getElementById('authEmail').addEventListener('input', () => clearFieldError('authEmail'));
+    document.getElementById('authPassword').addEventListener('input', () => { clearFieldError('authPassword'); updatePasswordCount(); });
+    updatePasswordCount();
     document.getElementById('authModal').addEventListener('keydown', event => {
       if (event.key !== 'Tab') return;
       const items = Array.from(document.querySelectorAll('#authModal a[href], #authModal button:not(:disabled), #authModal input:not(:disabled)')).filter(item => item.getClientRects().length);
@@ -126,23 +157,24 @@
     document.querySelectorAll('[data-auth-open]').forEach(button => button.addEventListener('click', open));
     document.getElementById('authForm').addEventListener('submit', event => {
       event.preventDefault(); action(async () => {
+        if (!validateEmail() || !validatePassword()) return;
         await ready;
         await sdk.signInWithEmailAndPassword(auth, document.getElementById('authEmail').value.trim(), document.getElementById('authPassword').value);
-        document.getElementById('authPassword').value = '';
+        document.getElementById('authPassword').value = ''; updatePasswordCount();
       });
     });
     document.getElementById('authRegisterBtn').addEventListener('click', () => action(async () => {
+      if (!validateEmail() || !validatePassword(true)) return;
       if (!document.getElementById('authTerms').checked) return status('利用条件への同意が必要です。', true);
       const email = document.getElementById('authEmail'), password = document.getElementById('authPassword');
-      if (!email.reportValidity() || password.value.length < 12) return status('有効なメールアドレスと12文字以上のパスワードを入力してください。', true);
       const credential = await sdk.createUserWithEmailAndPassword(auth, email.value.trim(), password.value);
-      password.value = '';
+      password.value = ''; updatePasswordCount();
       await sdk.sendEmailVerification(credential.user);
       status('確認メールを送りました。受信したリンクを開いてください。');
     }));
     document.getElementById('authResetBtn').addEventListener('click', () => action(async () => {
+      if (!validateEmail()) return;
       const email = document.getElementById('authEmail');
-      if (!email.reportValidity()) return;
       try { await sdk.sendPasswordResetEmail(auth, email.value.trim()); } catch (error) {
         if (error.code !== 'auth/user-not-found') throw error;
       }

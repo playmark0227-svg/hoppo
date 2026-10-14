@@ -51,8 +51,8 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700;900&family=Yuji+Syuku&display=swap" rel="stylesheet" crossorigin="anonymous">
 
-  <link rel="stylesheet" href="css/style.css?v=40">
-  <link rel="stylesheet" href="css/account.css?v=40">
+  <link rel="stylesheet" href="css/style.css?v=41">
+  <link rel="stylesheet" href="css/account.css?v=41">
 </head>
 <body>
 
@@ -1405,11 +1405,14 @@
         <h2 id="authTitle">ログイン・新規登録</h2>
         <p id="authIdentity">メールアドレスでログイン</p>
         <p id="authLaunchNotice" class="auth-help">現在は公開準備中です。利用条件・データ保持期間・問い合わせ窓口は正式公開前に確定します。</p>
-        <form id="authForm">
+        <form id="authForm" novalidate>
           <div id="authFields">
-            <label class="field"><span>メールアドレス</span><input id="authEmail" class="input" type="email" autocomplete="username" required maxlength="254"></label>
-            <label class="field"><span>パスワード</span><input id="authPassword" class="input" type="password" autocomplete="current-password" required maxlength="128"></label>
-            <p class="auth-help">新規登録のパスワードは12文字以上にしてください。</p>
+            <label class="field"><span>メールアドレス</span><input id="authEmail" class="input" type="email" autocomplete="username" required maxlength="254" aria-describedby="authEmailError"></label>
+            <p id="authEmailError" class="auth-field-error" hidden></p>
+            <label class="field"><span>パスワード</span><input id="authPassword" class="input" type="password" autocomplete="current-password" required maxlength="128" aria-describedby="authPasswordHelp authPasswordCount authPasswordError"></label>
+            <div class="auth-password-help"><span id="authPasswordHelp">新規登録は12文字以上</span><span id="authPasswordCount">未入力</span></div>
+            <p id="authPasswordError" class="auth-field-error" hidden></p>
+            <p class="auth-help">ログインは登録時のパスワードを入力してください。</p>
             <label class="field"><span>ニックネーム（新規登録時）</span><input id="authNickname" class="input" type="text" maxlength="12" autocomplete="nickname" placeholder="例：四島サポーター"></label>
             <div class="auth-actions"><button type="submit" class="btn btn-primary">ログイン</button><button type="button" id="authRegisterBtn" class="btn btn-outline">新規登録</button></div>
             <button type="button" id="authResetBtn" class="auth-text-button">パスワードを忘れた方</button>
@@ -1462,20 +1465,20 @@
     <canvas id="confetti" class="confetti"></canvas>
   </div>
 
-  <script defer src="js/data.js?v=40"></script>
-  <script defer src="js/store.js?v=40"></script>
-  <script defer src="js/ui.js?v=40"></script>
-  <script defer src="js/cloud-config.js?v=40"></script>
-  <script defer src="js/cloud.js?v=40"></script>
-  <script defer src="js/achievements.js?v=40"></script>
-  <script defer src="js/quiz.js?v=40"></script>
-  <script defer src="js/shop.js?v=40"></script>
-  <script defer src="js/qr.js?v=40"></script>
-  <script defer src="js/license.js?v=40"></script>
-  <script defer src="js/settings.js?v=40"></script>
-  <script defer src="js/stamps.js?v=40"></script>
-  <script defer src="js/social.js?v=40"></script>
-  <script defer src="js/tutorial.js?v=40"></script>
-  <script defer src="js/app.js?v=40"></script>
+  <script defer src="js/data.js?v=41"></script>
+  <script defer src="js/store.js?v=41"></script>
+  <script defer src="js/ui.js?v=41"></script>
+  <script defer src="js/cloud-config.js?v=41"></script>
+  <script defer src="js/cloud.js?v=41"></script>
+  <script defer src="js/achievements.js?v=41"></script>
+  <script defer src="js/quiz.js?v=41"></script>
+  <script defer src="js/shop.js?v=41"></script>
+  <script defer src="js/qr.js?v=41"></script>
+  <script defer src="js/license.js?v=41"></script>
+  <script defer src="js/settings.js?v=41"></script>
+  <script defer src="js/stamps.js?v=41"></script>
+  <script defer src="js/social.js?v=41"></script>
+  <script defer src="js/tutorial.js?v=41"></script>
+  <script defer src="js/app.js?v=41"></script>
 </body>
 </html>
