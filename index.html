@@ -4,29 +4,21 @@
   <meta charset="UTF-8">
 
   <!-- ============================================================
-       セキュリティ — Content Security Policy（データ流出対策の要）
-       このアプリは完全にブラウザ内で動作し、利用者のデータ（ポイント・
-       名前・履歴など）は端末の localStorage にのみ保存され、外部へ送信
-       されません。万一スクリプトが注入・改ざんされても、connect-src を
-       自分自身に限定しているため、データを外部サーバーへ持ち出せません。
-       - script-src: 自分自身 + jsQR(CDN) のみ実行可。インラインJSは不許可
-       - connect-src 'self': fetch/XHR/WebSocket/Beacon の外部送信を全面遮断
-       - img-src: 自分自身 / data: / blob: のみ（画像ビーコンによる持ち出し遮断）
-       - object/base/form/frame: クリックジャッキング・乗っ取りを抑止
+       CSP: local scripts plus explicitly permitted Firebase/App Check/LINE services.
+       Cloud features remain disabled until cloud-config.js is configured.
        ============================================================ -->
   <meta http-equiv="Content-Security-Policy" content="
     default-src 'self';
     base-uri 'self';
     object-src 'none';
-    frame-src 'none';
-    frame-ancestors 'none';
+    frame-src https://www.google.com https://www.recaptcha.net;
     form-action 'self';
-    script-src 'self' https://cdn.jsdelivr.net;
+    script-src 'self' https://cdn.jsdelivr.net https://static.line-scdn.net https://www.google.com https://www.gstatic.com;
     style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
     font-src 'self' https://fonts.gstatic.com;
     img-src 'self' data: blob:;
     media-src 'self' blob:;
-    connect-src 'self';
+    connect-src 'self' https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://firestore.googleapis.com https://firebaseappcheck.googleapis.com https://*.cloudfunctions.net https://*.run.app https://api.line.me https://access.line.me https://liff.line.me https://www.google.com https://www.recaptcha.net;
     worker-src 'self';
     manifest-src 'self';
     upgrade-insecure-requests">
@@ -59,7 +51,8 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700;900&family=Yuji+Syuku&display=swap" rel="stylesheet" crossorigin="anonymous">
 
-  <link rel="stylesheet" href="css/style.css?v=34">
+  <link rel="stylesheet" href="css/style.css?v=35">
+  <link rel="stylesheet" href="css/account.css?v=35">
 </head>
 <body>
 
@@ -778,7 +771,7 @@
                 </div>
               </div>
               <div class="license-stamp" aria-hidden="true">
-                <span class="license-stamp-ring">四島<br>公認</span>
+                <span class="license-stamp-ring">四島<br>学習</span>
               </div>
             </div>
 
@@ -811,7 +804,7 @@
             <div class="license-back-foot">
               <div class="license-back-barcode"></div>
               <div class="license-back-note">
-                このカードは学習・啓発目的のデモ表示です
+                学習記録用のカードです。公的な身分証明書ではありません。
                 <span class="license-back-operator">Operated by <b>ViFight</b></span>
               </div>
             </div>
@@ -944,7 +937,7 @@
           </div>
         </div>
 
-        <p class="social-disclaimer">※ デモ機能：ランキングのなかま達はアプリ内のキャラクターです。メッセージは端末内のみに保存され、外部には送信されません。</p>
+        <p class="social-disclaimer">累計獲得ポイントで比較します。DMは18歳以上の相互フォローのみ利用できます。</p>
       </section>
 
       <section class="page page-settings" data-page="settings" hidden>
@@ -953,6 +946,18 @@
           <h2>プロフィール・設定</h2>
           <p class="page-desc">あなただけのライセンスをカスタマイズ</p>
         </div>
+
+        <section class="account-panel" aria-labelledby="accountTitle">
+          <div><h3 id="accountTitle">アカウント</h3><p id="accountSummary">ログインは準備中</p></div>
+          <button type="button" class="btn btn-outline" data-auth-open>ログイン・新規登録</button>
+          <div id="cloudProfileControls" class="cloud-profile-controls" hidden>
+            <label><input type="checkbox" id="cloudRankingConsent">ニックネームと獲得ポイントをランキングに公開する</label>
+            <label><input type="checkbox" id="cloudDmConsent">DMを利用する（18歳以上・相互フォローのみ）</label>
+            <p>DMを有効にする場合は下の誕生日を入力してください。誕生日・地域・メールアドレスはランキングに公開しません。プロフィールの変更は保存ボタンで反映されます。</p>
+            <button type="button" class="btn btn-primary" id="cloudSaveProfile">プロフィールと公開設定を保存</button>
+          </div>
+          <p id="cloudTermsLinks" hidden><a href="legal.html#terms" target="_blank" rel="noopener">利用条件</a>・<a href="legal.html#privacy" target="_blank" rel="noopener">データの扱い</a></p>
+        </section>
 
         <!-- Profile preview card -->
         <div class="settings-preview">
@@ -1392,6 +1397,36 @@
       </div>
     </div>
 
+    <div id="authModal" class="modal-layer" hidden aria-hidden="true">
+      <div class="modal-backdrop" data-close></div>
+      <section class="modal-card auth-card" role="dialog" aria-modal="true" aria-labelledby="authTitle">
+        <button type="button" class="modal-close" data-close aria-label="閉じる">×</button>
+        <div class="page-head-kicker">ACCOUNT</div>
+        <h2 id="authTitle">ログイン・新規登録</h2>
+        <p id="authIdentity">メールアドレスでログイン</p>
+        <form id="authForm">
+          <div id="authFields">
+            <label class="field"><span>メールアドレス</span><input id="authEmail" class="input" type="email" autocomplete="username" required maxlength="254"></label>
+            <label class="field"><span>パスワード</span><input id="authPassword" class="input" type="password" autocomplete="current-password" required maxlength="128"></label>
+            <p class="auth-help">新規登録のパスワードは12文字以上にしてください。</p>
+            <label class="field"><span>ニックネーム（新規登録時）</span><input id="authNickname" class="input" type="text" maxlength="12" autocomplete="nickname" placeholder="例：四島サポーター"></label>
+            <div class="auth-actions"><button type="submit" class="btn btn-primary">ログイン</button><button type="button" id="authRegisterBtn" class="btn btn-outline">新規登録</button></div>
+            <button type="button" id="authResetBtn" class="auth-text-button">パスワードを忘れた方</button>
+          </div>
+          <label class="auth-consent"><input type="checkbox" id="authTerms"><span><a href="legal.html#terms" target="_blank" rel="noopener">利用条件</a>と<a href="legal.html#privacy" target="_blank" rel="noopener">データの扱い</a>を確認し、同意します。</span></label>
+        </form>
+        <button type="button" class="btn btn-line btn-full" id="authLineBtn" hidden>LINEでログイン</button>
+        <div id="authSessionActions" class="auth-actions" hidden>
+          <button type="button" class="btn btn-primary" id="authVerifyBtn">メール確認を反映</button>
+          <button type="button" class="btn btn-outline" id="authResendBtn">確認メールを再送</button>
+          <button type="button" class="btn btn-primary" id="authActivateBtn">利用を開始</button>
+          <button type="button" class="btn btn-outline" id="authLogoutBtn">ログアウト</button>
+          <button type="button" class="auth-text-button" id="authDeleteBtn">アカウントを削除</button>
+        </div>
+        <p id="authStatus" class="auth-status" role="status" aria-live="polite"></p>
+      </section>
+    </div>
+
     <!-- Toast -->
     <div id="toast" class="toast" hidden></div>
 
@@ -1426,18 +1461,20 @@
     <canvas id="confetti" class="confetti"></canvas>
   </div>
 
-  <script defer src="js/data.js?v=34"></script>
-  <script defer src="js/store.js?v=34"></script>
-  <script defer src="js/ui.js?v=34"></script>
-  <script defer src="js/achievements.js?v=34"></script>
-  <script defer src="js/quiz.js?v=34"></script>
-  <script defer src="js/shop.js?v=34"></script>
-  <script defer src="js/qr.js?v=34"></script>
-  <script defer src="js/license.js?v=34"></script>
-  <script defer src="js/settings.js?v=34"></script>
-  <script defer src="js/stamps.js?v=34"></script>
-  <script defer src="js/social.js?v=34"></script>
-  <script defer src="js/tutorial.js?v=34"></script>
-  <script defer src="js/app.js?v=34"></script>
+  <script defer src="js/data.js?v=35"></script>
+  <script defer src="js/store.js?v=35"></script>
+  <script defer src="js/ui.js?v=35"></script>
+  <script defer src="js/cloud-config.js?v=35"></script>
+  <script defer src="js/cloud.js?v=35"></script>
+  <script defer src="js/achievements.js?v=35"></script>
+  <script defer src="js/quiz.js?v=35"></script>
+  <script defer src="js/shop.js?v=35"></script>
+  <script defer src="js/qr.js?v=35"></script>
+  <script defer src="js/license.js?v=35"></script>
+  <script defer src="js/settings.js?v=35"></script>
+  <script defer src="js/stamps.js?v=35"></script>
+  <script defer src="js/social.js?v=35"></script>
+  <script defer src="js/tutorial.js?v=35"></script>
+  <script defer src="js/app.js?v=35"></script>
 </body>
 </html>

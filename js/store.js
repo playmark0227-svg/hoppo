@@ -103,6 +103,13 @@
     return id.slice(0, 4) + '-' + id.slice(4);
   }
 
+  function saveDevice(state) {
+    try {
+      localStorage.setItem('hoppou_device_v2', JSON.stringify({ settings: state.settings,
+        flags: state.flags, avatarImage: state.profile.avatarImage || '', islandThemeOn: !!state.profile.islandThemeOn }));
+    } catch { /* device preferences must not prevent cloud operations */ }
+  }
+
   function todayString() {
     const d = new Date();
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
@@ -122,7 +129,7 @@
       let state = load();
       if (!state) {
         state = {
-          ...DEFAULT_STATE,
+          ...structuredClone(DEFAULT_STATE),
           userId: generateUserId(),
           createdAt: new Date().toISOString()
         };
@@ -138,13 +145,46 @@
 
     /** Save + notify listeners. */
     commit() {
-      save(this.state);
+      if (!window.Cloud?.enabled) save(this.state); else saveDevice(this.state);
       this._emit('change', this.state);
     },
 
     /** Persist without firing 'change' (for low-importance updates like dmSeenAt). */
     saveOnly() {
-      save(this.state);
+      if (!window.Cloud?.enabled) save(this.state); else saveDevice(this.state);
+    },
+
+    applyRemote(user, uid, hydrateProfile) {
+      this.state.userId = uid.slice(0, 12).toUpperCase();
+      const keys = ['points', 'totalEarned', 'history', 'stamps', 'usedQrCodes', 'lastLoginDate',
+        'loginStreak', 'longestStreak', 'loginTotal', 'createdAt'];
+      keys.forEach(key => { if (user[key] !== undefined) this.state[key] = structuredClone(user[key]); });
+      this.state.quizResults = {};
+      Object.values(user.quizResults || {}).forEach(result => {
+        if (result.quizId) this.state.quizResults[result.quizId] = result;
+      });
+      if (hydrateProfile) {
+        this.state.name = user.profile.name;
+        Object.assign(this.state.profile, user.profile);
+      }
+      this._emit('change', this.state);
+    },
+
+    clearRemote() {
+      if (!window.Cloud?.enabled) return;
+      const local = load();
+      this.state = structuredClone(DEFAULT_STATE);
+      this.state.userId = '未ログイン';
+      this.state.createdAt = new Date().toISOString();
+      if (local) { this.state.settings = local.settings; this.state.flags = local.flags; }
+      try {
+        const device = JSON.parse(localStorage.getItem('hoppou_device_v2') || '{}');
+        this.state.settings = { ...this.state.settings, ...device.settings };
+        this.state.flags = { ...this.state.flags, ...device.flags };
+        this.state.profile.avatarImage = device.avatarImage || '';
+        this.state.profile.islandThemeOn = !!device.islandThemeOn;
+      } catch { /* keep safe defaults */ }
+      this._emit('change', this.state);
     },
 
     /** Try to grant daily-login bonus; returns { points, streak, firstLogin } or null if already claimed today. */
@@ -183,6 +223,7 @@
 
     /** Add points and push a history entry. */
     addPoints(points, info, options = {}) {
+      if (window.Cloud?.enabled) return;
       if (!points) return;
       this.state.points += points;
       if (points > 0) this.state.totalEarned += points;
@@ -199,6 +240,7 @@
 
     /** Spend points (returns boolean success). */
     spendPoints(points, info) {
+      if (window.Cloud?.enabled) return false;
       if (this.state.points < points) return false;
       this.state.points -= points;
       this.state.history.unshift({
@@ -213,6 +255,7 @@
     },
 
     recordQuizResult(quizId, score, total) {
+      if (window.Cloud?.enabled) return;
       const prev = this.state.quizResults[quizId] || { bestScore: 0, timesPlayed: 0 };
       this.state.quizResults[quizId] = {
         bestScore: Math.max(prev.bestScore, score),
@@ -276,6 +319,7 @@
 
     /** Earn a stamp. Returns false if already earned. */
     earnStamp(id) {
+      if (window.Cloud?.enabled) return false;
       if (this.state.stamps[id]) return false;
       this.state.stamps[id] = new Date().toISOString();
       this.commit();
@@ -321,6 +365,7 @@
     },
 
     reset() {
+      if (window.Cloud?.enabled) { UI.toast('クラウドデータは端末のリセットでは削除できません。', 'bad'); return; }
       localStorage.removeItem(STORAGE_KEY);
       this.init();
       this._emit('change', this.state);

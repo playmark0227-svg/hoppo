@@ -1,0 +1,42 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function verified() {
+      return request.auth != null && (request.auth.token.get('email_verified', false) == true || request.auth.token.get('lineVerified', false) == true);
+    }
+    function own(uid) { return verified() && request.auth.uid == uid; }
+    function registered() {
+      return verified() && exists(/databases/$(database)/documents/users/$(request.auth.uid))
+        && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('suspended', false) == false
+        && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('deleting', false) == false;
+    }
+    function member(thread) { return registered() && request.auth.uid in thread.members; }
+    function unblocked(thread) {
+      return !exists(/databases/$(database)/documents/users/$(thread.members[0])/blocks/$(thread.members[1]))
+        && !exists(/databases/$(database)/documents/users/$(thread.members[1])/blocks/$(thread.members[0]));
+    }
+    match /users/{uid} {
+      allow read: if own(uid);
+      allow write: if false;
+      match /{privateCollection}/{id} {
+        allow read: if own(uid) && privateCollection in ['following', 'blocks', 'reads'];
+        allow write: if false;
+      }
+    }
+    match /publicProfiles/{uid} {
+      allow read: if registered();
+      allow write: if false;
+    }
+    match /threads/{threadId} {
+      // Members retain the conversation listing after a block; sending is disabled server-side.
+      allow read: if member(resource.data);
+      allow write: if false;
+      match /messages/{messageId} {
+        allow read: if member(get(/databases/$(database)/documents/threads/$(threadId)).data)
+          && unblocked(get(/databases/$(database)/documents/threads/$(threadId)).data);
+        allow write: if false;
+      }
+    }
+    match /{document=**} { allow read, write: if false; }
+  }
+}

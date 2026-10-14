@@ -154,13 +154,14 @@
     if (window.Stamps) Stamps.init();
     if (window.Social) Social.init();
     if (window.Tutorial) Tutorial.init();
+    if (window.Cloud) Cloud.init();
 
     // Re-apply avatar style after Store changes (e.g. import)
     Store.on('change', applyAvatarStyleFromStore);
 
     // Daily login bonus — open welcome modal if claimed
     // （初回はチュートリアルを優先し、ボーナス付与のみ行う）
-    const daily = Store.claimDailyLogin();
+    const daily = window.Cloud?.enabled ? null : Store.claimDailyLogin();
     if (daily && Store.getFlag('tutorialSeen')) {
       setTimeout(() => {
         UI.showDailyWelcome(daily);

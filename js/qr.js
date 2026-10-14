@@ -118,7 +118,16 @@
     redeem(raw);
   }
 
-  function redeem(code) {
+  async function redeem(code) {
+    if (window.Cloud?.enabled) {
+      if (!Cloud.account) return Cloud.open();
+      try {
+        const result = await Cloud.call('redeemEvent', { code: (code || '').trim() });
+        UI.toast(result.alreadyClaimed ? 'この参加ボーナスは取得済みです。' : `${result.label} +${result.points}pt`, 'good');
+        if (!result.alreadyClaimed) { UI.flashPoints(); UI.confetti(); }
+      } catch (error) { UI.toast(Cloud.errorMessage(error), 'bad'); }
+      return;
+    }
     const normalized = (code || '').toUpperCase().trim();
 
     // ----- スタンプラリーコード -----
@@ -147,6 +156,10 @@
   }
 
   function bind() {
+    if (window.Cloud?.enabled) {
+      document.getElementById('qrShowDemo')?.setAttribute('hidden', '');
+      document.querySelectorAll('[data-copy]').forEach(button => button.hidden = true);
+    }
     document.getElementById('qrStartBtn').addEventListener('click', startScan);
     document.getElementById('qrStopBtn').addEventListener('click', stopScan);
     document.getElementById('qrManualBtn').addEventListener('click', () => {

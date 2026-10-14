@@ -1,0 +1,12 @@
+{
+  "indexes": [
+    { "collectionGroup": "threads", "queryScope": "COLLECTION", "fields": [
+      { "fieldPath": "members", "arrayConfig": "CONTAINS" },
+      { "fieldPath": "updatedAt", "order": "DESCENDING" }
+    ] }
+  ],
+  "fieldOverrides": [
+    { "collectionGroup": "following", "fieldPath": "targetId", "indexes": [{ "order": "ASCENDING", "queryScope": "COLLECTION_GROUP" }] },
+    { "collectionGroup": "blocks", "fieldPath": "targetId", "indexes": [{ "order": "ASCENDING", "queryScope": "COLLECTION_GROUP" }] }
+  ]
+}

@@ -38,10 +38,19 @@
     });
   }
 
-  function start(quizId) {
-    const quiz = window.QUIZZES.find(q => q.id === quizId);
+  async function start(quizId) {
+    let quiz = window.QUIZZES.find(q => q.id === quizId);
     if (!quiz) return;
-    current = { quiz, index: 0, correctCount: 0 };
+    if (window.Cloud?.enabled && !Cloud.account) return Cloud.open();
+    const run = { quiz, index: 0, correctCount: 0, answers: [], earned: 0 };
+    current = run;
+    if (window.Cloud?.enabled) {
+      try {
+        const session = await Cloud.call('beginQuiz', { quizId });
+        if (current !== run) return;
+        quiz = { ...quiz, questions: session.questions }; run.quiz = quiz; run.sessionId = session.sessionId;
+      } catch (error) { if (current === run) current = null; UI.toast(Cloud.errorMessage(error), 'bad'); return; }
+    }
     document.getElementById('quizList').hidden = true;
     document.getElementById('quizResult').hidden = true;
     document.getElementById('quizPlay').hidden = false;
@@ -128,14 +137,28 @@
     });
   }
 
-  function answer(choiceIndex) {
+  async function answer(choiceIndex) {
+    if (!current || current.pending) return;
+    const run = current;
     const { quiz, index } = current;
     const q = quiz.questions[index];
     const choicesEl = document.getElementById('quizChoices');
     const buttons = choicesEl.querySelectorAll('.quiz-choice');
     buttons.forEach(b => b.disabled = true);
 
-    const correct = choiceIndex === q.answer;
+    let correct = choiceIndex === q.answer;
+    if (window.Cloud?.enabled) {
+      run.pending = true;
+      try {
+        const result = await Cloud.call('answerQuiz', { sessionId: run.sessionId, index, choice: choiceIndex });
+        if (current !== run) return;
+        correct = result.correct; q.answer = result.answer; q.explain = result.explain;
+        if (result.done) run.earned = result.earned;
+      } catch (error) {
+        if (current === run) buttons.forEach(b => b.disabled = false);
+        UI.toast(Cloud.errorMessage(error), 'bad'); return;
+      } finally { run.pending = false; }
+    }
     buttons[choiceIndex].classList.add(correct ? 'correct' : 'wrong');
     if (!correct) buttons[q.answer].classList.add('correct');
 
@@ -177,7 +200,7 @@
     const total = quiz.questions.length;
     const perfect = correctCount === total;
 
-    const earned = correctCount * POINTS_PER_CORRECT + (perfect ? PERFECT_BONUS : 0);
+    const earned = window.Cloud?.enabled ? current.earned : correctCount * POINTS_PER_CORRECT + (perfect ? PERFECT_BONUS : 0);
     Store.recordQuizResult(quiz.id, correctCount, total);
     if (earned > 0) {
       Store.addPoints(earned, { type: 'quiz', label: `クイズ：${quiz.title}` }, { silent: true });
@@ -189,9 +212,9 @@
     document.getElementById('quizResultScore').textContent = `${correctCount} / ${total} 問正解`;
     const bonusEl = document.getElementById('quizResultBonus');
     if (earned > 0) {
-      bonusEl.textContent = `+${earned} pt 獲得！${perfect ? '（全問正解ボーナス +' + PERFECT_BONUS + 'pt）' : ''}`;
+      bonusEl.textContent = window.Cloud?.enabled ? `+${earned} pt（ベスト成績の向上分）` : `+${earned} pt 獲得！${perfect ? '（全問正解ボーナス +' + PERFECT_BONUS + 'pt）' : ''}`;
     } else {
-      bonusEl.textContent = 'また挑戦してみてね';
+      bonusEl.textContent = window.Cloud?.enabled ? '今回は追加ポイントなし。同じ版のクイズは成績の向上分のみ加算されます。' : 'また挑戦してみてね';
     }
 
     UI.refreshHeader();

@@ -5,8 +5,8 @@
    - Versioned caches; old caches purged on activate
    Bump CACHE_VERSION whenever shipping a new release.
    ============================================================ */
-const CACHE_VERSION = 'v34';
-const ASSET_Q = '?v=34'; // must match the ?v= query in index.html
+const CACHE_VERSION = 'v35';
+const ASSET_Q = '?v=35'; // must match the ?v= query in index.html
 const SHELL_CACHE = `hoppou-shell-${CACHE_VERSION}`;
 const RUNTIME_CACHE = `hoppou-runtime-${CACHE_VERSION}`;
 
@@ -15,6 +15,11 @@ const SHELL_ASSETS = [
   './',
   './index.html',
   `./css/style.css${ASSET_Q}`,
+  `./css/account.css${ASSET_Q}`,
+  `./js/cloud.js${ASSET_Q}`,
+  `./js/cloud-config.js${ASSET_Q}`,
+  './legal.html',
+  './css/legal.css',
   `./js/data.js${ASSET_Q}`,
   `./js/store.js${ASSET_Q}`,
   `./js/ui.js${ASSET_Q}`,
@@ -91,6 +96,14 @@ self.addEventListener('fetch', (event) => {
 
   // Google Fonts stylesheet + font files: cache-first (stable, versioned by Google)
   const isFont = url.hostname === 'fonts.googleapis.com' || url.hostname === 'fonts.gstatic.com';
+  // Never cache authentication, database, App Check or LINE responses.
+  if (url.origin !== self.location.origin && !isFont && url.hostname !== 'cdn.jsdelivr.net') return;
+  if (url.pathname.endsWith('/js/cloud-config.js')) {
+    event.respondWith(fetch(req, { cache: 'no-store' }).then(res => {
+      if (res.ok) { const copy = res.clone(); event.waitUntil(caches.open(SHELL_CACHE).then(cache => cache.put(req, copy))); }
+      return res;
+    }).catch(() => caches.match(req))); return;
+  }
 
   // Navigation / HTML documents: network-first so new deploys appear immediately.
   const isHTML = req.mode === 'navigate' ||

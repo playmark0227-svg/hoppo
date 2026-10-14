@@ -312,8 +312,12 @@
     const importBtn = document.getElementById('settingsImportBtn');
     const importFile = document.getElementById('settingsImportFile');
     if (importBtn && importFile) {
-      importBtn.addEventListener('click', () => importFile.click());
+      importBtn.addEventListener('click', () => {
+        if (window.Cloud?.enabled) return UI.toast('端末内データを本番ポイントへ取り込むことはできません。', 'bad');
+        importFile.click();
+      });
       importFile.addEventListener('change', () => {
+        if (window.Cloud?.enabled) return;
         const file = importFile.files && importFile.files[0];
         if (!file) return;
         const reader = new FileReader();
@@ -393,6 +397,7 @@
     const resetBtn = document.getElementById('settingsResetBtn');
     if (resetBtn) {
       resetBtn.addEventListener('click', () => {
+        if (window.Cloud?.enabled) return UI.toast('クラウドの学習記録は端末からリセットできません。アカウント設定で削除できます。', 'bad');
         if (!confirm('全てのデータをリセットします。よろしいですか？\nこの操作は元に戻せません。')) return;
         Store.reset();
         UI.toast('データをリセットしました', 'good');
@@ -585,5 +590,12 @@
     renderAvatarImage();
   }
 
-  window.Settings = { init, refresh, renderAvatarImage };
+  function syncFields() {
+    const s = Store.get(), p = Store.getProfile();
+    [['settingsName', s.name], ['settingsBio', p.bio], ['settingsRegion', p.region], ['settingsBirthday', p.birthday]].forEach(([id, value]) => {
+      const field = document.getElementById(id); if (field) field.value = value || '';
+    });
+    refresh();
+  }
+  window.Settings = { init, refresh, renderAvatarImage, syncFields };
 })();

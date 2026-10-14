@@ -71,6 +71,7 @@
   }
 
   function buy(itemId) {
+    if (window.Cloud?.enabled) { UI.toast('実物グッズ交換は準備中です。配送と送料の受付はまだ開始していません。'); return; }
     const item = window.SHOP_ITEMS.find(i => i.id === itemId);
     if (!item) return;
     if (Store.ownsItem(itemId)) {

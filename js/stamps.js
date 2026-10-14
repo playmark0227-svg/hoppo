@@ -87,7 +87,7 @@
     if (body) {
       body.textContent = got
         ? s.body
-        : `このスタンプは「${s.area}」エリアのイベント・施設に設置されたQRコードを読み取ると取得できます。現地に行った気分で、デモコードでも体験できます。`;
+        : `このスタンプは「${s.area}」エリアのイベント・施設で発行されたQRコードを読み取ると取得できます。${window.Cloud?.enabled ? '' : 'プレビューではデモコードでも体験できます。'}`;
     }
 
     UI.openModal('stampModal');
@@ -121,6 +121,7 @@
     const toggle = document.getElementById('stampDemoToggle');
     const box = document.getElementById('stampDemoBox');
     if (toggle && box) {
+      if (window.Cloud?.enabled) { toggle.hidden = true; box.hidden = true; }
       toggle.addEventListener('click', () => {
         const open = !box.hidden;
         box.hidden = open;

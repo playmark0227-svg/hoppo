@@ -442,7 +442,7 @@ ${s.name || 'ゲスト'} さんは ${rank.emoji} ${rank.name}（${rank.sub}）�
     ctx.textBaseline = 'middle';
     ctx.font = '900 22px "Zen Maru Gothic", serif';
     ctx.fillText('四島', 0, -14);
-    ctx.fillText('公認', 0, 16);
+    ctx.fillText('学習', 0, 16);
     ctx.restore();
 
     // Micro text band
