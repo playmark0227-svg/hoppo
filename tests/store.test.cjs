@@ -4,12 +4,12 @@ const fs = require('node:fs');
 const vm = require('node:vm');
 const source = fs.readFileSync(require.resolve('../js/store.js'), 'utf8');
 
-function setup(enabled, failWrites = false) {
+function setup(enabled, failWrites = false, device = null) {
   const writes = [];
   const legacy = JSON.stringify({ points: 99999, totalEarned: 99999, name: 'Preview', profile: { bio: 'private biography' } });
   const window = { Cloud: { enabled }, UI: { toast() { throw new Error('Unexpected quota toast'); } } };
   const context = vm.createContext({ window, structuredClone, console, UI: window.UI, localStorage: {
-    getItem(key) { return key === 'hoppou_status_v1' ? legacy : null; },
+    getItem(key) { return key === 'hoppou_status_v1' ? legacy : key === 'hoppou_device_v2' && device ? JSON.stringify(device) : null; },
     setItem(key, value) { writes.push({ key, value }); if (failWrites) throw Object.assign(new Error('Full'), { name: 'QuotaExceededError' }); }
   } });
   vm.runInContext(source, context);
@@ -39,4 +39,16 @@ test('local preview retains its normal persisted state', () => {
   store.init(); store.commit();
   assert.equal(store.get().points, 99999);
   assert.ok(writes.every(w => w.key === 'hoppou_status_v1'));
+});
+
+test('cloud reload preserves newer device preferences and tutorial completion', () => {
+  const { store, writes } = setup(true, false, { flags: { tutorialSeen: true }, settings: { reduceMotion: true }, avatarImage: 'device-avatar', islandThemeOn: true });
+  store.init();
+  assert.equal(writes.length, 0);
+  store.clearRemote();
+  assert.equal(store.get().flags.tutorialSeen, true);
+  assert.equal(store.get().settings.reduceMotion, true);
+  assert.equal(store.get().profile.avatarImage, 'device-avatar');
+  assert.equal(store.get().profile.islandThemeOn, true);
+  assert.equal(store.get().points, 0);
 });

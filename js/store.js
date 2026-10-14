@@ -137,7 +137,8 @@
       if (!state.userId) state.userId = generateUserId();
       if (!state.createdAt) state.createdAt = new Date().toISOString();
       this.state = state;
-      if (window.Cloud?.enabled) saveDevice(state); else save(state);
+      // clearRemote loads newer device preferences; do not overwrite them with legacy state.
+      if (!window.Cloud?.enabled) save(state);
       return state;
     },
 
