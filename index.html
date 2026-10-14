@@ -51,8 +51,8 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700;900&family=Yuji+Syuku&display=swap" rel="stylesheet" crossorigin="anonymous">
 
-  <link rel="stylesheet" href="css/style.css?v=43">
-  <link rel="stylesheet" href="css/account.css?v=43">
+  <link rel="stylesheet" href="css/style.css?v=44">
+  <link rel="stylesheet" href="css/account.css?v=44">
 </head>
 <body>
 
@@ -948,13 +948,18 @@
         </div>
 
         <section class="account-panel" aria-labelledby="accountTitle">
-          <div><h3 id="accountTitle">アカウント</h3><p id="accountSummary">ログインは準備中</p></div>
-          <button type="button" class="btn btn-outline" data-auth-open>ログイン・新規登録</button>
+          <div class="account-panel-head">
+            <div><h3 id="accountTitle">アカウント</h3><p id="accountSummary">ログインは準備中</p></div>
+            <button type="button" class="btn btn-outline" id="accountManageBtn" data-auth-open>ログイン・新規登録</button>
+          </div>
           <div id="cloudProfileControls" class="cloud-profile-controls" hidden>
             <label><input type="checkbox" id="cloudRankingConsent">ニックネームと獲得ポイントをランキングに公開する</label>
             <label><input type="checkbox" id="cloudDmConsent">DMを利用する（18歳以上・相互フォローのみ）</label>
-            <p>DMを有効にする場合は下の誕生日を入力してください。誕生日・地域・メールアドレスはランキングに公開しません。プロフィールの変更は保存ボタンで反映されます。</p>
-            <button type="button" class="btn btn-primary" id="cloudSaveProfile">プロフィールと公開設定を保存</button>
+            <p>DMにはランキング公開への同意と18歳以上の誕生日登録が必要です。誕生日・地域・メールアドレスはランキングに公開されません。プロフィール画像と表示設定はこの端末に保存されます。</p>
+            <div class="cloud-profile-actions">
+              <button type="button" class="btn btn-primary" id="cloudSaveProfile" aria-describedby="cloudProfileStatus">プロフィールと公開設定を保存</button>
+              <p id="cloudProfileStatus" class="cloud-profile-status" role="status" aria-live="polite">プロフィールの変更は保存ボタンでクラウドに反映されます。</p>
+            </div>
           </div>
           <p id="cloudTermsLinks" hidden><a href="legal.html#terms" target="_blank" rel="noopener">利用条件</a>・<a href="legal.html#privacy" target="_blank" rel="noopener">データの扱い</a></p>
         </section>
@@ -996,6 +1001,7 @@
               <span>誕生日 <small>（任意・他人には公開されません）</small></span>
               <input type="date" id="settingsBirthday" class="input">
             </label>
+            <small id="settingsBirthdayError" class="cloud-field-error" hidden></small>
           </div>
         </div>
 
@@ -1479,20 +1485,20 @@
     <canvas id="confetti" class="confetti"></canvas>
   </div>
 
-  <script defer src="js/data.js?v=43"></script>
-  <script defer src="js/store.js?v=43"></script>
-  <script defer src="js/ui.js?v=43"></script>
-  <script defer src="js/cloud-config.js?v=43"></script>
-  <script defer src="js/cloud.js?v=43"></script>
-  <script defer src="js/achievements.js?v=43"></script>
-  <script defer src="js/quiz.js?v=43"></script>
-  <script defer src="js/shop.js?v=43"></script>
-  <script defer src="js/qr.js?v=43"></script>
-  <script defer src="js/license.js?v=43"></script>
-  <script defer src="js/settings.js?v=43"></script>
-  <script defer src="js/stamps.js?v=43"></script>
-  <script defer src="js/social.js?v=43"></script>
-  <script defer src="js/tutorial.js?v=43"></script>
-  <script defer src="js/app.js?v=43"></script>
+  <script defer src="js/data.js?v=44"></script>
+  <script defer src="js/store.js?v=44"></script>
+  <script defer src="js/ui.js?v=44"></script>
+  <script defer src="js/cloud-config.js?v=44"></script>
+  <script defer src="js/cloud.js?v=44"></script>
+  <script defer src="js/achievements.js?v=44"></script>
+  <script defer src="js/quiz.js?v=44"></script>
+  <script defer src="js/shop.js?v=44"></script>
+  <script defer src="js/qr.js?v=44"></script>
+  <script defer src="js/license.js?v=44"></script>
+  <script defer src="js/settings.js?v=44"></script>
+  <script defer src="js/stamps.js?v=44"></script>
+  <script defer src="js/social.js?v=44"></script>
+  <script defer src="js/tutorial.js?v=44"></script>
+  <script defer src="js/app.js?v=44"></script>
 </body>
 </html>

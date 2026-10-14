@@ -1,10 +1,27 @@
 .account-panel { border: 1px solid #d2dbe0; border-top: 3px solid #2c7467; padding: 20px; margin: 0 0 24px; background: #fff; }
+.account-panel-head { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.account-panel-head > div { min-width: 0; }
+.account-panel-head .btn { flex: 0 0 auto; }
 .account-panel h3 { margin: 0 0 6px; font-size: 1.1rem; }
 .account-panel p { color: #4d5963; font-size: .85rem; margin: 8px 0 14px; line-height: 1.8; }
 .account-panel a, .auth-card a { color: #245e7a; text-decoration: underline; }
 .cloud-profile-controls { width: 100%; border-top: 1px solid #d2dbe0; margin-top: 20px; padding-top: 16px; }
 .cloud-profile-controls label, .auth-consent { display: flex; gap: 10px; align-items: start; font-size: .88rem; line-height: 1.8; margin: 10px 0; }
 .cloud-profile-controls input, .auth-consent input { flex: 0 0 auto; width: 18px; height: 18px; margin-top: 4px; accent-color: #2c7467; }
+.cloud-profile-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; }
+.cloud-profile-actions .btn { flex: 0 0 auto; }
+.account-panel .cloud-profile-status { flex: 1 1 240px; margin: 0; font-size: .82rem; line-height: 1.6; }
+.account-panel .cloud-profile-status[data-state="error"] { color: #ac3030; font-weight: 700; }
+.account-panel .cloud-profile-status[data-state="saved"] { color: #245b51; font-weight: 700; }
+.account-panel .cloud-profile-status[data-state="dirty"] { color: #765614; }
+.cloud-field-error { display: block; color: #ac3030; font-size: .8rem; line-height: 1.7; margin: 6px 0 0; }
+.cloud-field-error[hidden] { display: none; }
+#settingsBirthday[aria-invalid="true"] { border-color: #ac3030; outline-color: #ac3030; }
+.cloud-profile-actions .btn:disabled { opacity: .6; cursor: wait; }
+.settings-row-btn:disabled { opacity: .55; cursor: not-allowed; }
+@media (min-width: 1100px) {
+  .page-settings .account-panel { column-span: all; -webkit-column-span: all; break-inside: avoid; }
+}
 #authModal { grid-template-columns: minmax(0, 1fr); padding: 20px 14px; }
 .auth-card { width: min(480px, 100%); max-width: 480px; max-height: calc(100dvh - 40px); overflow-y: auto; padding: 28px 24px; border-radius: 8px; text-align: left; }
 .auth-card h2 { font-size: 1.35rem; line-height: 1.6; padding-right: 24px; margin: 6px 0; }
@@ -53,5 +70,7 @@
   .live-row { grid-template-columns: 24px minmax(0, 1fr); }
   .live-row-actions { grid-column: 2; justify-content: start; }
   .account-panel { padding: 16px; }
+  .account-panel-head { align-items: flex-start; flex-direction: column; gap: 8px; }
+  .cloud-profile-actions .btn { width: 100%; }
   .auth-card { padding: 24px 18px; }
 }

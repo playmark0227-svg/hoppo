@@ -62,15 +62,119 @@ async function main() {
     await page.waitForFunction(() => Store.get().points === 5);
     console.log(label, 'verified and cloud points loaded');
     await page.locator('#authModal [data-close]').last().click(); await page.waitForTimeout(300);
+    assert.equal(await page.evaluate(() => document.querySelector('.account-panel').getClientRects().length), 1,
+      'account panel must not be split across desktop columns');
+    assert.equal(await page.locator('#accountManageBtn').textContent(), 'アカウント管理');
+    assert.equal(await page.locator('#settingsImportBtn').isDisabled(), true);
+    assert.equal(await page.locator('#settingsResetBtn').isDisabled(), true);
     return { context, page, email };
   }
   try {
     const small = await register('小画面確認', 320); await small.context.close();
     const a = await register('登録者A', 390), b = await register('登録者B', 1440);
+    await a.page.locator('#accountManageBtn').click();
+    assert.equal(await a.page.locator('#authSessionActions').isVisible(), true);
+    await a.page.locator('#authModal [data-close]').last().click();
+
+    await a.page.locator('#cloudDmConsent').check();
+    await a.page.locator('#cloudSaveProfile').click();
+    assert.match(await a.page.locator('#cloudProfileStatus').textContent(), /ランキング公開への同意/);
+    assert.equal(await a.page.locator('#cloudProfileStatus').getAttribute('data-state'), 'error');
+    assert.equal(await a.page.evaluate(() => Cloud.account.profile.dmEnabled), false);
+    await a.page.screenshot({ path: 'docs/qa-production/mobile-profile-save-error-v44.png' });
+
+    await a.page.locator('#cloudRankingConsent').check();
+    await a.page.locator('#cloudSaveProfile').click();
+    assert.match(await a.page.locator('#cloudProfileStatus').textContent(), /18歳以上の誕生日登録/);
+    assert.match(await a.page.locator('#settingsBirthdayError').textContent(), /18歳以上/);
+    assert.equal(await a.page.locator('#settingsBirthday').getAttribute('aria-invalid'), 'true');
+    await a.page.locator('#settingsBio').fill('四島を学んでいます');
+    await a.page.locator('#settingsRegion').fill('根室市');
     await a.page.locator('#settingsBirthday').fill('2000-01-01'); await a.page.locator('#settingsBirthday').dispatchEvent('change');
-    await a.page.locator('#cloudRankingConsent').check(); await a.page.locator('#cloudDmConsent').check(); await a.page.locator('#cloudSaveProfile').click();
+    assert.equal(await a.page.locator('#settingsBirthdayError').isVisible(), false);
+    assert.equal(await a.page.locator('#cloudProfileStatus').getAttribute('data-state'), 'dirty');
+    await a.page.locator('#cloudSaveProfile').click();
     await a.page.waitForFunction(() => Cloud.account.profile.dmEnabled);
-    await b.page.evaluate(() => Cloud.call('updateProfile', { profile: { name: '登録者B', birthday: '2000-01-01', publicRanking: true, dmEnabled: true } }));
+    await a.page.waitForFunction(() => document.querySelector('#cloudProfileStatus').dataset.state === 'saved');
+    assert.equal(await a.page.evaluate(() => Cloud.account.profile.bio), '四島を学んでいます');
+    await a.page.locator('#cloudSaveProfile').click();
+    assert.equal(await a.page.locator('#cloudProfileStatus').textContent(), '変更はありません。');
+    await a.page.reload({ waitUntil: 'domcontentloaded' });
+    await a.page.waitForFunction(() => !!Cloud.account);
+    assert.equal(await a.page.locator('#settingsRegion').inputValue(), '根室市');
+    assert.equal(await a.page.locator('#cloudDmConsent').isChecked(), true);
+
+    await a.page.locator('#settingsBio').fill('保存を再試行します');
+    const failProfileOnce = async route => {
+      if (route.request().method() !== 'POST') return route.continue();
+      await route.fulfill({ status: 400, contentType: 'application/json',
+        headers: { 'Access-Control-Allow-Origin': 'http://127.0.0.1:8776' },
+        body: JSON.stringify({ error: { status: 'FAILED_PRECONDITION', message: 'test rejection' } }) });
+    };
+    const profileUrl = url => url.pathname.toLowerCase().endsWith('/updateprofile');
+    await a.page.route(profileUrl, failProfileOnce);
+    await a.page.locator('#cloudSaveProfile').click();
+    await a.page.waitForFunction(() => document.querySelector('#cloudProfileStatus').dataset.state === 'error');
+    assert.match(await a.page.locator('#cloudProfileStatus').textContent(), /保存できませんでした/);
+    await a.page.unroute(profileUrl, failProfileOnce);
+    await a.page.locator('#cloudSaveProfile').click();
+    await a.page.waitForFunction(() => document.querySelector('#cloudProfileStatus').dataset.state === 'saved');
+    assert.equal(await a.page.evaluate(() => Cloud.account.profile.bio), '保存を再試行します');
+    await a.page.locator('#settingsBio').fill('先に保存する内容');
+    const delayProfile = async route => {
+      if (route.request().method() !== 'POST') return route.continue();
+      await new Promise(resolve => setTimeout(resolve, 350));
+      await route.continue();
+    };
+    await a.page.route(profileUrl, delayProfile);
+    await a.page.locator('#cloudSaveProfile').click();
+    await a.page.locator('#settingsBio').fill('保存中に追加した内容');
+    await a.page.waitForFunction(() => document.querySelector('#cloudProfileStatus').textContent.includes('追加の変更は未保存'));
+    assert.equal(await a.page.locator('#settingsBio').inputValue(), '保存中に追加した内容');
+    await a.page.unroute(profileUrl, delayProfile);
+    await a.page.locator('#cloudSaveProfile').click();
+    await a.page.waitForFunction(() => document.querySelector('#cloudProfileStatus').dataset.state === 'saved');
+    assert.equal(await a.page.evaluate(() => Cloud.account.profile.bio), '保存中に追加した内容');
+    await a.page.waitForTimeout(4000);
+    await a.page.screenshot({ path: 'docs/qa-production/mobile-profile-save-success-v44.png' });
+
+    await a.page.locator('#framePicker [data-frame="ocean"]').click();
+    await a.page.locator('#patternPicker button[data-pattern="shine"]').click();
+    await a.page.locator('#islandPicker [data-island="shikotan"]').click();
+    assert.equal(await a.page.locator('#cloudProfileStatus').getAttribute('data-state'), 'dirty');
+    await a.page.locator('#cloudSaveProfile').click();
+    await a.page.waitForFunction(() => document.querySelector('#cloudProfileStatus').dataset.state === 'saved');
+    assert.deepEqual(await a.page.evaluate(() => {
+      const { avatarFrame, avatarPattern, favoriteIsland } = Cloud.account.profile;
+      return [avatarFrame, avatarPattern, favoriteIsland];
+    }), ['ocean', 'shine', 'shikotan']);
+    await a.page.locator('.settings-toggle:has(#setHighContrast)').click();
+    assert.equal(await a.page.locator('#setHighContrast').isChecked(), true);
+    assert.equal(await a.page.evaluate(() => document.documentElement.classList.contains('high-contrast')), true);
+    const downloadPromise = a.page.waitForEvent('download');
+    await a.page.locator('#settingsExportBtn').click();
+    assert.match((await downloadPromise).suggestedFilename(), /^hoppou-status-.*\.json$/);
+    await a.page.locator('#settingsCreditsBtn').click();
+    assert.equal(await a.page.locator('#creditsModal').isVisible(), true);
+    await a.page.locator('#creditsModal [data-close]').last().click();
+    await a.page.reload({ waitUntil: 'domcontentloaded' });
+    await a.page.waitForFunction(() => !!Cloud.account);
+    assert.equal(await a.page.locator('#islandPicker [data-island="shikotan"]').getAttribute('aria-checked'), 'true');
+    assert.equal(await a.page.evaluate(() => document.documentElement.classList.contains('high-contrast')), true);
+
+    await b.page.locator('#settingsBirthday').fill('2000-01-01');
+    await b.page.locator('#settingsBirthday').dispatchEvent('change');
+    await b.page.locator('#cloudRankingConsent').check();
+    await b.page.locator('#cloudDmConsent').check();
+    await b.page.locator('#cloudSaveProfile').click();
+    await b.page.waitForFunction(() => Cloud.account.profile.dmEnabled);
+    await b.page.waitForFunction(() => document.querySelector('#cloudProfileStatus').dataset.state === 'saved');
+    await b.page.waitForTimeout(4000);
+    await b.page.screenshot({ path: 'docs/qa-production/desktop-profile-save-v44.png' });
+    await b.page.evaluate(() => UI.go('shop'));
+    assert.equal(await b.page.locator('#shopGrid [data-buy]:not(:disabled)').count(), 0,
+      'unavailable goods exchange must not look actionable');
+    await b.page.evaluate(() => UI.go('settings'));
     await a.page.waitForFunction(() => Cloud.people.length === 2); await b.page.waitForFunction(() => Cloud.people.length === 2);
     for (const page of [a.page, b.page]) {
       await page.evaluate(() => { UI.go('social'); Social.openTab('ranking'); });

@@ -50,6 +50,7 @@
     wrap.querySelectorAll('[data-frame]').forEach(btn => {
       btn.addEventListener('click', () => {
         Store.updateProfile({ avatarFrame: btn.dataset.frame });
+        window.Cloud?.markProfileDirty?.();
         renderFramePicker();
         const p = Store.getProfile();
         refreshAllAvatars(p.avatarFrame, p.avatarPattern);
@@ -73,6 +74,7 @@
     wrap.querySelectorAll('[data-pattern]').forEach(btn => {
       btn.addEventListener('click', () => {
         Store.updateProfile({ avatarPattern: btn.dataset.pattern });
+        window.Cloud?.markProfileDirty?.();
         renderPatternPicker();
         const p = Store.getProfile();
         refreshAllAvatars(p.avatarFrame, p.avatarPattern);
@@ -101,6 +103,7 @@
       btn.addEventListener('click', () => {
         // 島を選んだら着せ替えテーマも自動でON
         Store.updateProfile({ favoriteIsland: btn.dataset.island, islandThemeOn: true });
+        window.Cloud?.markProfileDirty?.();
         renderIslandPicker();
         renderPreview();
         syncIslandThemeToggle();
@@ -211,6 +214,7 @@
     if (nameInput) {
       nameInput.addEventListener('input', () => {
         Store.state.name = nameInput.value.trim().slice(0, 12) || 'ゲスト';
+        window.Cloud?.markProfileDirty?.();
         UI.refreshHeader();
         renderPreview();
         scheduleCommit();
@@ -220,6 +224,7 @@
     if (bioInput) {
       bioInput.addEventListener('input', () => {
         Store.state.profile.bio = bioInput.value.slice(0, 80);
+        window.Cloud?.markProfileDirty?.();
         if (bioCount) bioCount.textContent = bioInput.value.length;
         renderPreview();
         scheduleCommit();
@@ -229,6 +234,7 @@
     if (regionInput) {
       regionInput.addEventListener('input', () => {
         Store.state.profile.region = regionInput.value.slice(0, 24);
+        window.Cloud?.markProfileDirty?.();
         renderPreview();
         scheduleCommit();
       });
@@ -237,6 +243,7 @@
     if (birthdayInput) {
       birthdayInput.addEventListener('change', () => {
         Store.updateProfile({ birthday: birthdayInput.value });
+        window.Cloud?.markProfileDirty?.();
       });
     }
 
@@ -286,6 +293,11 @@
 
   function bindDataButtons() {
     const exportBtn = document.getElementById('settingsExportBtn');
+    const cloudMode = !!window.Cloud?.enabled;
+    if (cloudMode && exportBtn) {
+      exportBtn.querySelector('strong').textContent = '表示中の学習記録を保存';
+      exportBtn.querySelector('small').textContent = '端末で表示中の内容をJSON形式で保存';
+    }
     if (exportBtn) {
       exportBtn.addEventListener('click', () => {
         try {
@@ -311,6 +323,10 @@
 
     const importBtn = document.getElementById('settingsImportBtn');
     const importFile = document.getElementById('settingsImportFile');
+    if (cloudMode && importBtn) {
+      importBtn.disabled = true;
+      importBtn.querySelector('small').textContent = 'クラウドのポイントへ取り込みできません';
+    }
     if (importBtn && importFile) {
       importBtn.addEventListener('click', () => {
         if (window.Cloud?.enabled) return UI.toast('端末内データを本番ポイントへ取り込むことはできません。', 'bad');
@@ -395,6 +411,10 @@
     }
 
     const resetBtn = document.getElementById('settingsResetBtn');
+    if (cloudMode && resetBtn) {
+      resetBtn.disabled = true;
+      resetBtn.querySelector('small').textContent = 'クラウドの記録はアカウント管理で削除できます';
+    }
     if (resetBtn) {
       resetBtn.addEventListener('click', () => {
         if (window.Cloud?.enabled) return UI.toast('クラウドの学習記録は端末からリセットできません。アカウント設定で削除できます。', 'bad');

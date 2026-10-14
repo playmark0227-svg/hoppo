@@ -17,12 +17,13 @@
 
     const grid = document.getElementById('shopGrid');
     if (grid) {
+      const exchangeUnavailable = !!window.Cloud?.enabled;
       grid.innerHTML = window.SHOP_ITEMS.map(item => {
         const owned = Store.ownsItem(item.id);
         const canBuy = s.points >= item.price;
-        const state = owned ? 'owned' : (canBuy ? '' : 'locked');
+        const state = owned ? 'owned' : (exchangeUnavailable || !canBuy ? 'locked' : '');
         const shortage = item.price - s.points;
-        const btnLabel = owned ? '獲得済' : (canBuy ? '交換する' : `あと ${shortage.toLocaleString()}pt`);
+        const btnLabel = exchangeUnavailable ? '交換準備中' : owned ? '獲得済' : (canBuy ? '交換する' : `あと ${shortage.toLocaleString()}pt`);
         const accent = item.accent || 'coral';
         return `
           <div class="shop-item ${state}" data-item="${item.id}" data-accent="${accent}">
@@ -34,7 +35,7 @@
             <div class="shop-item-desc">${item.desc}</div>
             <div class="shop-item-foot">
               <span class="shop-item-price"><svg class="icon icon-sm"><use href="#i-star"/></svg> ${item.price.toLocaleString()}pt</span>
-              <button class="shop-item-btn" ${owned || !canBuy ? 'disabled' : ''}
+              <button class="shop-item-btn" ${exchangeUnavailable || owned || !canBuy ? 'disabled' : ''}
                 data-buy="${item.id}">${btnLabel}</button>
             </div>
             ${owned ? '<div class="shop-item-owned-stamp">獲得済</div>' : ''}

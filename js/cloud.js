@@ -7,6 +7,7 @@
   let sdk, auth, db, functions, currentUser = null, account = null;
   let unsubscribers = [], generation = 0, initialHydration = false;
   let people = [], following = [], blocked = [], threads = [], busy = false, friendProfiles = [], reads = {}, authMode = 'login';
+  let profileDirty = false, profileSaving = false, profileRevision = 0;
   const notify = () => { listeners.forEach(fn => fn()); renderAccount(); };
   const clear = () => {
     unsubscribers.forEach(fn => fn()); unsubscribers = [];
@@ -35,6 +36,35 @@
     node.textContent = text; node.classList.toggle('error', bad);
     document.getElementById('authErrorCode').hidden = true;
     document.getElementById('authErrorCode').textContent = '';
+  }
+  function profileStatus(text, state = '') {
+    const node = document.getElementById('cloudProfileStatus');
+    if (!node) return;
+    node.textContent = text;
+    if (state) node.dataset.state = state;
+    else delete node.dataset.state;
+  }
+  function markProfileDirty() {
+    if (!account) return;
+    profileRevision++;
+    profileDirty = true;
+    profileStatus('変更はまだクラウドに保存されていません。', 'dirty');
+  }
+  function clearBirthdayError() {
+    const input = document.getElementById('settingsBirthday');
+    const error = document.getElementById('settingsBirthdayError');
+    input.removeAttribute('aria-invalid');
+    error.textContent = ''; error.hidden = true;
+  }
+  function adultBirthday(value) {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(value || '')) return false;
+    const date = new Date(`${value}T00:00:00Z`);
+    if (!Number.isFinite(+date) || date.toISOString().slice(0, 10) !== value) return false;
+    const today = new Intl.DateTimeFormat('sv-SE', { timeZone: 'Asia/Tokyo' }).format(new Date());
+    const [year, month, day] = today.split('-').map(Number);
+    const [birthYear, birthMonth, birthDay] = value.split('-').map(Number);
+    const age = year - birthYear - (month < birthMonth || (month === birthMonth && day < birthDay) ? 1 : 0);
+    return age >= 18 && age <= 120;
   }
   function failure(error, prefix = '') {
     const code = /^(auth|functions|appCheck)\/[a-z0-9-]+$/.test(error?.code || '') ? error.code : 'app/unexpected-error';
@@ -143,9 +173,9 @@
       if (!snap.exists()) return;
       account = snap.data();
       if (account.suspended || account.deleting) { clear(); Store.clearRemote(); notify(); status('このアカウントは利用できません。', true); return; }
-      const first = !initialHydration;
-      Store.applyRemote(account, user.uid, first); initialHydration = true;
-      if (first) Settings.syncFields();
+      const hydrateProfile = !initialHydration || (!profileDirty && !profileSaving);
+      Store.applyRemote(account, user.uid, hydrateProfile); initialHydration = true;
+      if (hydrateProfile) Settings.syncFields();
       notify(); UI.refreshHome();
       if (window.License) License.refresh();
       if (window.Stamps) Stamps.refresh();
@@ -169,7 +199,10 @@
     if (epoch === generation) status('ログインしました。プロフィールからランキング参加を選べます。');
   }
   async function session(user) {
-    const epoch = ++generation; clear(); Store.clearRemote(); Settings.syncFields(); currentUser = user; notify();
+    const epoch = ++generation; clear(); Store.clearRemote(); Settings.syncFields(); currentUser = user;
+    profileDirty = false; profileSaving = false; profileRevision = 0;
+    profileStatus('プロフィールの変更は保存ボタンでクラウドに反映されます。');
+    notify();
     if (!user) return;
     if (!user.emailVerified && user.providerData.length > 0) {
       status('確認メールのリンクを開いた後、「メール確認を反映」を押してください。'); return;
@@ -200,14 +233,77 @@
     document.getElementById('authLineBtn').hidden = !config.liffId || signed;
     document.getElementById('authIdentity').textContent = signed ? (currentUser.email || 'LINEアカウント') : 'メールアドレスでログイン';
     document.getElementById('accountSummary').textContent = account ? 'ログイン中・クラウド接続済み' : signed ? 'メール確認・利用同意が必要です' : config.enabled ? '未ログイン' : 'ログインは準備中（Firebase未接続）';
+    document.getElementById('accountManageBtn').textContent = signed ? 'アカウント管理' : 'ログイン・新規登録';
     document.getElementById('cloudProfileControls').hidden = !account;
     document.getElementById('cloudTermsLinks').hidden = !config.enabled;
     document.querySelectorAll('#authFields button, #authModeTabs button, #authLineBtn').forEach(node => { node.disabled = busy || !sdk; });
     document.querySelectorAll('#authSessionActions button').forEach(node => { node.disabled = busy; });
     const profile = account?.profile;
-    if (profile && document.activeElement?.closest('#cloudProfileControls') == null) {
+    const saveButton = document.getElementById('cloudSaveProfile');
+    saveButton.disabled = profileSaving;
+    saveButton.textContent = profileSaving ? '保存中…' : 'プロフィールと公開設定を保存';
+    if (profile && !profileDirty && document.activeElement?.closest('#cloudProfileControls') == null) {
       document.getElementById('cloudRankingConsent').checked = !!profile.publicRanking;
       document.getElementById('cloudDmConsent').checked = !!profile.dmEnabled;
+    }
+  }
+  async function saveProfile() {
+    if (profileSaving) return;
+    if (!account || !currentUser) return profileStatus('ログインしてから保存してください。', 'error');
+    const local = Store.getProfile();
+    const profile = {
+      name: document.getElementById('settingsName').value.trim().slice(0, 12) || 'ゲスト',
+      bio: document.getElementById('settingsBio').value.slice(0, 80),
+      region: document.getElementById('settingsRegion').value.slice(0, 24),
+      birthday: document.getElementById('settingsBirthday').value,
+      favoriteIsland: local.favoriteIsland,
+      avatarFrame: local.avatarFrame,
+      avatarPattern: local.avatarPattern,
+      publicRanking: document.getElementById('cloudRankingConsent').checked,
+      dmEnabled: document.getElementById('cloudDmConsent').checked
+    };
+    clearBirthdayError();
+    if (profile.dmEnabled && !profile.publicRanking) {
+      profileStatus('DMにはランキング公開への同意が必要です。上のチェックを入れてください。', 'error');
+      document.getElementById('cloudRankingConsent').focus();
+      return;
+    }
+    if (profile.dmEnabled && !adultBirthday(profile.birthday)) {
+      const message = 'DMには18歳以上の誕生日登録が必要です。';
+      profileStatus(`${message}下の「基本情報」に誕生日を入力してください。`, 'error');
+      const error = document.getElementById('settingsBirthdayError');
+      error.textContent = message; error.hidden = false;
+      document.getElementById('settingsBirthday').setAttribute('aria-invalid', 'true');
+      document.getElementById('settingsBirthday').focus();
+      return;
+    }
+    if (Object.keys(profile).every(key => profile[key] === account.profile[key])) {
+      profileDirty = false;
+      profileStatus('変更はありません。', 'saved');
+      return;
+    }
+    const epoch = generation, userId = currentUser.uid, sentRevision = profileRevision;
+    profileSaving = true; renderAccount();
+    profileStatus('クラウドに保存しています…');
+    try {
+      const result = await call('updateProfile', { profile });
+      if (generation !== epoch || currentUser?.uid !== userId) return;
+      if (!result?.profile) throw new Error('missing-profile-response');
+      account = { ...account, profile: result.profile };
+      if (profileRevision === sentRevision) {
+        Store.state.name = result.profile.name;
+        Object.assign(Store.state.profile, result.profile);
+        Store.commit(); Settings.syncFields();
+        profileDirty = false;
+        profileStatus('クラウドに保存しました。', 'saved');
+        UI.toast('プロフィールを保存しました。', 'good');
+      } else {
+        profileStatus('前の内容を保存しました。追加の変更は未保存です。', 'dirty');
+      }
+    } catch (error) {
+      profileStatus(`保存できませんでした。${errorMessage(error)}${error?.code ? `（${error.code}）` : ''}`, 'error');
+    } finally {
+      profileSaving = false; renderAccount();
     }
   }
   async function action(fn) {
@@ -282,12 +378,11 @@
       if (!confirm('アカウントとクラウドの学習記録・DMを削除しますか？元には戻せません。続行には直近5分以内のログインが必要です。')) return;
       await call('deleteAccount'); await sdk.signOut(auth); status('アカウントを削除しました。');
     }));
-    document.getElementById('cloudSaveProfile').addEventListener('click', () => action(async () => {
-      const profile = { ...Store.getProfile(), name: Store.get().name,
-        publicRanking: document.getElementById('cloudRankingConsent').checked,
-        dmEnabled: document.getElementById('cloudDmConsent').checked };
-      await call('updateProfile', { profile }); UI.toast('公開設定とプロフィールを保存しました。', 'good');
-    }));
+    document.getElementById('cloudSaveProfile').addEventListener('click', saveProfile);
+    ['cloudRankingConsent', 'cloudDmConsent'].forEach(id => {
+      document.getElementById(id).addEventListener('change', markProfileDirty);
+    });
+    document.getElementById('settingsBirthday').addEventListener('change', clearBirthdayError);
     document.getElementById('authLineBtn').addEventListener('click', () => action(lineLogin));
     renderAccount();
     if (!window.HOPPO_CLOUD_CONFIG) { status('設定を取得できませんでした。接続を確認して再読み込みしてください。', true); return; }
@@ -296,7 +391,7 @@
       status('FirebaseまたはApp Checkの設定が未完了です。', true); return;
     }
     try {
-      sdk = await import('./vendor/firebase.js?v=43');
+      sdk = await import('./vendor/firebase.js?v=44');
       const app = sdk.initializeApp(config.firebase);
       auth = sdk.getAuth(app); db = sdk.getFirestore(app); functions = sdk.getFunctions(app, config.region || 'asia-northeast1');
       auth.languageCode = 'ja';
@@ -341,7 +436,7 @@
   const ready = new Promise(resolve => { resolveReady = resolve; });
   window.Cloud = {
     init() { if (config.enabled) Store.clearRemote(); return init().finally(() => { resolveReady(); if (sdk && config.liffId && (sessionStorage.getItem('hoppo-line-pending') === '1' || new URLSearchParams(location.search).has('liff.state'))) action(lineLogin); }); },
-    open, call, errorMessage,
+    open, call, errorMessage, markProfileDirty,
     get enabled() { return config.enabled === true; },
     get user() { return currentUser; }, get account() { return account; },
     get people() { return people; }, get following() { return following; },

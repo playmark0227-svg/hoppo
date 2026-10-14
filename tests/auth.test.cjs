@@ -30,7 +30,7 @@ function setup(testSdk = null) {
   // Disabled configuration prevents SDK loading; exercise the bound validation handlers only.
   const window = { HOPPO_CLOUD_CONFIG: testSdk ? { enabled: true, emulator: true, firebase: { apiKey: 'fake', projectId: 'demo-hoppo', appId: 'test' } } : { enabled: false } };
   const context = vm.createContext({ window, document, console, testSdk, location: { hostname: 'localhost' }, Store: { clearRemote() {} }, Settings: { syncFields() {} } });
-  vm.runInContext(source.replace("await import('./vendor/firebase.js?v=43')", 'testSdk'), context);
+  vm.runInContext(source.replace(/await import\('\.\/vendor\/firebase\.js\?v=\d+'\)/, 'testSdk'), context);
   const ready = window.Cloud.init();
   const node = id => document.getElementById(id);
   return { node, document, ready, cloud: window.Cloud };
