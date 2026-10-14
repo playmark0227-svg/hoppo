@@ -137,7 +137,7 @@
       if (!state.userId) state.userId = generateUserId();
       if (!state.createdAt) state.createdAt = new Date().toISOString();
       this.state = state;
-      save(state);
+      if (window.Cloud?.enabled) saveDevice(state); else save(state);
       return state;
     },
 
