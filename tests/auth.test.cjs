@@ -4,6 +4,14 @@ const fs = require('node:fs');
 const vm = require('node:vm');
 const source = fs.readFileSync(require.resolve('../js/cloud.js'), 'utf8');
 
+test('App Check challenge frame is permitted by the page CSP', () => {
+  const html = fs.readFileSync(require.resolve('../index.html'), 'utf8');
+  const csp = html.match(/<meta http-equiv="Content-Security-Policy" content="([\s\S]*?)">/)?.[1];
+  assert.ok(csp, 'the page must declare a CSP');
+  const frameSrc = csp.match(/frame-src\s+([^;]+);/)?.[1] || '';
+  assert.match(frameSrc, /https:\/\/recaptcha\.google\.com(?:\s|$)/);
+});
+
 function setup(testSdk = null) {
   const nodes = new Map();
   const document = {
