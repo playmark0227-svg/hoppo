@@ -12,8 +12,9 @@ async function main() {
   const errors = [];
   try {
     fs.mkdirSync('docs/qa-production', { recursive: true });
-    for (const mode of ['local-quota', 'session-quota', 'mail-failure']) {
-      const context = await browser.newContext({ viewport: { width: 390, height: 900 }, serviceWorkers: 'block' });
+    for (const mode of ['local-quota', 'session-quota', 'mail-failure', 'duplicate-desktop', 'duplicate-small']) {
+      const width = mode === 'duplicate-desktop' ? 1440 : mode === 'duplicate-small' ? 320 : 390;
+      const context = await browser.newContext({ viewport: { width, height: 900 }, serviceWorkers: 'block' });
       await context.grantPermissions(['local-network-access'], { origin: 'http://127.0.0.1:8776' });
       await context.addInitScript(blockLocal => {
         localStorage.setItem('hoppou_status_v1', JSON.stringify({ flags: { tutorialSeen: true } }));
@@ -55,17 +56,35 @@ async function main() {
         await page.waitForFunction(() => document.getElementById('authStatus').textContent.includes('アカウントは作成済み'));
         assert.equal(await page.locator('#authResendBtn').isVisible(), true);
         assert.match(await page.locator('#authErrorCode').textContent(), /auth\/too-many-requests/);
-        await page.screenshot({ path: 'docs/qa-production/mail-recovery-v42.png' });
+        await page.screenshot({ path: 'docs/qa-production/mail-recovery-v43.png' });
         await context.unroute('**/accounts:sendOobCode*'); await page.locator('#authResendBtn').click();
       }
       await page.waitForFunction(() => document.getElementById('authStatus').textContent.includes('送信しました'));
       if (mode === 'session-quota') assert.equal(await page.locator('#authStorageNotice').isVisible(), true);
-      if (mode === 'local-quota') {
+      if (mode === 'local-quota' || mode.startsWith('duplicate-')) {
         await page.locator('#authLogoutBtn').click(); await page.waitForFunction(() => !Cloud.user);
-        await page.locator('#authLoginTab').click();
+        const originalUid = (await getAuth(admin).getUserByEmail(email)).uid;
+        await page.locator('#authRegisterTab').click();
+        await page.locator('#authEmail').fill(email); await page.locator('#authPassword').fill('newpass99');
+        await page.locator('#authPasswordConfirm').fill('newpass99'); await page.locator('#authTerms').check();
+        await page.locator('#authRegisterBtn').click();
+        await page.waitForFunction(() => document.getElementById('authLoginTab').getAttribute('aria-selected') === 'true');
+        assert.equal(await page.locator('#authExistingNotice').isVisible(), true);
+        assert.equal(await page.locator('#authEmail').inputValue(), email);
+        assert.equal(await page.locator('#authPassword').inputValue(), '');
         assert.equal(await page.locator('#authPasswordConfirm').isVisible(), false);
+        assert.equal(await page.evaluate(() => Cloud.user), null);
+        await page.waitForTimeout(300);
+        await page.screenshot({ path: `docs/qa-production/duplicate-login-${width}.png` });
+        await page.locator('#authResetBtn').click();
+        await page.waitForFunction(() => document.getElementById('authStatus').textContent.includes('再設定メールを送信'));
+        assert.equal((await getAuth(admin).getUserByEmail(email)).uid, originalUid);
+        await page.locator('#authPassword').fill('newpass99'); await page.locator('#authLoginBtn').click();
+        await page.waitForFunction(() => !document.getElementById('authErrorCode').hidden);
+        assert.equal(await page.evaluate(() => Cloud.user), null, 'duplicate signup must never replace the original password');
         await page.locator('#authEmail').fill(email); await page.locator('#authPassword').fill('test12');
         await page.locator('#authLoginBtn').click(); await page.waitForFunction(() => !!Cloud.user);
+        assert.equal(await page.evaluate(() => Cloud.user.uid), originalUid);
       }
       console.log(`${mode}: signup, verification recovery and existing account safety passed`);
       await context.close();

@@ -12,7 +12,7 @@
 
 ## 設定状況（2026-10-14）
 
-配信アセットはv42。最新の確認済み範囲と未完了事項は `docs/RELEASE-CHECK.md` を参照してください。
+配信アセットはv43。最新の確認済み範囲と未完了事項は `docs/RELEASE-CHECK.md` を参照してください。
 
 - 会社アカウントで専用プロジェクト `hoppo-status-vifight` とWebアプリを作成。
 - Firestoreは東京 `asia-northeast1`、削除保護あり。ルールとインデックスは配備済み。

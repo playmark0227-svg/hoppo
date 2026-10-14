@@ -19,6 +19,9 @@
 .auth-mode-tabs button[aria-selected="true"] { border-bottom-color: #2c7467; color: #245b51; font-weight: 700; }
 .auth-storage-notice { border-left: 3px solid #b48628; padding-left: 10px; font-size: .8rem; line-height: 1.8; color: #6c541f; }
 .auth-error-code { overflow-wrap: anywhere; margin-top: 4px; }
+.auth-guidance { border-left: 3px solid #2c7467; background: #f4f8f7; padding: 12px 14px; margin: 12px 0; font-size: .82rem; line-height: 1.8; }
+.auth-guidance strong { display: block; color: #245b51; }
+.auth-guidance p { margin: 4px 0 0; }
 .auth-card #authIdentity { font-size: .9rem; overflow-wrap: anywhere; }
 .auth-actions { display: flex; flex-wrap: wrap; gap: 10px; margin: 14px 0; }
 .auth-actions .btn { flex: 1 1 130px; }

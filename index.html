@@ -51,8 +51,8 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700;900&family=Yuji+Syuku&display=swap" rel="stylesheet" crossorigin="anonymous">
 
-  <link rel="stylesheet" href="css/style.css?v=42">
-  <link rel="stylesheet" href="css/account.css?v=42">
+  <link rel="stylesheet" href="css/style.css?v=43">
+  <link rel="stylesheet" href="css/account.css?v=43">
 </head>
 <body>
 
@@ -1410,6 +1410,10 @@
           <button type="button" id="authRegisterTab" role="tab" aria-selected="false" aria-controls="authFields" tabindex="-1">新規登録</button>
         </div>
         <p id="authStorageNotice" class="auth-storage-notice" hidden></p>
+        <div id="authExistingNotice" class="auth-guidance" role="status" hidden>
+          <strong>このメールアドレスは登録済みです</strong>
+          <p>新規登録し直す必要はありません。登録時のパスワードでログインしてください。今回入力したパスワードで、既存のパスワードが変更されることはありません。</p>
+        </div>
         <form id="authForm" novalidate>
           <div id="authFields" role="tabpanel" aria-labelledby="authLoginTab">
             <label class="field"><span>メールアドレス</span><input id="authEmail" class="input" type="email" autocomplete="username" required maxlength="254" aria-describedby="authEmailError"></label>
@@ -1424,7 +1428,7 @@
             </div>
             <label id="authNicknameField" class="field" hidden><span>ニックネーム</span><input id="authNickname" class="input" type="text" maxlength="12" autocomplete="nickname" placeholder="例：四島サポーター"></label>
             <div class="auth-actions"><button type="submit" id="authLoginBtn" class="btn btn-primary">ログイン</button><button type="submit" id="authRegisterBtn" class="btn btn-primary" hidden>アカウントを作成</button></div>
-            <button type="button" id="authResetBtn" class="auth-text-button">パスワードを忘れた方</button>
+            <button type="button" id="authResetBtn" class="auth-text-button">パスワードを再設定</button>
           </div>
           <label id="authConsent" class="auth-consent" hidden><input type="checkbox" id="authTerms"><span><a href="legal.html#terms" target="_blank" rel="noopener">利用条件</a>と<a href="legal.html#privacy" target="_blank" rel="noopener">データの扱い</a>を確認し、同意します。</span></label>
         </form>
@@ -1475,20 +1479,20 @@
     <canvas id="confetti" class="confetti"></canvas>
   </div>
 
-  <script defer src="js/data.js?v=42"></script>
-  <script defer src="js/store.js?v=42"></script>
-  <script defer src="js/ui.js?v=42"></script>
-  <script defer src="js/cloud-config.js?v=42"></script>
-  <script defer src="js/cloud.js?v=42"></script>
-  <script defer src="js/achievements.js?v=42"></script>
-  <script defer src="js/quiz.js?v=42"></script>
-  <script defer src="js/shop.js?v=42"></script>
-  <script defer src="js/qr.js?v=42"></script>
-  <script defer src="js/license.js?v=42"></script>
-  <script defer src="js/settings.js?v=42"></script>
-  <script defer src="js/stamps.js?v=42"></script>
-  <script defer src="js/social.js?v=42"></script>
-  <script defer src="js/tutorial.js?v=42"></script>
-  <script defer src="js/app.js?v=42"></script>
+  <script defer src="js/data.js?v=43"></script>
+  <script defer src="js/store.js?v=43"></script>
+  <script defer src="js/ui.js?v=43"></script>
+  <script defer src="js/cloud-config.js?v=43"></script>
+  <script defer src="js/cloud.js?v=43"></script>
+  <script defer src="js/achievements.js?v=43"></script>
+  <script defer src="js/quiz.js?v=43"></script>
+  <script defer src="js/shop.js?v=43"></script>
+  <script defer src="js/qr.js?v=43"></script>
+  <script defer src="js/license.js?v=43"></script>
+  <script defer src="js/settings.js?v=43"></script>
+  <script defer src="js/stamps.js?v=43"></script>
+  <script defer src="js/social.js?v=43"></script>
+  <script defer src="js/tutorial.js?v=43"></script>
+  <script defer src="js/app.js?v=43"></script>
 </body>
 </html>

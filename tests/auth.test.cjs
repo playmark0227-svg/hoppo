@@ -30,7 +30,7 @@ function setup(testSdk = null) {
   // Disabled configuration prevents SDK loading; exercise the bound validation handlers only.
   const window = { HOPPO_CLOUD_CONFIG: testSdk ? { enabled: true, emulator: true, firebase: { apiKey: 'fake', projectId: 'demo-hoppo', appId: 'test' } } : { enabled: false } };
   const context = vm.createContext({ window, document, console, testSdk, location: { hostname: 'localhost' }, Store: { clearRemote() {} }, Settings: { syncFields() {} } });
-  vm.runInContext(source.replace("await import('./vendor/firebase.js?v=42')", 'testSdk'), context);
+  vm.runInContext(source.replace("await import('./vendor/firebase.js?v=43')", 'testSdk'), context);
   const ready = window.Cloud.init();
   const node = id => document.getElementById(id);
   return { node, document, ready, cloud: window.Cloud };
@@ -158,4 +158,30 @@ test('blank login email and blank password have distinct required-field errors',
   await Promise.resolve(); await Promise.resolve();
   node('authEmail').value = 'valid@example.test'; node('authForm').trigger('submit');
   assert.equal(node('authPasswordError').textContent, 'パスワードを入力してください。');
+});
+
+test('duplicate signup moves to login, keeps email, clears new passwords and never signs in automatically', async () => {
+  const { sdk, calls } = sdkStub({ createUserWithEmailAndPassword: async () => { throw { code: 'auth/email-already-in-use' }; } });
+  const { node, ready, cloud } = setup(sdk); await ready;
+  signup(node, 'newpass99'); node('authTerms').checked = true;
+  await node('authForm').trigger('submit');
+  assert.equal(node('authEmail').value, 'valid.name@icloud.com');
+  assert.equal(node('authPassword').value, ''); assert.equal(node('authPasswordConfirm').value, '');
+  assert.equal(node('authLoginTab').getAttribute('aria-selected'), 'true');
+  assert.equal(node('authRegistrationFields').hidden, true);
+  assert.equal(node('authExistingNotice').hidden, false);
+  assert.equal(node('authErrorCode').hidden, true);
+  assert.equal(cloud.user, null); assert.equal(calls.login, 0); assert.equal(calls.mail, 0);
+  assert.match(node('authStatus').textContent, /登録時のパスワード/);
+  node('authEmail').value = 'another@example.test'; node('authEmail').trigger('input');
+  assert.equal(node('authExistingNotice').hidden, true, 'a changed address must not retain the previous registration notice');
+});
+
+test('signup network errors stay in signup and are not misreported as an existing account', async () => {
+  const { sdk } = sdkStub({ createUserWithEmailAndPassword: async () => { throw { code: 'auth/network-request-failed' }; } });
+  const { node, ready } = setup(sdk); await ready;
+  signup(node); node('authTerms').checked = true; await node('authForm').trigger('submit');
+  assert.equal(node('authRegisterTab').getAttribute('aria-selected'), 'true');
+  assert.equal(node('authExistingNotice').hidden, true);
+  assert.equal(node('authErrorCode').textContent, '確認用コード：auth/network-request-failed');
 });

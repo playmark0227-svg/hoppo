@@ -83,6 +83,7 @@
   function setAuthMode(mode) {
     if (busy || currentUser) return;
     authMode = mode;
+    document.getElementById('authExistingNotice').hidden = true;
     clearPasswords(); clearFieldError('authEmail');
     ['login', 'register'].forEach(kind => {
       const tab = document.getElementById(kind === 'login' ? 'authLoginTab' : 'authRegisterTab');
@@ -180,6 +181,7 @@
     const signed = !!currentUser;
     const verified = signed && (currentUser.emailVerified || currentUser.providerData.length === 0);
     const registering = authMode === 'register';
+    if (signed) document.getElementById('authExistingNotice').hidden = true;
     document.getElementById('authFields').hidden = signed;
     document.getElementById('authModeTabs').hidden = signed;
     document.getElementById('authRegistrationFields').hidden = !registering;
@@ -211,12 +213,26 @@
   async function action(fn) {
     if (busy) return;
     busy = true; renderAccount();
-    try { await fn(); } catch (error) { failure(error); }
-    finally { busy = false; renderAccount(); }
+    let duplicate = false;
+    try { await fn(); } catch (error) {
+      duplicate = authMode === 'register' && error?.code === 'auth/email-already-in-use';
+      if (!duplicate) failure(error);
+    } finally {
+      busy = false;
+      if (duplicate && !currentUser) {
+        setAuthMode('login');
+        document.getElementById('authExistingNotice').hidden = false;
+        status('ログイン画面に切り替えました。登録時のパスワードを入力してください。忘れた場合は「パスワードを再設定」を押してください。');
+        document.getElementById('authPassword').focus();
+      }
+      renderAccount();
+    }
   }
   function open() { UI.openModal('authModal'); document.getElementById('authEmail').focus(); }
   async function init() {
-    document.getElementById('authEmail').addEventListener('input', () => clearFieldError('authEmail'));
+    document.getElementById('authEmail').addEventListener('input', () => {
+      clearFieldError('authEmail'); document.getElementById('authExistingNotice').hidden = true;
+    });
     document.getElementById('authPassword').addEventListener('input', () => { clearFieldError('authPassword'); updatePasswordCount(); });
     document.getElementById('authPasswordConfirm').addEventListener('input', () => clearFieldError('authPasswordConfirm'));
     document.getElementById('authLoginTab').addEventListener('click', () => setAuthMode('login'));
@@ -280,7 +296,7 @@
       status('FirebaseまたはApp Checkの設定が未完了です。', true); return;
     }
     try {
-      sdk = await import('./vendor/firebase.js?v=42');
+      sdk = await import('./vendor/firebase.js?v=43');
       const app = sdk.initializeApp(config.firebase);
       auth = sdk.getAuth(app); db = sdk.getFirestore(app); functions = sdk.getFunctions(app, config.region || 'asia-northeast1');
       auth.languageCode = 'ja';

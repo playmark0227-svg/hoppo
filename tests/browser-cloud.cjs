@@ -52,7 +52,7 @@ async function main() {
     assert.equal(await page.locator('#authPasswordConfirmError').isVisible(), false);
     await page.waitForFunction(() => getComputedStyle(document.querySelector('.auth-card')).opacity === '1');
     await page.waitForTimeout(300);
-    await page.screenshot({ path: `docs/qa-production/${width === 320 ? 'small' : width === 390 ? 'mobile' : 'desktop'}-registration-v42.png` });
+    await page.screenshot({ path: `docs/qa-production/${width === 320 ? 'small' : width === 390 ? 'mobile' : 'desktop'}-registration-v43.png` });
     await page.locator('#authNickname').fill(label); await page.locator('#authTerms').check(); await page.locator('#authRegisterBtn').click();
     await page.waitForFunction(() => !!Cloud.user);
     console.log(label, 'registered');
