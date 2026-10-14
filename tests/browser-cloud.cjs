@@ -4,7 +4,7 @@ const assert = require('node:assert/strict');
 const functionRequire = require('node:module').createRequire(require.resolve('../functions/package.json'));
 const { initializeApp, deleteApp } = functionRequire('firebase-admin/app');
 const { getAuth } = functionRequire('firebase-admin/auth');
-const config = { enabled: true, emulator: true, firebase: { apiKey: 'fake-key', projectId: 'demo-hoppo', authDomain: 'demo-hoppo.firebaseapp.com', appId: 'test-browser' }, region: 'asia-northeast1', liffId: '' };
+const config = { enabled: true, emulator: true, firebase: { apiKey: 'fake-key', projectId: 'demo-hoppo', authDomain: 'demo-hoppo.firebaseapp.com', appId: 'test-browser' }, region: 'asia-northeast1', liffId: 'test-liff-id' };
 async function main() {
   const admin = initializeApp({ projectId: 'demo-hoppo' }, 'browser-admin');
   const browser = await chromium.launch({ headless: true, ...(process.env.HOPPO_CHROMIUM_PATH ? { executablePath: process.env.HOPPO_CHROMIUM_PATH } : {}) });
@@ -61,6 +61,9 @@ async function main() {
     await page.locator('#authVerifyBtn').click(); await page.waitForFunction(() => !!Cloud.account);
     await page.waitForFunction(() => Store.get().points === 5);
     console.log(label, 'verified and cloud points loaded');
+    assert.equal(await page.locator('#authLineLinkArea').isVisible(), true, 'verified password account must be offered LINE linking');
+    assert.equal(await page.locator('#authLineLinkBtn').isVisible(), true);
+    if (width === 390) await page.screenshot({ path: 'docs/qa-production/mobile-line-link-v45.png' });
     await page.locator('#authModal [data-close]').last().click(); await page.waitForTimeout(300);
     assert.equal(await page.evaluate(() => document.querySelector('.account-panel').getClientRects().length), 1,
       'account panel must not be split across desktop columns');

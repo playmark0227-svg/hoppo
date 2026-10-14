@@ -5,7 +5,7 @@
 
   <!-- ============================================================
        CSP: local scripts plus explicitly permitted Firebase/App Check/LINE services.
-       Cloud features remain disabled until cloud-config.js is configured.
+       Firebase, App Check and LIFF use only the listed service endpoints.
        ============================================================ -->
   <meta http-equiv="Content-Security-Policy" content="
     default-src 'self';
@@ -35,13 +35,14 @@
   <meta property="og:site_name" content="北方領土ステータス">
   <meta property="og:title" content="北方領土ステータス">
   <meta property="og:description" content="クイズ・スタンプラリー・ランキングで、北方領土について楽しく学べるPWAアプリ。">
-  <meta property="og:url" content="https://playmark0227-svg.github.io/hoppo/">
-  <meta property="og:image" content="https://playmark0227-svg.github.io/hoppo/assets/images/icon-512.png">
+  <meta property="og:url" content="https://hoppo-status.vifight.com/">
+  <meta property="og:image" content="https://hoppo-status.vifight.com/assets/images/icon-512.png">
   <meta property="og:locale" content="ja_JP">
   <meta name="twitter:card" content="summary">
   <meta name="twitter:title" content="北方領土ステータス">
   <meta name="twitter:description" content="クイズ・スタンプラリー・ランキングで、北方領土について楽しく学べるPWAアプリ。">
-  <meta name="twitter:image" content="https://playmark0227-svg.github.io/hoppo/assets/images/icon-512.png">
+  <meta name="twitter:image" content="https://hoppo-status.vifight.com/assets/images/icon-512.png">
+  <link rel="canonical" href="https://hoppo-status.vifight.com/">
 
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="apple-touch-icon" href="assets/images/icon-192.png">
@@ -51,8 +52,8 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700;900&family=Yuji+Syuku&display=swap" rel="stylesheet" crossorigin="anonymous">
 
-  <link rel="stylesheet" href="css/style.css?v=44">
-  <link rel="stylesheet" href="css/account.css?v=44">
+  <link rel="stylesheet" href="css/style.css?v=45">
+  <link rel="stylesheet" href="css/account.css?v=45">
 </head>
 <body>
 
@@ -1440,6 +1441,11 @@
         </form>
         <button type="button" class="btn btn-line btn-full" id="authLineBtn" hidden>LINEでログイン</button>
         <div id="authSessionActions" class="auth-actions" hidden>
+          <div id="authLineLinkArea" class="auth-line-link" hidden>
+            <p id="authLineLinkStatus">LINEアカウントは未連携です。</p>
+            <label class="auth-consent" id="authLineLinkConsentLabel"><input type="checkbox" id="authLineLinkConsent"><span>現在の学習記録を、このLINEアカウントでも利用できるよう連携することに同意します。</span></label>
+            <button type="button" class="btn btn-line btn-full" id="authLineLinkBtn">LINEアカウントを連携</button>
+          </div>
           <button type="button" class="btn btn-primary" id="authVerifyBtn">メール確認を反映</button>
           <button type="button" class="btn btn-outline" id="authResendBtn">確認メールを再送</button>
           <button type="button" class="btn btn-primary" id="authActivateBtn">利用を開始</button>
@@ -1485,20 +1491,20 @@
     <canvas id="confetti" class="confetti"></canvas>
   </div>
 
-  <script defer src="js/data.js?v=44"></script>
-  <script defer src="js/store.js?v=44"></script>
-  <script defer src="js/ui.js?v=44"></script>
-  <script defer src="js/cloud-config.js?v=44"></script>
-  <script defer src="js/cloud.js?v=44"></script>
-  <script defer src="js/achievements.js?v=44"></script>
-  <script defer src="js/quiz.js?v=44"></script>
-  <script defer src="js/shop.js?v=44"></script>
-  <script defer src="js/qr.js?v=44"></script>
-  <script defer src="js/license.js?v=44"></script>
-  <script defer src="js/settings.js?v=44"></script>
-  <script defer src="js/stamps.js?v=44"></script>
-  <script defer src="js/social.js?v=44"></script>
-  <script defer src="js/tutorial.js?v=44"></script>
-  <script defer src="js/app.js?v=44"></script>
+  <script defer src="js/data.js?v=45"></script>
+  <script defer src="js/store.js?v=45"></script>
+  <script defer src="js/ui.js?v=45"></script>
+  <script defer src="js/cloud-config.js?v=45"></script>
+  <script defer src="js/cloud.js?v=45"></script>
+  <script defer src="js/achievements.js?v=45"></script>
+  <script defer src="js/quiz.js?v=45"></script>
+  <script defer src="js/shop.js?v=45"></script>
+  <script defer src="js/qr.js?v=45"></script>
+  <script defer src="js/license.js?v=45"></script>
+  <script defer src="js/settings.js?v=45"></script>
+  <script defer src="js/stamps.js?v=45"></script>
+  <script defer src="js/social.js?v=45"></script>
+  <script defer src="js/tutorial.js?v=45"></script>
+  <script defer src="js/app.js?v=45"></script>
 </body>
 </html>

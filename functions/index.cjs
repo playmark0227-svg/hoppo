@@ -43,24 +43,54 @@ function consume(tx, ref, snap, max, now) {
   if ((old.count || 0) >= max) fail('resource-exhausted', '操作回数の上限です。しばらく待ってからお試しください。');
   tx.set(ref, { count: (old.count || 0) + 1, at: now.toISOString() });
 }
-exports.exchangeLineToken = onCall(options, async (req) => {
+async function verifyLineToken(token) {
   const clientId = lineChannelId.value();
   if (!/^\d+$/.test(clientId)) fail('failed-precondition', 'LINEログインは準備中です。');
-  const token = req.data?.idToken;
   if (typeof token !== 'string' || token.length < 20 || token.length > 10000) fail('invalid-argument', 'IDトークンが無効です。');
-  const response = await fetch('https://api.line.me/oauth2/v2.1/verify', {
-    method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: new URLSearchParams({ id_token: token, client_id: clientId }), signal: AbortSignal.timeout(10000)
-  });
+  let response;
+  try {
+    response = await fetch('https://api.line.me/oauth2/v2.1/verify', {
+      method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({ id_token: token, client_id: clientId }), signal: AbortSignal.timeout(10000)
+    });
+  } catch { fail('unavailable', 'LINE認証へ接続できません。時間を空けてお試しください。'); }
   if (!response.ok) fail('unauthenticated', 'LINE認証を確認できませんでした。');
-  const identity = await response.json();
+  let identity;
+  try { identity = await response.json(); } catch { fail('unavailable', 'LINE認証の応答を確認できませんでした。'); }
   if (identity.aud !== clientId || identity.iss !== 'https://access.line.me' ||
       !/^U[0-9a-f]{32}$/i.test(identity.sub || '') || !Number.isFinite(identity.exp) || identity.exp * 1000 <= Date.now()) {
     fail('unauthenticated', 'LINE認証が期限切れ、または対象外です。');
   }
-  const id = `line_${P.hash(identity.sub)}`;
+  return P.hash(identity.sub);
+}
+exports.exchangeLineToken = onCall(options, async (req) => {
+  const lineHash = await verifyLineToken(req.data?.idToken);
+  const linked = await db.doc(`lineLinks/${lineHash}`).get();
+  const id = linked.exists ? linked.data().uid : `line_${lineHash}`;
   // Never trust a client-supplied LINE profile, email, or Firebase uid.
-  return { token: await getAuth().createCustomToken(id, { lineVerified: true }) };
+  return { token: await getAuth().createCustomToken(id, { lineVerified: true, lineHash }) };
+});
+exports.linkLineAccount = onCall(options, async (req) => {
+  const id = uid(req);
+  const identity = await getAuth().getUser(id);
+  if (!identity.email || !identity.emailVerified || req.auth.token.firebase?.sign_in_provider !== 'password') {
+    fail('failed-precondition', 'メール確認済みのメールアカウントでログインしてください。');
+  }
+  if (req.data?.consent !== true) fail('invalid-argument', 'LINE連携への同意が必要です。');
+  const lineHash = await verifyLineToken(req.data?.idToken);
+  const lineRef = db.doc(`lineLinks/${lineHash}`), userRef = db.doc(`users/${id}`);
+  const separateRef = db.doc(`users/line_${lineHash}`);
+  await db.runTransaction(async (tx) => {
+    const [linked, userSnap, separate] = await tx.getAll(lineRef, userRef, separateRef);
+    const user = active(userSnap);
+    if ((linked.exists && linked.data().uid !== id) || separate.exists) {
+      fail('already-exists', 'このLINEアカウントには別の学習記録があります。自動統合はできません。');
+    }
+    if (user.lineHash && user.lineHash !== lineHash) fail('failed-precondition', '別のLINEアカウントが連携済みです。');
+    if (!linked.exists) tx.create(lineRef, { uid: id, linkedAt: new Date().toISOString() });
+    tx.update(userRef, { lineHash });
+  });
+  return { linked: true };
 });
 exports.ensureAccount = onCall(options, async (req) => {
   const id = uid(req);
@@ -69,11 +99,17 @@ exports.ensureAccount = onCall(options, async (req) => {
   if (identity.disabled) fail('permission-denied', 'このアカウントは利用できません。');
   if (req.data?.termsVersion !== P.VERSION) fail('failed-precondition', '最新の利用条件に同意してください。');
   const ref = db.doc(`users/${id}`);
+  const lineHash = req.auth.token.lineHash;
+  const separateLineLogin = /^[a-f0-9]{64}$/.test(lineHash || '') && id === `line_${lineHash}`;
   await db.runTransaction(async (tx) => {
-    const [snap, closed] = await tx.getAll(ref, db.doc(`accountClosures/${id}`));
+    const refs = [ref, db.doc(`accountClosures/${id}`)];
+    if (separateLineLogin) refs.push(db.doc(`lineLinks/${lineHash}`));
+    const [snap, closed, linked] = await tx.getAll(...refs);
+    if (linked?.exists && linked.data().uid !== id) fail('already-exists', 'このLINEアカウントは別の学習記録に連携済みです。再度ログインしてください。');
     if (closed.exists && (req.auth.token.auth_time || 0) * 1000 <= closed.data().at) fail('unauthenticated', '削除前のログイン情報は使えません。');
     if (snap.exists) { const user = active(snap); if (user.termsVersion !== P.VERSION) tx.update(ref, { termsVersion: P.VERSION, consentAt: new Date().toISOString() }); return; }
     tx.set(ref, { profile: P.profile({ name: req.data?.name }), termsVersion: P.VERSION,
+      lineHash: req.auth.token.lineHash || null,
       consentAt: new Date().toISOString(), createdAt: new Date().toISOString(),
       points: 0, totalEarned: 0, history: [], quizResults: {}, stamps: {}, usedQrCodes: [],
       lastLoginDate: '', loginStreak: 0, longestStreak: 0, loginTotal: 0 });
@@ -263,7 +299,10 @@ exports.deleteAccount = onCall(options, async (req) => {
   const ref = db.doc(`users/${id}`);
   await db.runTransaction(async (tx) => {
     const snap = await tx.get(ref);
+    const lineRef = snap.data()?.lineHash ? db.doc(`lineLinks/${snap.data().lineHash}`) : null;
+    const link = lineRef ? await tx.get(lineRef) : null;
     if (snap.exists) { tx.update(ref, { deleting: true }); }
+    if (link?.data()?.uid === id) tx.delete(lineRef);
     tx.delete(db.doc(`publicProfiles/${id}`));
     tx.set(db.doc(`accountClosures/${id}`), { at: Date.now() });
   });

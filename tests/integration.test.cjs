@@ -48,6 +48,23 @@ test('server-issued LINE custom authentication survives token refresh', async ()
   const result = await httpsCallable(fn, 'ensureAccount')({ termsVersion: P.VERSION, name: 'LINEテスト' });
   assert.equal(result.data.ok, true);
 });
+test('LINE linking requires a verified password session and explicit consent', async () => {
+  await assert.rejects(users.alice.call('linkLineAccount', { idToken: 'x'.repeat(100), consent: false }), { code: 'functions/invalid-argument' });
+  await assert.rejects(users.alice.call('linkLineAccount', { idToken: 'x'.repeat(100), consent: true }), { code: 'functions/failed-precondition' });
+  const unverified = await client('line-link-unverified', false);
+  await assert.rejects(unverified.call('linkLineAccount', { idToken: 'x'.repeat(100), consent: true }), { code: 'functions/permission-denied' });
+});
+test('a LINE login cannot create a second account after it is linked', async () => {
+  const lineHash = P.hash('race-test-line-user');
+  await db.doc(`lineLinks/${lineHash}`).set({ uid: users.alice.uid, linkedAt: new Date().toISOString() });
+  const app = initializeApp({ apiKey: 'fake-key', projectId: 'demo-hoppo', appId: 'test-linked-line' }, 'linked-line'); apps.push(app);
+  const auth = getAuth(app); connectAuthEmulator(auth, 'http://127.0.0.1:9099', { disableWarnings: true });
+  const fn = getFunctions(app, 'asia-northeast1'); connectFunctionsEmulator(fn, '127.0.0.1', 5001);
+  const token = await adminAuth(admin).createCustomToken(`line_${lineHash}`, { lineVerified: true, lineHash });
+  await signInWithCustomToken(auth, token);
+  await assert.rejects(httpsCallable(fn, 'ensureAccount')({ termsVersion: P.VERSION }), { code: 'functions/already-exists' });
+  assert.equal((await db.doc(`users/line_${lineHash}`).get()).exists, false);
+});
 test('quiz awards are authoritative, idempotent and bounded on replay', async () => {
   const quiz = catalog.quizzes[0];
   let last;

@@ -47,6 +47,10 @@
 .auth-status.error { color: #ac3030; }
 .auth-text-button { background: none; border: 0; color: #245e7a; padding: 8px 0; font: inherit; font-size: .85rem; text-decoration: underline; cursor: pointer; }
 .btn-line { background: #06c755; color: white; margin-top: 16px; }
+.auth-line-link { width: 100%; padding: 12px 0 18px; border-bottom: 1px solid #d2dbe0; }
+.auth-line-link p { margin: 0 0 8px; color: #245b51; font-size: .84rem; }
+.auth-line-link .auth-consent { margin: 8px 0; }
+.auth-line-link .btn-line { margin-top: 8px; }
 .live-empty { padding: 24px 18px; border: 1px solid #d2dbe0; background: #fff; font-size: .9rem; line-height: 1.8; }
 .live-empty p { margin-bottom: 16px; }
 .live-row { display: grid; grid-template-columns: 32px minmax(0, 1fr) auto; gap: 12px; padding: 16px 0; align-items: center; border-bottom: 1px solid #d2dbe0; }

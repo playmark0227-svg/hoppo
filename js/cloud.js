@@ -5,6 +5,7 @@
   const passwordMinLength = 6;
   const listeners = new Set();
   let sdk, auth, db, functions, currentUser = null, account = null;
+  let identityVerified = false, emailSession = false;
   let unsubscribers = [], generation = 0, initialHydration = false;
   let people = [], following = [], blocked = [], threads = [], busy = false, friendProfiles = [], reads = {}, authMode = 'login';
   let profileDirty = false, profileSaving = false, profileRevision = 0;
@@ -27,10 +28,16 @@
     'auth/network-request-failed': '通信できません。接続を確認してください。',
     'functions/permission-denied': '操作できません。メール確認・相互フォロー・DM設定を確認してください。',
     'functions/resource-exhausted': '操作回数の上限です。時間を空けてお試しください。',
+    'functions/already-exists': 'このLINEアカウントには別の学習記録があります。自動統合はできません。',
     'functions/failed-precondition': '利用設定を確認してください。',
     'functions/unavailable': 'サーバーへ接続できません。時間を空けてお試しください。'
   };
-  function errorMessage(error) { return errors[error?.code] || '処理を完了できませんでした。設定または通信状態を確認してください。'; }
+  function errorMessage(error) {
+    if (error?.message === 'line-link-needs-email-account') return 'LINE連携には、メール確認済みのメールアカウントでログインしてください。';
+    if (error?.message === 'line-openid-scope') return 'LINEの認証情報を取得できません。もう一度お試しください。';
+    if (error?.message === 'line-sdk') return 'LINEログインを読み込めません。通信状態を確認してください。';
+    return errors[error?.code] || '処理を完了できませんでした。設定または通信状態を確認してください。';
+  }
   function status(text, bad = false) {
     const node = document.getElementById('authStatus');
     node.textContent = text; node.classList.toggle('error', bad);
@@ -159,7 +166,7 @@
     }, () => { if (generation === epoch) status('データを取得できません。サーバー設定と接続を確認してください。', true); }));
   }
   async function connectAccount(epoch) {
-    if (!currentUser || !(currentUser.emailVerified || currentUser.providerData.length === 0)) return;
+    if (!currentUser || !identityVerified) return;
     const user = currentUser;
     await user.getIdToken(true);
     const existing = await sdk.getDoc(sdk.doc(db, 'users', user.uid));
@@ -200,11 +207,19 @@
   }
   async function session(user) {
     const epoch = ++generation; clear(); Store.clearRemote(); Settings.syncFields(); currentUser = user;
+    identityVerified = false; emailSession = false;
     profileDirty = false; profileSaving = false; profileRevision = 0;
     profileStatus('プロフィールの変更は保存ボタンでクラウドに反映されます。');
     notify();
     if (!user) return;
-    if (!user.emailVerified && user.providerData.length > 0) {
+    try {
+      const token = await user.getIdTokenResult();
+      if (epoch !== generation || currentUser !== user) return;
+      identityVerified = user.emailVerified || token.claims.lineVerified === true;
+      emailSession = !!user.email && user.emailVerified && token.signInProvider === 'password';
+      renderAccount();
+    } catch (error) { if (epoch === generation) failure(error); return; }
+    if (!identityVerified) {
       status('確認メールのリンクを開いた後、「メール確認を反映」を押してください。'); return;
     }
     try { await connectAccount(epoch); } catch (error) { failure(error); }
@@ -212,7 +227,7 @@
   function renderAccount() {
     document.getElementById('authLaunchNotice').textContent = `${config.enabled ? '現在は試験公開中です。' : '現在は公開準備中です。'}利用条件・データ保持期間・問い合わせ窓口は正式公開前に確定します。`;
     const signed = !!currentUser;
-    const verified = signed && (currentUser.emailVerified || currentUser.providerData.length === 0);
+    const verified = signed && identityVerified;
     const registering = authMode === 'register';
     if (signed) document.getElementById('authExistingNotice').hidden = true;
     document.getElementById('authFields').hidden = signed;
@@ -231,6 +246,12 @@
     document.getElementById('authResendBtn').hidden = !signed || verified;
     document.getElementById('authActivateBtn').hidden = !verified || !!account;
     document.getElementById('authLineBtn').hidden = !config.liffId || signed;
+    const lineLinkArea = document.getElementById('authLineLinkArea');
+    const canLinkLine = !!config.liffId && !!account && emailSession;
+    lineLinkArea.hidden = !canLinkLine;
+    document.getElementById('authLineLinkStatus').textContent = account?.lineHash ? 'LINEアカウントを連携済みです。' : 'LINEアカウントは未連携です。';
+    document.getElementById('authLineLinkConsentLabel').hidden = !!account?.lineHash;
+    document.getElementById('authLineLinkBtn').hidden = !!account?.lineHash;
     document.getElementById('authIdentity').textContent = signed ? (currentUser.email || 'LINEアカウント') : 'メールアドレスでログイン';
     document.getElementById('accountSummary').textContent = account ? 'ログイン中・クラウド接続済み' : signed ? 'メール確認・利用同意が必要です' : config.enabled ? '未ログイン' : 'ログインは準備中（Firebase未接続）';
     document.getElementById('accountManageBtn').textContent = signed ? 'アカウント管理' : 'ログイン・新規登録';
@@ -384,6 +405,12 @@
     });
     document.getElementById('settingsBirthday').addEventListener('change', clearBirthdayError);
     document.getElementById('authLineBtn').addEventListener('click', () => action(lineLogin));
+    document.getElementById('authLineLinkBtn').addEventListener('click', () => action(async () => {
+      if (!document.getElementById('authLineLinkConsent').checked) {
+        status('LINE連携の内容を確認し、同意してください。', true); return;
+      }
+      await lineLogin('link');
+    }));
     renderAccount();
     if (!window.HOPPO_CLOUD_CONFIG) { status('設定を取得できませんでした。接続を確認して再読み込みしてください。', true); return; }
     if (!config.enabled) { status('現在はプレビューです。アカウント作成・利用者間通信はまだ有効ではありません。'); return; }
@@ -391,7 +418,7 @@
       status('FirebaseまたはApp Checkの設定が未完了です。', true); return;
     }
     try {
-      sdk = await import('./vendor/firebase.js?v=44');
+      sdk = await import('./vendor/firebase.js?v=45');
       const app = sdk.initializeApp(config.firebase);
       auth = sdk.getAuth(app); db = sdk.getFirestore(app); functions = sdk.getFunctions(app, config.region || 'asia-northeast1');
       auth.languageCode = 'ja';
@@ -413,8 +440,19 @@
     }
   }
   let liffPromise;
-  async function lineLogin() {
+  async function lineLogin(requestedIntent = 'login') {
     if (!config.liffId) return;
+    await ready;
+    if (typeof auth?.authStateReady === 'function') await auth.authStateReady();
+    const intent = sessionStorage.getItem('hoppo-line-intent') ||
+      (new URLSearchParams(location.search).get('hoppoLineIntent') === 'link' ? 'link' : requestedIntent);
+    if (intent === 'link') {
+      const user = auth.currentUser;
+      const token = user ? await user.getIdTokenResult() : null;
+      if (!user?.email || !user.emailVerified || token?.signInProvider !== 'password') {
+        throw new Error('line-link-needs-email-account');
+      }
+    }
     if (!liffPromise) liffPromise = new Promise((resolve, reject) => {
       const script = document.createElement('script'); script.src = 'https://static.line-scdn.net/liff/edge/2/sdk.js';
       script.onload = resolve; script.onerror = () => { liffPromise = null; reject(new Error('line-sdk')); };
@@ -423,19 +461,27 @@
     await liffPromise;
     await window.liff.init({ liffId: config.liffId });
     if (!window.liff.isLoggedIn()) {
-      sessionStorage.setItem('hoppo-line-pending', '1');
-      window.liff.login({ redirectUri: location.origin + location.pathname }); return;
+      sessionStorage.setItem('hoppo-line-intent', intent);
+      const redirect = new URL(location.origin + location.pathname);
+      if (intent === 'link') redirect.searchParams.set('hoppoLineIntent', 'link');
+      window.liff.login({ redirectUri: redirect.href }); return;
     }
     const idToken = window.liff.getIDToken();
     if (!idToken) throw new Error('line-openid-scope');
-    const result = await call('exchangeLineToken', { idToken });
-    sessionStorage.removeItem('hoppo-line-pending');
-    await sdk.signInWithCustomToken(auth, result.token);
+    if (intent === 'link') {
+      await call('linkLineAccount', { idToken, consent: true });
+      status('LINEアカウントを連携しました。今後はどちらからも同じ学習記録を利用できます。');
+    } else {
+      const result = await call('exchangeLineToken', { idToken });
+      await sdk.signInWithCustomToken(auth, result.token);
+    }
+    sessionStorage.removeItem('hoppo-line-intent');
+    if (location.search) history.replaceState(null, '', location.pathname + location.hash);
   }
   let resolveReady;
   const ready = new Promise(resolve => { resolveReady = resolve; });
   window.Cloud = {
-    init() { if (config.enabled) Store.clearRemote(); return init().finally(() => { resolveReady(); if (sdk && config.liffId && (sessionStorage.getItem('hoppo-line-pending') === '1' || new URLSearchParams(location.search).has('liff.state'))) action(lineLogin); }); },
+    init() { if (config.enabled) Store.clearRemote(); return init().finally(() => { resolveReady(); if (sdk && config.liffId && (sessionStorage.getItem('hoppo-line-intent') || new URLSearchParams(location.search).has('liff.state') || new URLSearchParams(location.search).has('hoppoLineIntent'))) action(lineLogin); }); },
     open, call, errorMessage, markProfileDirty,
     get enabled() { return config.enabled === true; },
     get user() { return currentUser; }, get account() { return account; },

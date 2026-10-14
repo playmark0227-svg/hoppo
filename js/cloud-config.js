@@ -9,6 +9,6 @@ window.HOPPO_CLOUD_CONFIG = Object.freeze({
   },
   region: 'asia-northeast1',
   appCheckSiteKey: '6Ld4Uu4tAAAAAH3g_AfYexCVkkOrMFrTi9hr6oN9',
-  liffId: '',
+  liffId: '2012022040-tYo7QPPo',
   emulator: false
 });
