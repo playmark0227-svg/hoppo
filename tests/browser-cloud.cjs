@@ -10,7 +10,7 @@ async function main() {
   const browser = await chromium.launch({ headless: true, ...(process.env.HOPPO_CHROMIUM_PATH ? { executablePath: process.env.HOPPO_CHROMIUM_PATH } : {}) });
   const errors = [], pages = [];
   async function register(label, width) {
-    const context = await browser.newContext({ viewport: { width, height: 900 }, serviceWorkers: 'block' });
+    const context = await browser.newContext({ viewport: { width, height: width === 320 ? 740 : 900 }, serviceWorkers: 'block' });
     await context.grantPermissions(['local-network-access'], { origin: 'http://127.0.0.1:8776' });
     await context.addInitScript(() => localStorage.setItem('hoppou_status_v1', JSON.stringify({ flags: { tutorialSeen: true }, points: 999999 })));
     await context.route('**/js/cloud-config.js*', route => route.fulfill({ contentType: 'text/javascript', body: `window.HOPPO_CLOUD_CONFIG=${JSON.stringify(config)}` }));
@@ -24,8 +24,11 @@ async function main() {
     assert.equal(await page.evaluate(() => Store.get().points), 0, 'preview points must never migrate');
     await page.evaluate(() => UI.go('settings')); await page.locator('[data-auth-open]').first().click();
     await page.waitForFunction(() => !document.getElementById('authRegisterBtn').disabled);
+    await page.waitForFunction(() => getComputedStyle(document.querySelector('.auth-card')).opacity === '1');
     const authBox = await page.locator('.auth-card').boundingBox();
     assert.ok(Math.abs(authBox.x + authBox.width / 2 - width / 2) <= 1, 'login panel must be centered');
+    assert.ok(authBox.x >= 0 && authBox.x + authBox.width <= width, 'login panel must fit');
+    await page.screenshot({ path: `docs/qa-production/${width === 320 ? 'small' : width === 390 ? 'mobile' : 'desktop'}-emulator-login.png` });
     console.log(label, 'auth ready');
     const email = `browser-${width}-${Date.now()}@example.test`;
     await page.locator('#authEmail').fill(email); await page.locator('#authPassword').fill('password-test-12345');
@@ -41,6 +44,7 @@ async function main() {
     return { context, page, email };
   }
   try {
+    const small = await register('小画面確認', 320); await small.context.close();
     const a = await register('登録者A', 390), b = await register('登録者B', 1440);
     await a.page.locator('#settingsBirthday').fill('2000-01-01'); await a.page.locator('#settingsBirthday').dispatchEvent('change');
     await a.page.locator('#cloudRankingConsent').check(); await a.page.locator('#cloudDmConsent').check(); await a.page.locator('#cloudSaveProfile').click();

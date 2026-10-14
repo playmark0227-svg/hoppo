@@ -12,6 +12,8 @@
 
 ## 設定状況（2026-10-14）
 
+配信アセットはv40。最新の確認済み範囲と未完了事項は `docs/RELEASE-CHECK.md` を参照してください。
+
 - 会社アカウントで専用プロジェクト `hoppo-status-vifight` とWebアプリを作成。
 - Firestoreは東京 `asia-northeast1`、削除保護あり。ルールとインデックスは配備済み。
 - Email/Passwordを有効化。パスワード12文字以上、メール列挙保護、日本語メール設定を反映。
@@ -65,6 +67,7 @@ npx firebase deploy --project YOUR_PROJECT_ID --only firestore,functions
 1. LINE LoginチャネルでLIFFアプリを作成。エンドポイントに配信URLを設定し、`openid` スコープを有効にします。
 2. `functions/.env.YOUR_PROJECT_ID` に `LINE_CHANNEL_ID=...` を設定（gitには含めない）。この実装のIDトークンverifyはチャネルシークレットを必要としません。
 3. `js/cloud-config.js` の `liffId` を設定してFunctionsとフロントを更新。通常Webログインはそのまま残ります。
+   LINEのカスタムトークン発行には、実行サービスアカウントが自分自身の署名を行う `iam.serviceAccounts.signBlob` 権限も必要です。今回のメールログインには不要なので未付与。LINE有効化時に管理者確認の上、対象サービスアカウントだけへ必要権限を設定してください。秘密鍵ファイルは不要です。
 4. LINE実アカウントでトークンの期限切れ・別チャネルの拒否を検証。今回は未設定のため実LINEログインは未検証です。
 5. 同じ人のメールアカウントとLINEアカウントは別アカウントです。自動的に統合しません。安全なアカウント連携は別途実装が必要です。
 
