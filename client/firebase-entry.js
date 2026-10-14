@@ -1,6 +1,6 @@
 export { initializeApp } from 'firebase/app';
 export {
-  getAuth, setPersistence, browserLocalPersistence, onAuthStateChanged,
+  getAuth, setPersistence, browserSessionPersistence, inMemoryPersistence, onAuthStateChanged,
   createUserWithEmailAndPassword, signInWithEmailAndPassword,
   sendEmailVerification, sendPasswordResetEmail, signOut, reload,
   signInWithCustomToken, connectAuthEmulator

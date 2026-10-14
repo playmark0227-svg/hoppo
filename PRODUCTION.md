@@ -12,11 +12,11 @@
 
 ## 設定状況（2026-10-14）
 
-配信アセットはv41。最新の確認済み範囲と未完了事項は `docs/RELEASE-CHECK.md` を参照してください。
+配信アセットはv42。最新の確認済み範囲と未完了事項は `docs/RELEASE-CHECK.md` を参照してください。
 
 - 会社アカウントで専用プロジェクト `hoppo-status-vifight` とWebアプリを作成。
 - Firestoreは東京 `asia-northeast1`、削除保護あり。ルールとインデックスは配備済み。
-- Email/Passwordを有効化。パスワード12文字以上、メール列挙保護、日本語メール設定を反映。
+- Email/Passwordを有効化。利用者の明示承認により最低6文字へ変更（長めを推奨）。メール列挙保護、日本語メール設定を維持。
 - 公開ドメインに限定したreCAPTCHA EnterpriseサイトキーとApp CheckのWeb設定を登録。
 - 管理者がChrome画面でBlazeの請求先接続を完了。Firebase APIでも有効化を確認。
 - FirestoreのApp Check強制適用は設定済み。ビルドイメージの保持期間は7日。
@@ -42,7 +42,7 @@
 ## Firebase設定
 
 1. Firebaseプロジェクトを作成し、Webアプリを登録します。Firestoreのロケーションを選んでください（後から容易には変更できません）。Functionsは `asia-northeast1` です。
-2. AuthenticationのEmail/Passwordを有効にします。承認済みドメインに `playmark0227-svg.github.io` を追加。確認・再設定メールの日本語文面、送信者と戻り先URLを設定。パスワードポリシーを12文字以上にし、メール列挙保護を有効にします。
+2. AuthenticationのEmail/Passwordを有効にします。承認済みドメインに `playmark0227-svg.github.io` を追加。確認・再設定メールの日本語文面、送信者と戻り先URLを設定。パスワードポリシーは承認済みの6文字以上にし、メール列挙保護を有効にします。5文字はFirebase非対応です。長めのパスワードを推奨します。
 3. Cloud Functions利用の課金プラン・予算通知・監視を管理者が確認して設定します。専用プロジェクト・Blaze接続・月1,500円の予算通知は設定済み。予算通知は支出の自動停止ではありません。
 4. App CheckにWebアプリとreCAPTCHA Enterpriseサイトキーを登録し、配信ドメインを承認します。
 5. Node 22とJava 21以上で依存を用意して検証します。

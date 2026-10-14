@@ -2,10 +2,11 @@
 (function () {
   // Missing configuration must not silently convert a production session into a local demo.
   const config = window.HOPPO_CLOUD_CONFIG || { enabled: true };
+  const passwordMinLength = 6;
   const listeners = new Set();
   let sdk, auth, db, functions, currentUser = null, account = null;
   let unsubscribers = [], generation = 0, initialHydration = false;
-  let people = [], following = [], blocked = [], threads = [], busy = false, friendProfiles = [], reads = {};
+  let people = [], following = [], blocked = [], threads = [], busy = false, friendProfiles = [], reads = {}, authMode = 'login';
   const notify = () => { listeners.forEach(fn => fn()); renderAccount(); };
   const clear = () => {
     unsubscribers.forEach(fn => fn()); unsubscribers = [];
@@ -15,7 +16,12 @@
     'auth/invalid-credential': 'メールアドレスまたはパスワードを確認してください。',
     'auth/email-already-in-use': '登録できませんでした。ログインまたはパスワード再設定をお試しください。',
     'auth/invalid-email': 'メールアドレスを確認してください。',
-    'auth/weak-password': 'パスワードは12文字以上で設定してください。',
+    'auth/weak-password': 'パスワードは6文字以上で設定してください。',
+    'auth/password-does-not-meet-requirements': 'パスワードがサーバーの条件を満たしていません。6文字以上の別のパスワードをお試しください。',
+    'auth/operation-not-allowed': '現在このログイン方法を利用できません。運営側の設定確認が必要です。',
+    'auth/user-disabled': 'このアカウントは利用できません。',
+    'auth/user-not-found': 'メールアドレスまたはパスワードを確認してください。',
+    'auth/wrong-password': 'メールアドレスまたはパスワードを確認してください。',
     'auth/too-many-requests': '試行回数が多いため、しばらく待ってからお試しください。',
     'auth/network-request-failed': '通信できません。接続を確認してください。',
     'functions/permission-denied': '操作できません。メール確認・相互フォロー・DM設定を確認してください。',
@@ -27,6 +33,14 @@
   function status(text, bad = false) {
     const node = document.getElementById('authStatus');
     node.textContent = text; node.classList.toggle('error', bad);
+    document.getElementById('authErrorCode').hidden = true;
+    document.getElementById('authErrorCode').textContent = '';
+  }
+  function failure(error, prefix = '') {
+    const code = /^(auth|functions|appCheck)\/[a-z0-9-]+$/.test(error?.code || '') ? error.code : 'app/unexpected-error';
+    status(prefix + errorMessage(error), true);
+    const node = document.getElementById('authErrorCode');
+    node.textContent = `確認用コード：${code}`; node.hidden = false;
   }
   function clearFieldError(id) {
     const input = document.getElementById(id), error = document.getElementById(`${id}Error`);
@@ -49,12 +63,59 @@
     const password = document.getElementById('authPassword');
     clearFieldError('authPassword');
     if (!password.value) return fieldError('authPassword', 'パスワードを入力してください。');
-    if (register && password.value.length < 12) return fieldError('authPassword', 'パスワードが短すぎます。新規登録は12文字以上にしてください。');
+    if (register && password.value.length < passwordMinLength) return fieldError('authPassword', 'パスワードが短すぎます。新規登録は6文字以上にしてください。');
+    if (register) {
+      const confirmation = document.getElementById('authPasswordConfirm');
+      clearFieldError('authPasswordConfirm');
+      if (!confirmation.value) return fieldError('authPasswordConfirm', '確認用のパスワードをもう一度入力してください。');
+      if (confirmation.value !== password.value) return fieldError('authPasswordConfirm', '2回入力したパスワードが一致していません。');
+    }
     return true;
   }
   function updatePasswordCount() {
     const length = document.getElementById('authPassword').value.length;
     document.getElementById('authPasswordCount').textContent = length ? `現在${length}文字` : '未入力';
+  }
+  function clearPasswords() {
+    ['authPassword', 'authPasswordConfirm'].forEach(id => { document.getElementById(id).value = ''; clearFieldError(id); });
+    updatePasswordCount();
+  }
+  function setAuthMode(mode) {
+    if (busy || currentUser) return;
+    authMode = mode;
+    clearPasswords(); clearFieldError('authEmail');
+    ['login', 'register'].forEach(kind => {
+      const tab = document.getElementById(kind === 'login' ? 'authLoginTab' : 'authRegisterTab');
+      tab.setAttribute('aria-selected', String(kind === mode)); tab.tabIndex = kind === mode ? 0 : -1;
+    });
+    document.getElementById('authFields').setAttribute('aria-labelledby', mode === 'login' ? 'authLoginTab' : 'authRegisterTab');
+    document.getElementById('authPassword').autocomplete = mode === 'register' ? 'new-password' : 'current-password';
+    status(mode === 'register' ? 'メールアドレスと、同じパスワードを2回入力してください。' : '登録済みのメールアドレスとパスワードを入力してください。');
+    renderAccount();
+  }
+  function isStorageFailure(error) {
+    const original = error?.customData?.originalError || error;
+    return error?.code === 'auth/web-storage-unsupported' || ['QuotaExceededError', 'NS_ERROR_DOM_QUOTA_REACHED', 'SecurityError'].includes(original?.name);
+  }
+  async function authenticate(register, email, password) {
+    const run = () => register ? sdk.createUserWithEmailAndPassword(auth, email, password) : sdk.signInWithEmailAndPassword(auth, email, password);
+    try { return await run(); } catch (error) {
+      if (!isStorageFailure(error)) throw error;
+      const created = register && auth.currentUser?.email === email;
+      // Auth may have created the account before persistent storage failed. Never create it twice.
+      await sdk.setPersistence(auth, sdk.inMemoryPersistence);
+      const notice = document.getElementById('authStorageNotice');
+      notice.hidden = false; notice.textContent = 'この端末ではログイン状態を長期保存できません。画面やブラウザを閉じた後は、再度ログインしてください。';
+      return created ? sdk.signInWithEmailAndPassword(auth, email, password) : run();
+    }
+  }
+  async function sendVerification(user, created = false) {
+    try {
+      await sdk.sendEmailVerification(user);
+      status(`確認メールを${user.email}に送信しました。届いたリンクを開き、「メール確認を反映」を押してください。`);
+    } catch (error) {
+      failure(error, `${created ? 'アカウントは作成済みです。' : ''}確認メールを送信できませんでした。「確認メールを再送」から再度お試しください。`);
+    }
   }
   async function call(name, data = {}) {
     await ready;
@@ -112,13 +173,24 @@
     if (!user.emailVerified && user.providerData.length > 0) {
       status('確認メールのリンクを開いた後、「メール確認を反映」を押してください。'); return;
     }
-    try { await connectAccount(epoch); } catch (error) { status(errorMessage(error), true); }
+    try { await connectAccount(epoch); } catch (error) { failure(error); }
   }
   function renderAccount() {
     document.getElementById('authLaunchNotice').textContent = `${config.enabled ? '現在は試験公開中です。' : '現在は公開準備中です。'}利用条件・データ保持期間・問い合わせ窓口は正式公開前に確定します。`;
     const signed = !!currentUser;
     const verified = signed && (currentUser.emailVerified || currentUser.providerData.length === 0);
+    const registering = authMode === 'register';
     document.getElementById('authFields').hidden = signed;
+    document.getElementById('authModeTabs').hidden = signed;
+    document.getElementById('authRegistrationFields').hidden = !registering;
+    document.getElementById('authPasswordConfirm').required = registering && !signed;
+    document.getElementById('authNicknameField').hidden = !registering;
+    document.getElementById('authPasswordGuidance').hidden = !registering;
+    document.getElementById('authLoginHelp').hidden = registering;
+    document.getElementById('authLoginBtn').hidden = registering;
+    document.getElementById('authRegisterBtn').hidden = !registering;
+    document.getElementById('authResetBtn').hidden = registering;
+    document.getElementById('authConsent').hidden = signed ? !!account : !registering;
     document.getElementById('authSessionActions').hidden = !signed;
     document.getElementById('authVerifyBtn').hidden = !signed || verified;
     document.getElementById('authResendBtn').hidden = !signed || verified;
@@ -128,7 +200,7 @@
     document.getElementById('accountSummary').textContent = account ? 'ログイン中・クラウド接続済み' : signed ? 'メール確認・利用同意が必要です' : config.enabled ? '未ログイン' : 'ログインは準備中（Firebase未接続）';
     document.getElementById('cloudProfileControls').hidden = !account;
     document.getElementById('cloudTermsLinks').hidden = !config.enabled;
-    document.querySelectorAll('#authFields button, #authLineBtn').forEach(node => { node.disabled = busy || !sdk; });
+    document.querySelectorAll('#authFields button, #authModeTabs button, #authLineBtn').forEach(node => { node.disabled = busy || !sdk; });
     document.querySelectorAll('#authSessionActions button').forEach(node => { node.disabled = busy; });
     const profile = account?.profile;
     if (profile && document.activeElement?.closest('#cloudProfileControls') == null) {
@@ -139,13 +211,21 @@
   async function action(fn) {
     if (busy) return;
     busy = true; renderAccount();
-    try { await fn(); } catch (error) { status(errorMessage(error), true); }
+    try { await fn(); } catch (error) { failure(error); }
     finally { busy = false; renderAccount(); }
   }
   function open() { UI.openModal('authModal'); document.getElementById('authEmail').focus(); }
   async function init() {
     document.getElementById('authEmail').addEventListener('input', () => clearFieldError('authEmail'));
     document.getElementById('authPassword').addEventListener('input', () => { clearFieldError('authPassword'); updatePasswordCount(); });
+    document.getElementById('authPasswordConfirm').addEventListener('input', () => clearFieldError('authPasswordConfirm'));
+    document.getElementById('authLoginTab').addEventListener('click', () => setAuthMode('login'));
+    document.getElementById('authRegisterTab').addEventListener('click', () => setAuthMode('register'));
+    document.getElementById('authModeTabs').addEventListener('keydown', event => {
+      if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
+      event.preventDefault(); setAuthMode(event.key === 'Home' ? 'login' : event.key === 'End' ? 'register' : authMode === 'login' ? 'register' : 'login');
+      document.getElementById(authMode === 'login' ? 'authLoginTab' : 'authRegisterTab').focus();
+    });
     updatePasswordCount();
     document.getElementById('authModal').addEventListener('keydown', event => {
       if (event.key !== 'Tab') return;
@@ -156,22 +236,18 @@
     });
     document.querySelectorAll('[data-auth-open]').forEach(button => button.addEventListener('click', open));
     document.getElementById('authForm').addEventListener('submit', event => {
-      event.preventDefault(); action(async () => {
-        if (!validateEmail() || !validatePassword()) return;
+      event.preventDefault(); return action(async () => {
+        const registering = authMode === 'register';
+        if (!validateEmail() || !validatePassword(registering)) return;
+        if (registering && !document.getElementById('authTerms').checked) return status('利用条件への同意が必要です。', true);
         await ready;
-        await sdk.signInWithEmailAndPassword(auth, document.getElementById('authEmail').value.trim(), document.getElementById('authPassword').value);
-        document.getElementById('authPassword').value = ''; updatePasswordCount();
+        const email = document.getElementById('authEmail').value, password = document.getElementById('authPassword').value;
+        status(registering ? 'アカウントを作成しています。' : 'ログインしています。');
+        const credential = await authenticate(registering, email, password);
+        clearPasswords();
+        if (registering) await sendVerification(credential.user, true);
       });
     });
-    document.getElementById('authRegisterBtn').addEventListener('click', () => action(async () => {
-      if (!validateEmail() || !validatePassword(true)) return;
-      if (!document.getElementById('authTerms').checked) return status('利用条件への同意が必要です。', true);
-      const email = document.getElementById('authEmail'), password = document.getElementById('authPassword');
-      const credential = await sdk.createUserWithEmailAndPassword(auth, email.value.trim(), password.value);
-      password.value = ''; updatePasswordCount();
-      await sdk.sendEmailVerification(credential.user);
-      status('確認メールを送りました。受信したリンクを開いてください。');
-    }));
     document.getElementById('authResetBtn').addEventListener('click', () => action(async () => {
       if (!validateEmail()) return;
       const email = document.getElementById('authEmail');
@@ -181,7 +257,7 @@
       status('該当するアカウントがある場合、パスワード再設定メールを送信しました。');
     }));
     document.getElementById('authResendBtn').addEventListener('click', () => action(async () => {
-      await sdk.sendEmailVerification(currentUser); status('確認メールを再送しました。');
+      if (currentUser && !currentUser.emailVerified) await sendVerification(currentUser);
     }));
     document.getElementById('authVerifyBtn').addEventListener('click', () => action(async () => { await sdk.reload(currentUser); await session(auth.currentUser); }));
     document.getElementById('authActivateBtn').addEventListener('click', () => action(() => connectAccount(generation)));
@@ -204,7 +280,7 @@
       status('FirebaseまたはApp Checkの設定が未完了です。', true); return;
     }
     try {
-      sdk = await import('./vendor/firebase.js');
+      sdk = await import('./vendor/firebase.js?v=42');
       const app = sdk.initializeApp(config.firebase);
       auth = sdk.getAuth(app); db = sdk.getFirestore(app); functions = sdk.getFunctions(app, config.region || 'asia-northeast1');
       auth.languageCode = 'ja';
@@ -216,7 +292,7 @@
         await sdk.getAppCheckToken(appCheck);
         document.getElementById('authModal').dataset.appCheck = 'verified';
       }
-      await sdk.setPersistence(auth, sdk.browserLocalPersistence);
+      // getAuth selects IndexedDB, local or session storage according to browser availability.
       sdk.onAuthStateChanged(auth, session);
       renderAccount(); status('ログイン、または新規登録を選んでください。');
     } catch (error) {
@@ -248,7 +324,7 @@
   let resolveReady;
   const ready = new Promise(resolve => { resolveReady = resolve; });
   window.Cloud = {
-    init() { if (config.enabled) Store.clearRemote(); init().finally(() => { resolveReady(); if (sdk && config.liffId && (sessionStorage.getItem('hoppo-line-pending') === '1' || new URLSearchParams(location.search).has('liff.state'))) action(lineLogin); }); },
+    init() { if (config.enabled) Store.clearRemote(); return init().finally(() => { resolveReady(); if (sdk && config.liffId && (sessionStorage.getItem('hoppo-line-pending') === '1' || new URLSearchParams(location.search).has('liff.state'))) action(lineLogin); }); },
     open, call, errorMessage,
     get enabled() { return config.enabled === true; },
     get user() { return currentUser; }, get account() { return account; },

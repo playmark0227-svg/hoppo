@@ -51,8 +51,8 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700;900&family=Yuji+Syuku&display=swap" rel="stylesheet" crossorigin="anonymous">
 
-  <link rel="stylesheet" href="css/style.css?v=41">
-  <link rel="stylesheet" href="css/account.css?v=41">
+  <link rel="stylesheet" href="css/style.css?v=42">
+  <link rel="stylesheet" href="css/account.css?v=42">
 </head>
 <body>
 
@@ -1405,19 +1405,28 @@
         <h2 id="authTitle">ログイン・新規登録</h2>
         <p id="authIdentity">メールアドレスでログイン</p>
         <p id="authLaunchNotice" class="auth-help">現在は公開準備中です。利用条件・データ保持期間・問い合わせ窓口は正式公開前に確定します。</p>
+        <div id="authModeTabs" class="auth-mode-tabs" role="tablist" aria-label="アカウント操作">
+          <button type="button" id="authLoginTab" role="tab" aria-selected="true" aria-controls="authFields">ログイン</button>
+          <button type="button" id="authRegisterTab" role="tab" aria-selected="false" aria-controls="authFields" tabindex="-1">新規登録</button>
+        </div>
+        <p id="authStorageNotice" class="auth-storage-notice" hidden></p>
         <form id="authForm" novalidate>
-          <div id="authFields">
+          <div id="authFields" role="tabpanel" aria-labelledby="authLoginTab">
             <label class="field"><span>メールアドレス</span><input id="authEmail" class="input" type="email" autocomplete="username" required maxlength="254" aria-describedby="authEmailError"></label>
             <p id="authEmailError" class="auth-field-error" hidden></p>
             <label class="field"><span>パスワード</span><input id="authPassword" class="input" type="password" autocomplete="current-password" required maxlength="128" aria-describedby="authPasswordHelp authPasswordCount authPasswordError"></label>
-            <div class="auth-password-help"><span id="authPasswordHelp">新規登録は12文字以上</span><span id="authPasswordCount">未入力</span></div>
+            <div id="authPasswordGuidance" class="auth-password-help" hidden><span id="authPasswordHelp">6文字以上・長めを推奨</span><span id="authPasswordCount">未入力</span></div>
             <p id="authPasswordError" class="auth-field-error" hidden></p>
-            <p class="auth-help">ログインは登録時のパスワードを入力してください。</p>
-            <label class="field"><span>ニックネーム（新規登録時）</span><input id="authNickname" class="input" type="text" maxlength="12" autocomplete="nickname" placeholder="例：四島サポーター"></label>
-            <div class="auth-actions"><button type="submit" class="btn btn-primary">ログイン</button><button type="button" id="authRegisterBtn" class="btn btn-outline">新規登録</button></div>
+            <p id="authLoginHelp" class="auth-help">登録時のパスワードを入力してください。</p>
+            <div id="authRegistrationFields" hidden>
+              <label class="field"><span>パスワード（確認）</span><input id="authPasswordConfirm" class="input" type="password" autocomplete="new-password" maxlength="128" aria-describedby="authPasswordConfirmError"></label>
+              <p id="authPasswordConfirmError" class="auth-field-error" hidden></p>
+            </div>
+            <label id="authNicknameField" class="field" hidden><span>ニックネーム</span><input id="authNickname" class="input" type="text" maxlength="12" autocomplete="nickname" placeholder="例：四島サポーター"></label>
+            <div class="auth-actions"><button type="submit" id="authLoginBtn" class="btn btn-primary">ログイン</button><button type="submit" id="authRegisterBtn" class="btn btn-primary" hidden>アカウントを作成</button></div>
             <button type="button" id="authResetBtn" class="auth-text-button">パスワードを忘れた方</button>
           </div>
-          <label class="auth-consent"><input type="checkbox" id="authTerms"><span><a href="legal.html#terms" target="_blank" rel="noopener">利用条件</a>と<a href="legal.html#privacy" target="_blank" rel="noopener">データの扱い</a>を確認し、同意します。</span></label>
+          <label id="authConsent" class="auth-consent" hidden><input type="checkbox" id="authTerms"><span><a href="legal.html#terms" target="_blank" rel="noopener">利用条件</a>と<a href="legal.html#privacy" target="_blank" rel="noopener">データの扱い</a>を確認し、同意します。</span></label>
         </form>
         <button type="button" class="btn btn-line btn-full" id="authLineBtn" hidden>LINEでログイン</button>
         <div id="authSessionActions" class="auth-actions" hidden>
@@ -1428,6 +1437,7 @@
           <button type="button" class="auth-text-button" id="authDeleteBtn">アカウントを削除</button>
         </div>
         <p id="authStatus" class="auth-status" role="status" aria-live="polite"></p>
+        <p id="authErrorCode" class="auth-help auth-error-code" hidden></p>
       </section>
     </div>
 
@@ -1465,20 +1475,20 @@
     <canvas id="confetti" class="confetti"></canvas>
   </div>
 
-  <script defer src="js/data.js?v=41"></script>
-  <script defer src="js/store.js?v=41"></script>
-  <script defer src="js/ui.js?v=41"></script>
-  <script defer src="js/cloud-config.js?v=41"></script>
-  <script defer src="js/cloud.js?v=41"></script>
-  <script defer src="js/achievements.js?v=41"></script>
-  <script defer src="js/quiz.js?v=41"></script>
-  <script defer src="js/shop.js?v=41"></script>
-  <script defer src="js/qr.js?v=41"></script>
-  <script defer src="js/license.js?v=41"></script>
-  <script defer src="js/settings.js?v=41"></script>
-  <script defer src="js/stamps.js?v=41"></script>
-  <script defer src="js/social.js?v=41"></script>
-  <script defer src="js/tutorial.js?v=41"></script>
-  <script defer src="js/app.js?v=41"></script>
+  <script defer src="js/data.js?v=42"></script>
+  <script defer src="js/store.js?v=42"></script>
+  <script defer src="js/ui.js?v=42"></script>
+  <script defer src="js/cloud-config.js?v=42"></script>
+  <script defer src="js/cloud.js?v=42"></script>
+  <script defer src="js/achievements.js?v=42"></script>
+  <script defer src="js/quiz.js?v=42"></script>
+  <script defer src="js/shop.js?v=42"></script>
+  <script defer src="js/qr.js?v=42"></script>
+  <script defer src="js/license.js?v=42"></script>
+  <script defer src="js/settings.js?v=42"></script>
+  <script defer src="js/stamps.js?v=42"></script>
+  <script defer src="js/social.js?v=42"></script>
+  <script defer src="js/tutorial.js?v=42"></script>
+  <script defer src="js/app.js?v=42"></script>
 </body>
 </html>

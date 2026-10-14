@@ -14,6 +14,11 @@
 .auth-field-error { margin: 6px 0 0; color: #ac3030; font-size: .8rem; line-height: 1.8; overflow-wrap: anywhere; }
 .auth-password-help { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 4px 12px; margin-top: 6px; color: #4d5963; font-size: .8rem; line-height: 1.8; }
 #authPasswordCount { font-variant-numeric: tabular-nums; }
+.auth-mode-tabs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); border-bottom: 1px solid #d2dbe0; margin: 16px 0 8px; }
+.auth-mode-tabs button { border: 0; border-bottom: 3px solid transparent; background: transparent; padding: 10px 4px; font: inherit; font-size: .88rem; cursor: pointer; color: #4d5963; }
+.auth-mode-tabs button[aria-selected="true"] { border-bottom-color: #2c7467; color: #245b51; font-weight: 700; }
+.auth-storage-notice { border-left: 3px solid #b48628; padding-left: 10px; font-size: .8rem; line-height: 1.8; color: #6c541f; }
+.auth-error-code { overflow-wrap: anywhere; margin-top: 4px; }
 .auth-card #authIdentity { font-size: .9rem; overflow-wrap: anywhere; }
 .auth-actions { display: flex; flex-wrap: wrap; gap: 10px; margin: 14px 0; }
 .auth-actions .btn { flex: 1 1 130px; }
