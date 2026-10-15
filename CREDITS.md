@@ -17,7 +17,8 @@
 - **権利:** © 久保歩夢 / ViFight — 本アプリのために描き下ろされたオリジナルキャラクター。
 - **備考:** `mascot-main.png` は正面ポーズ、`mascot-tea.png` はお茶を持つポーズ、`mascot-face.png` は
   丸型アバター・階級認定証・アプリアイコン用のバストアップ。いずれも同一の原画から生成しています。
-  `assets/images/icon-192.png` / `icon-512.png` / `icon-maskable-512.png` も同キャラクターから作成。
+  アプリアイコンは四島をイメージした背景の手前に同キャラクターを配置したイラストです。
+  `assets/images/icon-source.png` から `scripts/render-app-icons.cjs` でPWA・LINE用サイズを生成します。
 
 ---
 

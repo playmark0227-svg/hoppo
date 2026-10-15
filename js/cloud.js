@@ -465,7 +465,7 @@
       status('FirebaseまたはApp Checkの設定が未完了です。', true); throw new Error('クラウド設定が未完了です。');
     }
     try {
-      sdk = await import('./vendor/firebase.js?v=51');
+      sdk = await import('./vendor/firebase.js?v=52');
       const app = sdk.initializeApp(config.firebase);
       auth = sdk.getAuth(app); db = sdk.getFirestore(app); functions = sdk.getFunctions(app, config.region || 'asia-northeast1');
       auth.languageCode = 'ja';
