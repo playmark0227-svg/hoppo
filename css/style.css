@@ -2930,6 +2930,206 @@ code { font-family: 'SFMono-Regular', ui-monospace, 'Kosugi Maru', monospace; }
 .license-card-flipper[data-rank="clione"] .license-portrait { box-shadow: var(--sh-sm), inset 0 0 0 1px rgba(43, 36, 53, 0.05), 0 0 0 5px rgba(185, 166, 255, 0.3); }
 .license-card-flipper[data-rank="prime"]  .license-portrait { box-shadow: var(--sh-sm), inset 0 0 0 1px rgba(43, 36, 53, 0.05), 0 0 0 5px rgba(255, 111, 164, 0.32); }
 
+/* The final rank has its own edition, not just a different badge color. */
+.license-prime-edition { display: none; }
+.license-card-flipper[data-rank="prime"] {
+  --prime-ink: #153c38;
+  --prime-deep: #0c2927;
+  --prime-gold: #d9b36c;
+  --prime-paper: #f9f0da;
+}
+.license-card-flipper[data-rank="prime"] > .license-card {
+  border: 1px solid var(--prime-gold);
+  box-shadow: 0 24px 48px rgba(12, 41, 39, 0.24), 0 0 0 4px rgba(217, 179, 108, 0.14);
+}
+.license-card-flipper[data-rank="prime"] > .license-card-back {
+  visibility: hidden;
+  transition: transform 0.8s var(--ease-soft), visibility 0s linear 0.8s;
+}
+.license-card-flipper[data-rank="prime"].flipped > .license-card-back {
+  visibility: visible;
+  transition: transform 0.8s var(--ease-soft), visibility 0s;
+}
+.license-card-flipper[data-rank="prime"] > .license-card:first-child {
+  background: linear-gradient(155deg, #19443f 0%, var(--prime-deep) 78%);
+  color: var(--prime-paper);
+}
+.license-card-flipper[data-rank="prime"] > .license-card:first-child::after {
+  content: "";
+  position: absolute;
+  inset: 7px;
+  border: 1px solid rgba(217, 179, 108, 0.52);
+  border-radius: calc(var(--r-xl) - 5px);
+  pointer-events: none;
+  z-index: 4;
+}
+.license-card-flipper[data-rank="prime"] .license-card-header {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  column-gap: 8px;
+  padding: 19px 20px 15px;
+  background: transparent;
+  border-bottom: 1px solid rgba(217, 179, 108, 0.4);
+}
+.license-card-flipper[data-rank="prime"] .license-emblem {
+  background: rgba(217, 179, 108, 0.12);
+  box-shadow: inset 0 0 0 1px var(--prime-gold);
+}
+.license-card-flipper[data-rank="prime"] .license-brand-jp { color: var(--prime-paper); }
+.license-card-flipper[data-rank="prime"] .license-brand-en { color: var(--prime-gold); opacity: 1; }
+.license-card-flipper[data-rank="prime"] .license-serial {
+  color: var(--prime-gold);
+  background: transparent;
+  border-radius: 0;
+  box-shadow: none;
+  padding: 0;
+  font-size: 0.57rem;
+}
+.license-card-flipper[data-rank="prime"] .license-prime-edition {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  margin: 0 20px;
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(217, 179, 108, 0.22);
+  color: var(--prime-gold);
+  font: 700 0.53rem ui-monospace, monospace;
+  letter-spacing: 0.13em;
+  white-space: nowrap;
+}
+.license-card-flipper[data-rank="prime"] .license-prime-mark {
+  color: var(--prime-paper);
+  font-size: 0.48rem;
+  letter-spacing: 0.1em;
+}
+.license-card-flipper[data-rank="prime"] .license-card-main { padding-top: 24px; padding-bottom: 20px; }
+.license-card-flipper[data-rank="prime"] .license-portrait {
+  border: 3px solid var(--prime-gold);
+  background: var(--prime-paper);
+  box-shadow: 0 0 0 6px rgba(217, 179, 108, 0.12), 0 10px 24px rgba(0, 0, 0, 0.24);
+}
+.license-card-flipper[data-rank="prime"] .license-portrait-ring {
+  border: 1px solid var(--prime-gold);
+  opacity: 0.8;
+  animation: none;
+}
+.license-card-flipper[data-rank="prime"] .license-portrait-star {
+  background: var(--prime-gold);
+  color: var(--prime-deep);
+  border-color: var(--prime-deep);
+  text-shadow: none;
+}
+.license-card-flipper[data-rank="prime"] .license-rank-badge {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  margin-bottom: 6px;
+  color: var(--prime-gold);
+  border: 1px solid var(--prime-gold);
+  border-radius: 50%;
+  font: 700 0.94rem 'Yuji Syuku', serif;
+  filter: none;
+}
+.license-card-flipper[data-rank="prime"] .license-rank-name {
+  color: var(--prime-paper);
+  font-size: 1.55rem;
+  font-family: 'Yuji Syuku', 'Zen Maru Gothic', serif;
+  line-height: 1.15;
+}
+.license-card-flipper[data-rank="prime"] .license-rank-en {
+  color: var(--prime-gold);
+  font-size: 0.58rem;
+  letter-spacing: 0.1em;
+}
+.license-card-flipper[data-rank="prime"] .license-rank-tier {
+  color: var(--prime-paper);
+  background: rgba(217, 179, 108, 0.12);
+  border: 1px solid rgba(217, 179, 108, 0.6);
+  border-radius: 2px;
+  letter-spacing: 0.1em;
+}
+.license-card-flipper[data-rank="prime"] .license-card-watermark {
+  display: none;
+}
+.license-card-flipper[data-rank="prime"] .license-card-holo { opacity: 0.12; animation-duration: 14s; }
+.license-card-flipper[data-rank="prime"] .license-card-pattern {
+  opacity: 0.3;
+  background-image: radial-gradient(circle, var(--prime-gold) 0 0.5px, transparent 1px);
+  background-size: 18px 18px;
+}
+.license-card-flipper[data-rank="prime"] .license-card-corner::before,
+.license-card-flipper[data-rank="prime"] .license-card-corner::after { border-color: var(--prime-gold); }
+.license-card-flipper[data-rank="prime"] .license-meta-cell {
+  background: rgba(249, 240, 218, 0.055);
+  border: 1px solid rgba(217, 179, 108, 0.36);
+  border-radius: 2px;
+  backdrop-filter: none;
+}
+.license-card-flipper[data-rank="prime"] .license-meta-k { color: var(--prime-gold); }
+.license-card-flipper[data-rank="prime"] .license-meta-v {
+  display: block;
+  margin-top: 3px;
+  color: var(--prime-paper);
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+.license-card-flipper[data-rank="prime"] .license-card-foot { border-top: 1px solid rgba(217, 179, 108, 0.38); }
+.license-card-flipper[data-rank="prime"] .license-sig { color: var(--prime-gold); }
+.license-card-flipper[data-rank="prime"] .license-sig-line {
+  color: var(--prime-paper);
+  border-bottom-color: rgba(217, 179, 108, 0.5);
+}
+.license-card-flipper[data-rank="prime"] .license-stamp {
+  color: var(--prime-gold);
+  border-color: var(--prime-gold);
+  background: rgba(217, 179, 108, 0.08);
+  box-shadow: inset 0 0 0 1px rgba(217, 179, 108, 0.3);
+}
+.license-card-flipper[data-rank="prime"] .license-stamp::before { border-color: var(--prime-gold); }
+.license-card-flipper[data-rank="prime"] .license-card-micro {
+  color: rgba(217, 179, 108, 0.6);
+  background: rgba(0, 0, 0, 0.12);
+  border-top-color: rgba(217, 179, 108, 0.25);
+  padding: 5px 8px 7px;
+  font-size: 0.44rem;
+  letter-spacing: 0.12em;
+}
+.license-card-flipper[data-rank="prime"] .license-card-back {
+  background: #153c38;
+  color: var(--prime-paper);
+}
+.license-card-flipper[data-rank="prime"] .license-back-head { border-bottom-color: var(--prime-gold); }
+.license-card-flipper[data-rank="prime"] .license-back-title,
+.license-card-flipper[data-rank="prime"] .license-back-body,
+.license-card-flipper[data-rank="prime"] .license-back-operator b { color: var(--prime-paper); }
+.license-card-flipper[data-rank="prime"] .license-back-en,
+.license-card-flipper[data-rank="prime"] .license-back-body b,
+.license-card-flipper[data-rank="prime"] .license-back-facts li b { color: var(--prime-gold); }
+.license-card-flipper[data-rank="prime"] .license-back-facts li {
+  background: rgba(249, 240, 218, 0.06);
+  border-color: rgba(217, 179, 108, 0.4);
+}
+.license-card-flipper[data-rank="prime"] .license-back-facts li span,
+.license-card-flipper[data-rank="prime"] .license-back-note,
+.license-card-flipper[data-rank="prime"] .license-back-operator { color: rgba(249, 240, 218, 0.74); }
+.license-card-flipper[data-rank="prime"] .license-back-foot { border-top-color: rgba(217, 179, 108, 0.45); }
+.license-card-flipper[data-rank="prime"] .license-back-barcode { filter: invert(1); }
+
+@media (max-width: 410px) {
+  .license-card-flipper[data-rank="prime"] .license-card-header { grid-template-columns: minmax(0, 1fr); row-gap: 7px; }
+  .license-card-flipper[data-rank="prime"] .license-card-header-right { padding-left: 50px; }
+  .license-card-flipper[data-rank="prime"] .license-rank-name { font-size: 1.35rem; }
+  .license-card-flipper[data-rank="prime"] .license-meta-v { font-size: 0.85rem; }
+}
+@media (max-width: 340px) {
+  .license-card-flipper[data-rank="prime"] .license-meta-v { font-size: 0.76rem; }
+  .license-card-flipper[data-rank="prime"] .license-meta-v.mono { font-size: 0.73rem; }
+}
+
 /* Rank journey */
 .rank-journey {
   position: relative;

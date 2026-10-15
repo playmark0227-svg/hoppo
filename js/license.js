@@ -20,9 +20,13 @@
     // License card — top
     const serialEl = document.getElementById('licenseSerialTop');
     if (serialEl) serialEl.textContent = `NO. ${s.userId || '----'}`;
+    const brandEn = document.getElementById('licenseBrandEn');
+    if (brandEn) brandEn.textContent = rank.id === 'prime' ? 'PREMIER EDITION · 05 / 05' : 'HOPPOU STATUS · OFFICIAL LICENSE';
+    const micro = document.getElementById('licenseMicro');
+    if (micro) micro.textContent = rank.id === 'prime' ? 'HOPPOU STATUS · PREMIER EDITION · 50,000 POINTS · ViFight' : 'HOPPOU·STATUS·OFFICIAL·LICENSE·HOPPOU·STATUS·OFFICIAL·LICENSE·HOPPOU·STATUS';
 
     // License card — rank zone
-    document.getElementById('licenseRankBadge').textContent = rank.emoji;
+    document.getElementById('licenseRankBadge').textContent = rank.id === 'prime' ? '四' : rank.emoji;
     document.getElementById('licenseRankName').textContent = rank.name;
     document.getElementById('licenseRankEn').textContent = rank.en;
     const tierEl = document.getElementById('licenseRankTier');
@@ -206,6 +210,7 @@ ${s.name || 'ゲスト'} さんは ${rank.emoji} ${rank.name}（${rank.sub}）�
    * We draw directly to canvas (clean, reliable, no external library).
    */
   async function renderLicenseToBlob(s, rank, rankIdx, totalTiers) {
+    if (rank.id === 'prime') return renderPrimeLicenseToBlob(s);
     const W = 1080;
     const H = 1400;
     const canvas = document.createElement('canvas');
@@ -465,6 +470,138 @@ ${s.name || 'ゲスト'} さんは ${rank.emoji} ${rank.name}（${rank.sub}）�
     });
   }
 
+  async function renderPrimeLicenseToBlob(s) {
+    const W = 1080, H = 1400;
+    const canvas = document.createElement('canvas');
+    canvas.width = W; canvas.height = H;
+    const ctx = canvas.getContext('2d');
+    const gold = '#d9b36c', cream = '#f9f0da', dark = '#0c2927';
+    const x = 60, y = 90, w = 960, h = 1220;
+    if (document.fonts?.ready) await document.fonts.ready;
+
+    ctx.fillStyle = '#ede8db';
+    ctx.fillRect(0, 0, W, H);
+    const cardFill = ctx.createLinearGradient(x, y, x + w, y + h);
+    cardFill.addColorStop(0, '#1c4842');
+    cardFill.addColorStop(0.55, '#123834');
+    cardFill.addColorStop(1, dark);
+    roundRect(ctx, x, y, w, h, 32);
+    ctx.fillStyle = cardFill;
+    ctx.shadowColor = 'rgba(8, 29, 26, 0.28)';
+    ctx.shadowBlur = 38;
+    ctx.shadowOffsetY = 20;
+    ctx.fill();
+    ctx.shadowColor = 'transparent'; ctx.shadowBlur = 0; ctx.shadowOffsetY = 0;
+
+    ctx.strokeStyle = gold; ctx.lineWidth = 3;
+    roundRect(ctx, x, y, w, h, 32); ctx.stroke();
+    ctx.strokeStyle = 'rgba(217, 179, 108, 0.55)'; ctx.lineWidth = 1;
+    roundRect(ctx, x + 15, y + 15, w - 30, h - 30, 22); ctx.stroke();
+
+    // Ruled lines and four small diamonds echo the four islands without a state emblem.
+    ctx.textBaseline = 'alphabetic';
+    ctx.fillStyle = cream;
+    ctx.font = '900 37px "Zen Maru Gothic", sans-serif';
+    ctx.fillText('北方領土ステータス', 112, 166);
+    ctx.fillStyle = gold;
+    ctx.font = '700 19px ui-monospace, monospace';
+    ctx.fillText('PREMIER EDITION  /  05 · 05', 113, 204);
+    ctx.textAlign = 'right';
+    ctx.font = '700 18px ui-monospace, monospace';
+    ctx.fillText(`NO. ${s.userId || '----'}`, 966, 204);
+    ctx.textAlign = 'left';
+    ctx.strokeStyle = 'rgba(217, 179, 108, 0.6)'; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(112, 228); ctx.lineTo(968, 228); ctx.stroke();
+    ctx.textAlign = 'center';
+    ctx.font = '700 17px ui-monospace, monospace';
+    ctx.fillText('◆  ◆  ◆  ◆', W / 2, 274);
+
+    const cx = W / 2, cy = 434, radius = 132;
+    ctx.strokeStyle = gold; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.arc(cx, cy, radius + 15, 0, Math.PI * 2); ctx.stroke();
+    ctx.beginPath(); ctx.arc(cx, cy, radius + 21, 0, Math.PI * 2); ctx.stroke();
+    ctx.save();
+    ctx.beginPath(); ctx.arc(cx, cy, radius, 0, Math.PI * 2); ctx.clip();
+    ctx.fillStyle = cream; ctx.fillRect(cx - radius, cy - radius, radius * 2, radius * 2);
+    try {
+      const src = s.profile?.avatarImage || 'assets/characters/mascot-face.png';
+      const img = await loadImage(src);
+      const side = Math.min(img.width, img.height);
+      ctx.drawImage(img, (img.width - side) / 2, (img.height - side) / 2, side, side,
+        cx - radius, cy - radius, radius * 2, radius * 2);
+    } catch (e) { /* the card remains exportable if the portrait cannot load */ }
+    ctx.restore();
+    ctx.fillStyle = gold;
+    ctx.beginPath(); ctx.arc(cx + 107, cy - 107, 28, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = dark; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.font = '700 26px "Yuji Syuku", serif'; ctx.fillText('四', cx + 107, cy - 106);
+
+    ctx.textBaseline = 'alphabetic';
+    ctx.fillStyle = cream;
+    drawFittedText(ctx, '北方領土総理', cx, 685, 790, 86, '"Yuji Syuku", "Zen Maru Gothic", serif', 'center');
+    ctx.fillStyle = gold;
+    ctx.font = '700 24px ui-monospace, monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText('HOPPOU PRIME MINISTER', cx, 728);
+    ctx.strokeStyle = 'rgba(217, 179, 108, 0.6)';
+    ctx.beginPath(); ctx.moveTo(365, 757); ctx.lineTo(715, 757); ctx.stroke();
+    ctx.font = '700 18px ui-monospace, monospace';
+    ctx.fillText('TIER 05 / 05  ·  50,000 POINTS', cx, 790);
+
+    const drawField = (fx, fy, label, value, monospace = false) => {
+      ctx.fillStyle = 'rgba(249, 240, 218, 0.055)';
+      ctx.strokeStyle = 'rgba(217, 179, 108, 0.6)'; ctx.lineWidth = 1;
+      ctx.fillRect(fx, fy, 404, 86); ctx.strokeRect(fx, fy, 404, 86);
+      ctx.fillStyle = gold; ctx.font = '700 16px ui-monospace, monospace';
+      ctx.textAlign = 'left'; ctx.fillText(label, fx + 18, fy + 30);
+      ctx.fillStyle = cream;
+      drawFittedText(ctx, String(value), fx + 18, fy + 65, 366, 30,
+        monospace ? 'ui-monospace, monospace' : '"Zen Maru Gothic", sans-serif', 'left');
+    };
+    drawField(112, 836, 'NAME', s.name || 'ゲスト');
+    drawField(564, 836, 'LICENSE ID', s.userId || '—', true);
+    drawField(112, 938, 'TOTAL POINTS', (s.totalEarned || 0).toLocaleString(), true);
+    drawField(564, 938, 'ISSUED', formatDateParts(s.createdAt).full, true);
+
+    ctx.strokeStyle = 'rgba(217, 179, 108, 0.55)';
+    ctx.beginPath(); ctx.moveTo(112, 1058); ctx.lineTo(968, 1058); ctx.stroke();
+    ctx.fillStyle = gold; ctx.textAlign = 'left';
+    ctx.font = '700 17px ui-monospace, monospace'; ctx.fillText('SIGNATURE', 122, 1100);
+    ctx.fillStyle = cream;
+    drawFittedText(ctx, s.name || 'ゲスト', 130, 1175, 600, 53, '"Yuji Syuku", serif', 'left');
+    ctx.strokeStyle = gold; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.arc(861, 1140, 61, 0, Math.PI * 2); ctx.stroke();
+    ctx.beginPath(); ctx.arc(861, 1140, 52, 0, Math.PI * 2); ctx.stroke();
+    ctx.fillStyle = gold; ctx.textAlign = 'center';
+    ctx.font = '700 24px "Yuji Syuku", serif';
+    ctx.fillText('四島', 861, 1134); ctx.fillText('学習', 861, 1162);
+
+    ctx.strokeStyle = 'rgba(217, 179, 108, 0.45)'; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(112, 1230); ctx.lineTo(968, 1230); ctx.stroke();
+    ctx.fillStyle = 'rgba(249, 240, 218, 0.75)';
+    ctx.font = '500 16px "Zen Maru Gothic", sans-serif'; ctx.textAlign = 'center';
+    ctx.fillText('学習記録用のカードです。公的な身分証明書ではありません。', cx, 1265);
+    ctx.fillStyle = '#45615b';
+    ctx.font = '700 18px ui-monospace, monospace';
+    ctx.fillText('HOPPOU STATUS   •   ViFight', cx, 1360);
+
+    return new Promise((resolve, reject) => {
+      canvas.toBlob(blob => blob
+        ? resolve({ blob, filename: `hoppou-prime-${s.userId || 'guest'}.png` })
+        : reject(new Error('Canvas export failed')), 'image/png');
+    });
+  }
+
+  function drawFittedText(ctx, value, x, y, maxWidth, size, family, align) {
+    ctx.textAlign = align;
+    while (size > 15) {
+      ctx.font = `700 ${size}px ${family}`;
+      if (ctx.measureText(value).width <= maxWidth) break;
+      size -= 2;
+    }
+    ctx.fillText(value, x, y, maxWidth);
+  }
+
   function roundRect(ctx, x, y, w, h, r) {
     const rr = Math.min(r, w / 2, h / 2);
     ctx.beginPath();
@@ -524,5 +661,15 @@ ${s.name || 'ゲスト'} さんは ${rank.emoji} ${rank.name}（${rank.sub}）�
     }
   }
 
-  window.License = { init() { bind(); render(); }, refresh: render };
+  window.License = {
+    init() {
+      bind();
+      render();
+      Store.on('change', () => {
+        const page = document.querySelector('[data-page="license"]');
+        if (page && !page.hidden) render();
+      });
+    },
+    refresh: render
+  };
 })();
