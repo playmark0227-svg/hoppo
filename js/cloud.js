@@ -22,6 +22,10 @@
     unsubscribers.forEach(fn => fn()); unsubscribers = [];
     account = null; people = []; following = []; blocked = []; threads = []; friendProfiles = []; reads = {}; initialHydration = false; hydrationPending = []; hydrationFailed = false;
   };
+  function invalidateAccount() {
+    generation++;
+    clear(); Store.clearRemote({ clearPersonal: true }); Settings.syncFields(); notify();
+  }
   const errors = {
     'auth/invalid-credential': 'メールアドレスまたはパスワードを確認してください。',
     'auth/email-already-in-use': '登録できませんでした。ログインまたはパスワード再設定をお試しください。',
@@ -171,7 +175,7 @@
     try { return (await sdk.httpsCallable(functions, name)(data)).data; }
     catch (error) {
       if (error?.code === 'functions/unauthenticated' && currentUser) {
-        clear(); Store.clearRemote({ clearPersonal: true }); Settings.syncFields(); notify();
+        invalidateAccount();
         await sdk.signOut(auth);
       }
       throw error;
@@ -182,7 +186,8 @@
       let received = false;
       unsubscribers.push(sdk.onSnapshot(ref, { includeMetadataChanges: true }, snap => {
         if (generation !== epoch) return;
-        Promise.resolve().then(() => fn(snap)).then(() => {
+        Promise.resolve().then(() => { if (generation === epoch) return fn(snap); }).then(() => {
+          if (generation !== epoch) return;
           if (!received && !snap.metadata?.fromCache) {
             received = true;
             hydrationPending = hydrationPending.filter(item => item !== label);
@@ -193,7 +198,8 @@
       }, error => {
         if (generation !== epoch) return;
         if (['permission-denied', 'unauthenticated'].includes(error.code)) {
-          clear(); Store.clearRemote({ clearPersonal: true }); Settings.syncFields(); notify();
+          invalidateAccount();
+          sdk.signOut(auth).catch(() => {});
         }
         status('データを取得できません。サーバー設定と接続を確認してください。', true);
         if (!received) reject(error);
@@ -477,7 +483,7 @@
       status('FirebaseまたはApp Checkの設定が未完了です。', true); throw new Error('クラウド設定が未完了です。');
     }
     try {
-      sdk = await import('./vendor/firebase.js?v=55');
+      sdk = await import('./vendor/firebase.js?v=56');
       const app = sdk.initializeApp(config.firebase);
       auth = sdk.getAuth(app); db = sdk.getFirestore(app); functions = sdk.getFunctions(app, config.region || 'asia-northeast1');
       auth.languageCode = 'ja';
@@ -520,7 +526,7 @@
         throw new Error('line-requires-recent-login');
       }
     }
-    if (!liffPromise) liffPromise = import('./vendor/liff.js?v=55').then(module => module.default).catch(() => {
+    if (!liffPromise) liffPromise = import('./vendor/liff.js?v=56').then(module => module.default).catch(() => {
       liffPromise = null; throw new Error('line-sdk');
     });
     const liff = await liffPromise;
@@ -566,10 +572,12 @@
     watchMessages(threadId, cb, onError) {
       if (!account) return () => {};
       const epoch = generation, user = currentUser;
-      return sdk.onSnapshot(sdk.query(sdk.collection(db, 'threads', threadId, 'messages'), sdk.orderBy('at', 'desc'), sdk.limit(100)),
+      let listening = true;
+      const stop = sdk.onSnapshot(sdk.query(sdk.collection(db, 'threads', threadId, 'messages'), sdk.orderBy('at', 'desc'), sdk.limit(100)),
         snap => {
-          if (epoch === generation && user === currentUser && account) cb(snap.docs.map(doc => ({ id: doc.id, ...doc.data() })).reverse());
-        }, error => { if (epoch === generation && user === currentUser) { cb([]); onError?.(error); } });
+          if (listening && epoch === generation && user === currentUser && account) cb(snap.docs.map(doc => ({ id: doc.id, ...doc.data() })).reverse());
+        }, error => { if (listening && epoch === generation && user === currentUser) { cb([]); onError?.(error); } });
+      return () => { listening = false; stop(); };
     }
   };
 })();

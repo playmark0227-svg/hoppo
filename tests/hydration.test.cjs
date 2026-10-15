@@ -35,6 +35,7 @@ function harness() {
     async getDocFromServer(ref) { return this.getDoc(ref); },
     httpsCallable(_functions, name) { return async () => ({ data: { name } }); },
     onSnapshot(ref, _options, callback, error) {
+      if (typeof _options === 'function') { error = callback; callback = _options; }
       events.snapshots.push({ ref, callback, error });
       return () => {};
     }
@@ -98,4 +99,27 @@ test('failed initial account load never releases the gate as a guest session', a
   for (const watcher of events.snapshots.slice(1)) watcher.callback(snapshot(watcher.ref));
   await tick();
   assert.equal(events.progress, progress, 'late snapshots must not hide the retry button');
+});
+test('a queued private snapshot cannot repopulate state after logout', async () => {
+  const { window, events, user } = harness();
+  const boot = window.Cloud.init(); await tick();
+  events.auth(user); await tick();
+  events.snapshots[0].callback(snapshot('users/test-uid'));
+  events.auth(null); await tick(); await boot;
+  assert.deepEqual(events.applied, [], 'private callbacks queued before logout must be discarded');
+  assert.equal(window.Cloud.account, null);
+});
+
+test('an unsubscribed conversation ignores a late message callback', async () => {
+  const { window, events, user } = harness();
+  const boot = window.Cloud.init(); await tick();
+  events.auth(user); await tick();
+  for (const watcher of events.snapshots) watcher.callback(snapshot(watcher.ref));
+  await tick(); await boot;
+  const delivered = [];
+  const stop = window.Cloud.watchMessages('thread-a', messages => delivered.push(messages));
+  const watcher = events.snapshots.at(-1);
+  stop();
+  watcher.callback({ docs: [{ id: 'message', data: () => ({ text: 'private' }) }] });
+  assert.deepEqual(delivered, [], 'a previous thread must not render into a newly opened conversation');
 });

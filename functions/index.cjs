@@ -23,7 +23,10 @@ function callable(handler, { anonymous = false, recent = false } = {}) {
     if (!anonymous || req.auth) {
       const id = uid(req);
       try { req.identity = await getAuth().getUser(id); }
-      catch { fail('unauthenticated', '再度ログインしてください。'); }
+      catch (error) {
+        if (error.code === 'auth/user-not-found') fail('unauthenticated', '再度ログインしてください。');
+        fail('unavailable', 'ログイン状態を確認できません。時間を空けてお試しください。');
+      }
       // Callable verifies the signature; the current Auth record also rejects revoked/disabled sessions.
       S.validateSession(req.auth.token, req.identity);
       if (recent) S.requireRecentLogin(req.auth.token);
@@ -87,7 +90,7 @@ async function verifyLineToken(token) {
 exports.exchangeLineToken = callable(async (req) => {
   const now = new Date(), minute = Math.floor(+now / 60000);
   const rate = db.doc(`authLimits/${P.hash(`${req.rawRequest.ip}:${minute}`)}`);
-  await db.runTransaction(async tx => consume(tx, rate, await tx.get(rate), 20, now));
+  await db.runTransaction(async tx => consume(tx, rate, await tx.get(rate), 120, now));
   const line = await verifyLineToken(req.data?.idToken), lineHash = line.hash;
   const linked = await db.doc(`lineLinks/${lineHash}`).get();
   const id = linked.exists ? linked.data().uid : `line_${lineHash}`;

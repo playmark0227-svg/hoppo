@@ -8,11 +8,11 @@
 - 通常ログイン：Firebase Authentication のメール・パスワード。確認メール、パスワード再設定、永続ログイン、ログアウト。
 - LINE：LIFFのIDトークンを callable `exchangeLineToken` に渡し、LINE verify APIで検証後、Firebaseカスタムトークンを発行。既存のメール確認済みアカウントへの連携は、明示同意後に別の callable `linkLineAccount` で行います。LINEプロフィールを認証の証拠として信用しません。
 - データ：Firestore。ブラウザからの書き込みは全て拒否し、Cloud Functionsが登録、ポイント、フォロー、DMを操作。
-- App Check：reCAPTCHA Enterprise。全callableで必須（ローカルエミュレーター以外）。Firestoreもコンソールで強制適用してください。
+- App Check：reCAPTCHA Enterprise。全callableで必須（ローカルエミュレーター以外）。Firestoreにも強制適用済みです。
 
 ## 設定状況（2026-10-15）
 
-配信アセットはv55。`docs/RELEASE-CHECK.md` は以前のリリース時点の記録です。v55の防御・運用手順は `SECURITY.md`、本番の読み戻しは `node scripts/security-audit.cjs` を参照してください。
+配信アセットはv56。`docs/RELEASE-CHECK.md` は以前のリリース時点の記録です。v55・v56の防御・運用手順は `SECURITY.md`、本番の読み戻しは `node scripts/security-audit.cjs` を参照してください。
 
 - 会社アカウントで専用プロジェクト `hoppo-status-vifight` とWebアプリを作成。
 - Firestoreは東京 `asia-northeast1`、削除保護あり。ルールとインデックスは配備済み。
@@ -20,12 +20,12 @@
 - `hoppo-status.vifight.com` とGitHub PagesドメインをFirebase Authの承認済みドメイン・reCAPTCHA Enterpriseの許可ドメインに登録。
 - 管理者がChrome画面でBlazeの請求先接続を完了。Firebase APIでも有効化を確認。
 - FirestoreのApp Check強制適用は設定済み。ビルドイメージの保持期間は7日。
-- v55で実行IDを `hoppo-runtime` に分離。Firestore操作、Auth利用者の取得・削除、ログ出力と自身へのsignBlobだけに限定。ビルド用compute IDのアプリデータ・Auth管理権限と自己トークン権限を解除します。秘密鍵ファイルは発行していません。
+- v55で実行IDを `hoppo-runtime` に分離。Firestore操作、Auth利用者の取得・削除、ログ出力と自身へのsignBlobだけに限定。ビルド用compute IDのアプリデータ・Auth管理権限と自己トークン権限は解除済みです。秘密鍵ファイルは発行していません。
 - 月10米ドルの目安として承認された月1,500円（請求通貨JPY）の予算通知を、このプロジェクトだけに設定。実績50/90/100%および月末予測100%で通知。支出の自動停止は設定していません。
 - Web設定を `enabled: true` に変更。LINE Loginチャネルは公開済み、LIFF `2012022040-tYo7QPPo` の接続先は独自ドメイン。実LINEアカウントでのログイン・既存アカウントへの連携は未検証。
 - v55は一括クイズ採点 `submitQuiz` を含む15関数が対象。`allUsers`へのInvoker付与は組織ポリシーで拒否されたため、対象サービスのHTTP入口でFirebase認証・メール確認・App Checkを要求。匿名のLINE交換もApp CheckとLINE公式verifyが必須。未認証の実HTTP拒否は監査スクリプトで確認します。
 - LINE公式アカウント `@569qepzp` の6分割リッチメニューは表示設定済み。友だち追加URLは `https://lin.ee/zHLPt21`。画像には現在許可されているしろくま素材のみを使用。
-- Squarespaceの `hoppo-status` CNAME、GitHub Pagesのカスタムドメイン設定、HTTPS応答を確認。GitHub Pagesへのv45フロント反映は公開URLで別途読み戻して確認します。
+- Squarespaceの `hoppo-status` CNAME、GitHub Pagesのカスタムドメイン設定、HTTPS応答を確認。GitHub PagesのフロントとFirebaseのバックエンドは別の配備先です。どちらも公開後に読み戻して確認します。
 - `functions/index.cjs` の `invoker: 'private'` は `allUsers` IAM付与を避けるためです。承認後に各サービスのIAMチェックだけを別途設定し、再配備後にもHTTP入口の状態を確認してください。
 - Googleは会社アカウントのMFAを2026-10-20までに設定するよう案内。本人による設定が必要。
 
@@ -68,7 +68,7 @@ npx firebase deploy --project YOUR_PROJECT_ID --only firestore,functions
 
 1. LINE Loginチャネル `2012022040` は公開済み。LIFF `2012022040-tYo7QPPo` は `https://hoppo-status.vifight.com/` を接続先とし、`openid` を要求します。通常のメールログインも残します。
 2. サーバー環境の `LINE_CHANNEL_ID` はこのチャネルIDに設定済み。リポジトリには秘密鍵・管理用トークンを含めません。IDトークンはLINEのverify APIでチャネル・発行者・有効期限を検査します。
-3. 実行サービスアカウント `715700450155-compute@developer.gserviceaccount.com` 自身にだけ `Service Account Token Creator` を付与済み。カスタムトークン用の鍵ファイルは作成していません。
+3. 実行サービスアカウント `hoppo-runtime@hoppo-status-vifight.iam.gserviceaccount.com` 自身に、`iam.serviceAccounts.signBlob` だけのカスタムロールを付与済みです。以前のcompute IDのToken Creatorは解除しました。カスタムトークン用の鍵ファイルは作成していません。
 4. 既存のメール確認済みアカウントからの連携は本人の同意を要求し、`lineLinks` に一意に記録します。別の学習記録があるLINEアカウントは自動統合せず拒否します。先にLINEだけで新規学習記録を作った場合も自動統合しません。
 5. 実LINEアカウントでログイン、既存メールアカウントとの連携、期限切れ・別チャネルの拒否、再ログイン、別端末での記録共有を検証する必要があります。エミュレーターのブラウザ検査は、LINE認証そのものの証明ではありません。
 
@@ -89,7 +89,7 @@ node scripts/create-event.cjs YOUR_PROJECT_ID 'イベント名' 50 '2026-12-01T0
 - Quizの出典・全設問・解説の正確性を公式資料で再確認。サーバーへの移行は教材の事実確認を意味しません。改訂時は `scripts/catalog.cjs` の版も更新して生成し直す。
 - しろくま素材と地図・写真の利用権・必要なクレジットを確認。エリカちゃんの素材は使用しません。
 - 古い配布用Word/Excelには旧仕様が残っています。今回のクラウド仕様と合わせた再生成は別途必要です。
-- DM、通報、限度回数、学習履歴の保持期間と削除運用を確定。quizSessionsは30分で論理失効しますが自動削除は未設定、運用バッチまたはTTL用Timestampを追加して削除管理してください。
+- DM、通報、学習履歴の保持期間と削除運用を確定。quizSessionsは30分で論理失効し、新規レコードは1日後のTTL対象です。limits・authLimits・quizSubmissionsの新規レコードは7日後のTTL対象です。4つのTTLポリシーはACTIVEを読み戻し済み。期限フィールドのない旧レコードは別途削除管理が必要です。
 - Firebaseの本番プロジェクト・監視・予算・アクセス権・App Check強制適用・バックアップを確認。未設定のまま「本番公開済み」と案内しない。
 
 ## ローカル検証
@@ -98,7 +98,7 @@ node scripts/create-event.cjs YOUR_PROJECT_ID 'イベント名' 50 '2026-12-01T0
 
 `tests/browser.cjs` はプレビュー3サイズ、`tests/browser-cloud.cjs` はエミュレーターの2人登録、実DM通信、メール確認済みユーザーへのLINE連携導線を検査。スクリーンショットは `docs/qa-production/` に保存。ブラウザテスト用のHTTPエミュレーター許可はテスト環境だけで、本番CSPは変更しません。実LINE認証・実メール到達・本番App Checkはこのテストの対象外です。
 
-`tests/public-smoke.cjs` は公開URLのスマホ・PC表示とログイン導線を撮影します。2026-10-15のヘッドレスChromeでは画面表示は正常でしたが、App Checkの確認に失敗してログインボタンが無効になりました。これは通常ブラウザでの失敗を証明するものではありません。通常ブラウザでApp Checkが有効になり、実際にメール・LINE双方でサインインできることを別途確認するまで、認証の本番動作を検証済みと扱わないでください。
+`tests/public-smoke.cjs` は公開URLのスマホ・PC表示とログイン導線を撮影します。2026-10-15のヘッドレスChromeではApp Checkを通過できず、この自動検査は未完了です。同日の通常ChromeではApp Check確認後にメール・LINEログインボタンが有効になることと表示を確認しました。今回のセキュリティ検証では実ユーザーのパスワード入力・メール送信・LINEサインインは行っていません。認証UIの有効化と実サインインの検証は分けて扱ってください。
 
 開発ツール側の既知依存警告が残っていますが、本番Functions依存のnpm auditは0件でした。新しい依存の更新時にも検査してください。本番のNode22でもエミュレーターテストを行い、CIもNode22に固定しています。
 

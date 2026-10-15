@@ -14,7 +14,9 @@ async function cloudAdmin() {
     const data = await response.json();
     if (!response.ok) {
       const error = new Error(`Google API: HTTP ${response.status} (${data.error?.status || 'unknown'})`);
-      error.status = response.status; throw error;
+      error.status = response.status;
+      error.apiMessage = data.error?.message;
+      throw error;
     }
     return data;
   };
