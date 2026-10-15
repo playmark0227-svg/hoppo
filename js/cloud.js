@@ -483,7 +483,7 @@
       status('FirebaseまたはApp Checkの設定が未完了です。', true); throw new Error('クラウド設定が未完了です。');
     }
     try {
-      sdk = await import('./vendor/firebase.js?v=56');
+      sdk = await import('./vendor/firebase.js?v=57');
       const app = sdk.initializeApp(config.firebase);
       auth = sdk.getAuth(app); db = sdk.getFirestore(app); functions = sdk.getFunctions(app, config.region || 'asia-northeast1');
       auth.languageCode = 'ja';
@@ -526,7 +526,7 @@
         throw new Error('line-requires-recent-login');
       }
     }
-    if (!liffPromise) liffPromise = import('./vendor/liff.js?v=56').then(module => module.default).catch(() => {
+    if (!liffPromise) liffPromise = import('./vendor/liff.js?v=57').then(module => module.default).catch(() => {
       liffPromise = null; throw new Error('line-sdk');
     });
     const liff = await liffPromise;

@@ -3,6 +3,7 @@ for (const args of [
   ['--test', 'tests/security.test.cjs', 'tests/policy.test.cjs', 'tests/store.test.cjs', 'tests/auth.test.cjs', 'tests/hydration.test.cjs'],
   ['--test', 'tests/rules.test.cjs'],
   ['--test', 'tests/integration.test.cjs'],
+  ['tests/loader-layout.cjs'],
   ['tests/browser-cloud.cjs'],
   ['tests/browser-auth-recovery.cjs']
 ]) {
