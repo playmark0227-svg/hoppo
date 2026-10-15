@@ -64,6 +64,8 @@ async function main() {
     assert.equal(await page.locator('#authLineLinkArea').isVisible(), true, 'verified password account must be offered LINE linking');
     assert.equal(await page.locator('#authLineLinkBtn').isVisible(), true);
     if (width === 390) await page.screenshot({ path: 'docs/qa-production/mobile-line-link-v45.png' });
+    try { await page.locator('#loader').waitFor({ state: 'detached', timeout: 15000 }); }
+    catch (error) { console.error('Hydration state:', await page.evaluate(() => ({ pending: Cloud.hydrationPending, loader: document.getElementById('loader')?.outerHTML.slice(-800), authStatus: document.getElementById('authStatus').textContent, account: !!Cloud.account }))); throw error; }
     await page.locator('#authModal [data-close]').last().click(); await page.waitForTimeout(300);
     assert.equal(await page.evaluate(() => document.querySelector('.account-panel').getClientRects().length), 1,
       'account panel must not be split across desktop columns');
@@ -197,7 +199,9 @@ async function main() {
     await b.page.screenshot({ path: 'docs/qa-production/desktop-live-dm.png' });
     await a.context.close();
     // Persisted Firebase session must restore the same cloud account after reload, without re-consent.
-    await b.page.reload({ waitUntil: 'domcontentloaded' }); await b.page.waitForFunction(() => !!Cloud.account);
+    await b.page.reload({ waitUntil: 'domcontentloaded' });
+    await b.page.locator('#loader').waitFor({ state: 'detached', timeout: 20000 });
+    await b.page.waitForFunction(() => !!Cloud.account);
     assert.equal(await b.page.evaluate(() => Cloud.account.profile.name), '登録者B');
     await b.page.evaluate(() => Cloud.open()); await b.page.locator('#authLogoutBtn').click(); await b.page.waitForFunction(() => !Cloud.user);
     assert.equal(await b.page.evaluate(() => Store.get().points), 0);

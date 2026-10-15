@@ -6,7 +6,7 @@ export {
   signInWithCustomToken, connectAuthEmulator
 } from 'firebase/auth';
 export {
-  getFirestore, doc, collection, query, where, orderBy, limit, onSnapshot, getDoc,
+  getFirestore, doc, collection, query, where, orderBy, limit, onSnapshot, getDoc, getDocFromServer,
   connectFirestoreEmulator
 } from 'firebase/firestore';
 export { getFunctions, httpsCallable, connectFunctionsEmulator } from 'firebase/functions';

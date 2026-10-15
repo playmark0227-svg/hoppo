@@ -119,12 +119,30 @@
     document.documentElement.dataset.islandTheme = themeOn ? (p.favoriteIsland || '') : '';
   }
 
-  function hideLoader() {
-    const loader = document.getElementById('loader');
+  const loader = document.getElementById('loader');
+  let loaderTimer;
+  function showLoader(message = 'アカウントのデータを読み込んでいます…') {
     if (!loader) return;
-    setTimeout(() => loader.classList.add('hide'), 500);
-    setTimeout(() => loader.remove(), 1200);
+    clearTimeout(loaderTimer);
+    if (!loader.isConnected) document.body.append(loader);
+    loader.classList.remove('hide');
+    document.getElementById('loaderStatus').textContent = message;
+    document.getElementById('loaderRetry').hidden = true;
   }
+  function finishLoading(outcome) {
+    if (!loader || loader.classList.contains('hide')) return;
+    clearTimeout(loaderTimer);
+    loader.classList.add('hide');
+    loaderTimer = setTimeout(() => {
+      loader.remove();
+      if (outcome === 'action') Cloud.open();
+    }, 650);
+  }
+  function loadingError() {
+    showLoader('アカウントデータを読み込めませんでした。通信を確認して再試行してください。');
+    document.getElementById('loaderRetry').hidden = false;
+  }
+  window.App = { showLoader, finishLoading, loadingError };
 
   function handleInitialRoute() {
     const hash = (location.hash || '#home').replace('#', '');
@@ -154,7 +172,7 @@
     if (window.Stamps) Stamps.init();
     if (window.Social) Social.init();
     if (window.Tutorial) Tutorial.init();
-    if (window.Cloud) Cloud.init();
+    const cloudBoot = window.Cloud ? Cloud.init() : Promise.resolve('preview');
 
     // Re-apply avatar style after Store changes (e.g. import)
     Store.on('change', applyAvatarStyleFromStore);
@@ -174,7 +192,21 @@
     if (window.Achievements) window.Achievements.evaluateAll();
 
     handleInitialRoute();
-    hideLoader();
+    document.getElementById('loaderRetry').addEventListener('click', () => location.reload());
+    let startupFinished = false;
+    const timeout = setTimeout(() => {
+      if (!startupFinished) { startupFinished = true; loadingError(); }
+    }, 20000);
+    Promise.resolve(cloudBoot).then(outcome => {
+      if (startupFinished) return;
+      startupFinished = true; clearTimeout(timeout);
+      finishLoading(outcome);
+    }, error => {
+      if (startupFinished) return;
+      startupFinished = true; clearTimeout(timeout);
+      console.error('Account startup failed:', error);
+      loadingError();
+    });
 
     // hash-based back/forward
     window.addEventListener('hashchange', handleInitialRoute);

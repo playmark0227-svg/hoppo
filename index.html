@@ -52,13 +52,13 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700;900&family=Yuji+Syuku&display=swap" rel="stylesheet" crossorigin="anonymous">
 
-  <link rel="stylesheet" href="css/style.css?v=49">
-  <link rel="stylesheet" href="css/account.css?v=49">
+  <link rel="stylesheet" href="css/style.css?v=50">
+  <link rel="stylesheet" href="css/account.css?v=50">
 </head>
 <body>
 
   <!-- Loading -->
-  <div id="loader" class="loader">
+  <div id="loader" class="loader" role="status" aria-live="polite">
     <div class="loader-scene">
       <div class="loader-sun"></div>
       <div class="loader-wave"></div>
@@ -67,6 +67,8 @@
       </div>
       <div class="loader-title">北方領土ステータス</div>
       <div class="loader-dots"><span></span><span></span><span></span></div>
+      <p class="loader-status" id="loaderStatus">アカウントの状態を確認しています…</p>
+      <button type="button" class="loader-retry" id="loaderRetry" hidden>再読み込み</button>
     </div>
   </div>
 
@@ -1493,21 +1495,21 @@
     <canvas id="confetti" class="confetti"></canvas>
   </div>
 
-  <script defer src="js/data.js?v=49"></script>
-  <script defer src="js/quiz-extra.js?v=49"></script>
-  <script defer src="js/store.js?v=49"></script>
-  <script defer src="js/ui.js?v=49"></script>
-  <script defer src="js/cloud-config.js?v=49"></script>
-  <script defer src="js/cloud.js?v=49"></script>
-  <script defer src="js/achievements.js?v=49"></script>
-  <script defer src="js/quiz.js?v=49"></script>
-  <script defer src="js/shop.js?v=49"></script>
-  <script defer src="js/qr.js?v=49"></script>
-  <script defer src="js/license.js?v=49"></script>
-  <script defer src="js/settings.js?v=49"></script>
-  <script defer src="js/stamps.js?v=49"></script>
-  <script defer src="js/social.js?v=49"></script>
-  <script defer src="js/tutorial.js?v=49"></script>
-  <script defer src="js/app.js?v=49"></script>
+  <script defer src="js/data.js?v=50"></script>
+  <script defer src="js/quiz-extra.js?v=50"></script>
+  <script defer src="js/store.js?v=50"></script>
+  <script defer src="js/ui.js?v=50"></script>
+  <script defer src="js/cloud-config.js?v=50"></script>
+  <script defer src="js/cloud.js?v=50"></script>
+  <script defer src="js/achievements.js?v=50"></script>
+  <script defer src="js/quiz.js?v=50"></script>
+  <script defer src="js/shop.js?v=50"></script>
+  <script defer src="js/qr.js?v=50"></script>
+  <script defer src="js/license.js?v=50"></script>
+  <script defer src="js/settings.js?v=50"></script>
+  <script defer src="js/stamps.js?v=50"></script>
+  <script defer src="js/social.js?v=50"></script>
+  <script defer src="js/tutorial.js?v=50"></script>
+  <script defer src="js/app.js?v=50"></script>
 </body>
 </html>

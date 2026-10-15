@@ -167,6 +167,19 @@ code { font-family: 'SFMono-Regular', ui-monospace, 'Kosugi Maru', monospace; }
 }
 .loader-dots span:nth-child(2) { animation-delay: 0.15s; background: var(--c-ocean); }
 .loader-dots span:nth-child(3) { animation-delay: 0.30s; background: var(--c-gold); }
+.loader-status {
+  position: absolute; top: 326px; left: 0; right: 0;
+  margin: 0; color: var(--c-ink); font-size: 0.82rem;
+  line-height: 1.6; font-weight: 700;
+}
+.loader-retry {
+  position: absolute; top: 388px; left: 50%; transform: translateX(-50%);
+  min-width: 150px; min-height: 44px; padding: 8px 20px;
+  border: 1px solid var(--c-ocean-deep); border-radius: 6px;
+  background: #fff; color: var(--c-ocean-deep); font-weight: 700;
+  cursor: pointer;
+}
+.loader-retry[hidden] { display: none; }
 @keyframes loader-dot {
   0%,100% { transform: translateY(0); opacity: 0.4; }
   50%     { transform: translateY(-6px); opacity: 1; }

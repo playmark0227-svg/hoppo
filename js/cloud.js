@@ -9,10 +9,18 @@
   let unsubscribers = [], generation = 0, initialHydration = false;
   let people = [], following = [], blocked = [], threads = [], busy = false, friendProfiles = [], reads = {}, authMode = 'login';
   let profileDirty = false, profileSaving = false, profileRevision = 0;
+  let resolveBoot, rejectBoot, bootSettled = false;
+  let hydrationPending = [], hydrationFailed = false;
+  const boot = new Promise((resolve, reject) => { resolveBoot = resolve; rejectBoot = reject; });
+  function finishBoot(error, outcome) {
+    if (bootSettled) return;
+    bootSettled = true;
+    if (error) rejectBoot(error); else resolveBoot(outcome);
+  }
   const notify = () => { listeners.forEach(fn => fn()); renderAccount(); };
   const clear = () => {
     unsubscribers.forEach(fn => fn()); unsubscribers = [];
-    account = null; people = []; following = []; blocked = []; threads = []; friendProfiles = []; reads = {}; initialHydration = false;
+    account = null; people = []; following = []; blocked = []; threads = []; friendProfiles = []; reads = {}; initialHydration = false; hydrationPending = []; hydrationFailed = false;
   };
   const errors = {
     'auth/invalid-credential': 'メールアドレスまたはパスワードを確認してください。',
@@ -160,69 +168,108 @@
     if (!sdk || !config.enabled) throw new Error('not-configured');
     return (await sdk.httpsCallable(functions, name)(data)).data;
   }
-  function watch(ref, fn, epoch) {
-    unsubscribers.push(sdk.onSnapshot(ref, snap => {
-      if (generation === epoch) fn(snap);
-    }, () => { if (generation === epoch) status('データを取得できません。サーバー設定と接続を確認してください。', true); }));
+  function watch(ref, fn, epoch, label) {
+    return new Promise((resolve, reject) => {
+      let received = false;
+      unsubscribers.push(sdk.onSnapshot(ref, { includeMetadataChanges: true }, snap => {
+        if (generation !== epoch) return;
+        Promise.resolve().then(() => fn(snap)).then(() => {
+          if (!received && !snap.metadata?.fromCache) {
+            received = true;
+            hydrationPending = hydrationPending.filter(item => item !== label);
+            if (!hydrationFailed) window.App?.showLoader(`アカウントのデータを読み込んでいます…（${6 - hydrationPending.length}/6）`);
+            resolve();
+          }
+        }).catch(error => { if (!received) reject(error); else failure(error); });
+      }, error => {
+        if (generation !== epoch) return;
+        status('データを取得できません。サーバー設定と接続を確認してください。', true);
+        if (!received) reject(error);
+      }));
+    });
   }
   async function connectAccount(epoch) {
     if (!currentUser || !identityVerified) return;
     const user = currentUser;
     await user.getIdToken(true);
-    const existing = await sdk.getDoc(sdk.doc(db, 'users', user.uid));
+    const existing = await sdk.getDocFromServer(sdk.doc(db, 'users', user.uid));
     if (epoch !== generation || currentUser !== user) return;
     if (existing.data()?.termsVersion !== '2026-10-14' && !document.getElementById('authTerms').checked) {
-      status('利用条件・データの扱いを確認し、同意して「利用を開始」を押してください。'); return;
+      status('利用条件・データの扱いを確認し、同意して「利用を開始」を押してください。'); return 'action';
     }
     await call('ensureAccount', { termsVersion: '2026-10-14', name: document.getElementById('authNickname').value });
     if (epoch !== generation || currentUser !== user) return;
-    watch(sdk.doc(db, 'users', user.uid), snap => {
-      if (!snap.exists()) return;
+    // The daily bonus changes points; subscribe after it so the first server snapshot is current.
+    await call('claimDaily');
+    if (epoch !== generation || currentUser !== user) return;
+    const initial = [];
+    hydrationPending = ['プロフィール', 'ランキング', 'フレンド', 'ブロック', '既読', 'メッセージ'];
+    initial.push(watch(sdk.doc(db, 'users', user.uid), snap => {
+      if (!snap.exists()) {
+        if (snap.metadata?.fromCache) return;
+        throw new Error('アカウントデータが見つかりません。');
+      }
       account = snap.data();
-      if (account.suspended || account.deleting) { clear(); Store.clearRemote(); notify(); status('このアカウントは利用できません。', true); return; }
+      if (account.suspended || account.deleting) throw new Error('このアカウントは利用できません。');
       const hydrateProfile = !initialHydration || (!profileDirty && !profileSaving);
       Store.applyRemote(account, user.uid, hydrateProfile); initialHydration = true;
       if (hydrateProfile) Settings.syncFields();
       notify(); UI.refreshHome();
       if (window.License) License.refresh();
       if (window.Stamps) Stamps.refresh();
-    }, epoch);
-    watch(sdk.query(sdk.collection(db, 'publicProfiles'), sdk.orderBy('totalEarned', 'desc'), sdk.limit(100)), snap => {
+    }, epoch, 'プロフィール'));
+    initial.push(watch(sdk.query(sdk.collection(db, 'publicProfiles'), sdk.orderBy('totalEarned', 'desc'), sdk.limit(100)), snap => {
       people = snap.docs.map(doc => doc.data()); notify();
-    }, epoch);
-    watch(sdk.query(sdk.collection(db, 'users', user.uid, 'following'), sdk.limit(100)), async snap => {
+    }, epoch, 'ランキング'));
+    initial.push(watch(sdk.query(sdk.collection(db, 'users', user.uid, 'following'), sdk.limit(100)), async snap => {
       following = snap.docs.map(doc => doc.id); notify(); const requested = following.slice();
       try {
         const results = await Promise.all(requested.map(id => sdk.getDoc(sdk.doc(db, 'publicProfiles', id))));
         if (generation === epoch && JSON.stringify(requested) === JSON.stringify(following)) { friendProfiles = results.filter(s => s.exists()).map(s => s.data()); notify(); }
-      } catch { /* retain the leaderboard and existing conversations */ }
-    }, epoch);
-    watch(sdk.collection(db, 'users', user.uid, 'blocks'), snap => { blocked = snap.docs.map(doc => doc.id); notify(); }, epoch);
-    watch(sdk.collection(db, 'users', user.uid, 'reads'), snap => { reads = Object.fromEntries(snap.docs.map(doc => [doc.id, doc.data().at])); notify(); }, epoch);
-    watch(sdk.query(sdk.collection(db, 'threads'), sdk.where('members', 'array-contains', user.uid), sdk.orderBy('updatedAt', 'desc'), sdk.limit(50)), snap => {
+      } catch (error) { if (!initialHydration) throw error; }
+    }, epoch, 'フレンド'));
+    initial.push(watch(sdk.collection(db, 'users', user.uid, 'blocks'), snap => { blocked = snap.docs.map(doc => doc.id); notify(); }, epoch, 'ブロック'));
+    initial.push(watch(sdk.collection(db, 'users', user.uid, 'reads'), snap => { reads = Object.fromEntries(snap.docs.map(doc => [doc.id, doc.data().at])); notify(); }, epoch, '既読'));
+    initial.push(watch(sdk.query(sdk.collection(db, 'threads'), sdk.where('members', 'array-contains', user.uid), sdk.orderBy('updatedAt', 'desc'), sdk.limit(50)), snap => {
       threads = snap.docs.map(doc => ({ id: doc.id, ...doc.data() })); notify();
-    }, epoch);
-    await call('claimDaily');
+    }, epoch, 'メッセージ'));
+    await Promise.all(initial);
+    if (epoch !== generation || currentUser !== user) return;
     if (epoch === generation) status('ログインしました。プロフィールからランキング参加を選べます。');
+    return 'ready';
   }
   async function session(user) {
-    const epoch = ++generation; clear(); Store.clearRemote(); Settings.syncFields(); currentUser = user;
+    const epoch = ++generation;
+    if (user) window.App?.showLoader('プロフィール・ポイント・交流データを読み込んでいます…');
+    const previousUid = currentUser?.uid;
+    clear(); currentUser = user;
+    if (!user || (previousUid && previousUid !== user.uid)) { Store.clearRemote(); Settings.syncFields(); }
     identityVerified = false; emailSession = false;
     profileDirty = false; profileSaving = false; profileRevision = 0;
     profileStatus('プロフィールの変更は保存ボタンでクラウドに反映されます。');
     notify();
-    if (!user) return;
+    if (!user) { finishBoot(null, 'signedOut'); window.App?.finishLoading(); return; }
     try {
       const token = await user.getIdTokenResult();
       if (epoch !== generation || currentUser !== user) return;
       identityVerified = user.emailVerified || token.claims.lineVerified === true;
       emailSession = !!user.email && user.emailVerified && token.signInProvider === 'password';
       renderAccount();
-    } catch (error) { if (epoch === generation) failure(error); return; }
+    } catch (error) { if (epoch === generation) { hydrationFailed = true; failure(error); finishBoot(error); window.App?.loadingError(); } return; }
     if (!identityVerified) {
-      status('確認メールのリンクを開いた後、「メール確認を反映」を押してください。'); return;
+      status('確認メールのリンクを開いた後、「メール確認を反映」を押してください。');
+      finishBoot(null, 'action'); window.App?.finishLoading('action'); return;
     }
-    try { await connectAccount(epoch); } catch (error) { failure(error); }
+    try {
+      const outcome = await connectAccount(epoch);
+      if (epoch !== generation) return;
+      finishBoot(null, outcome);
+      window.App?.finishLoading(outcome);
+    } catch (error) {
+      if (epoch !== generation) return;
+      hydrationFailed = true;
+      failure(error); finishBoot(error); window.App?.loadingError();
+    }
   }
   function renderAccount() {
     document.getElementById('authLaunchNotice').textContent = `${config.enabled ? '現在は試験公開中です。' : '現在は公開準備中です。'}利用条件・データ保持期間・問い合わせ窓口は正式公開前に確定します。`;
@@ -412,13 +459,13 @@
       await lineLogin('link');
     }));
     renderAccount();
-    if (!window.HOPPO_CLOUD_CONFIG) { status('設定を取得できませんでした。接続を確認して再読み込みしてください。', true); return; }
+    if (!window.HOPPO_CLOUD_CONFIG) { status('設定を取得できませんでした。接続を確認して再読み込みしてください。', true); throw new Error('クラウド設定を取得できませんでした。'); }
     if (!config.enabled) { status('現在はプレビューです。アカウント作成・利用者間通信はまだ有効ではありません。'); return; }
     if ((config.emulator && !['localhost', '127.0.0.1'].includes(location.hostname)) || !config.firebase?.apiKey || !config.firebase?.projectId || !config.firebase?.appId || (!config.emulator && !config.appCheckSiteKey)) {
-      status('FirebaseまたはApp Checkの設定が未完了です。', true); return;
+      status('FirebaseまたはApp Checkの設定が未完了です。', true); throw new Error('クラウド設定が未完了です。');
     }
     try {
-      sdk = await import('./vendor/firebase.js?v=49');
+      sdk = await import('./vendor/firebase.js?v=50');
       const app = sdk.initializeApp(config.firebase);
       auth = sdk.getAuth(app); db = sdk.getFirestore(app); functions = sdk.getFunctions(app, config.region || 'asia-northeast1');
       auth.languageCode = 'ja';
@@ -431,12 +478,16 @@
         document.getElementById('authModal').dataset.appCheck = 'verified';
       }
       // getAuth selects IndexedDB, local or session storage according to browser availability.
-      sdk.onAuthStateChanged(auth, session);
+      sdk.onAuthStateChanged(auth, session, error => {
+        hydrationFailed = true;
+        failure(error); finishBoot(error); window.App?.loadingError();
+      });
       renderAccount(); status('ログイン、または新規登録を選んでください。');
     } catch (error) {
       sdk = null;
       status(error?.code?.startsWith('appCheck/') ? '安全な接続を確認できません。通信環境を確認して再読み込みしてください。' : errorMessage(error), true);
       renderAccount();
+      throw error;
     }
   }
   let liffPromise;
@@ -481,7 +532,14 @@
   let resolveReady;
   const ready = new Promise(resolve => { resolveReady = resolve; });
   window.Cloud = {
-    init() { if (config.enabled) Store.clearRemote(); return init().finally(() => { resolveReady(); if (sdk && config.liffId && (sessionStorage.getItem('hoppo-line-intent') || new URLSearchParams(location.search).has('liff.state') || new URLSearchParams(location.search).has('hoppoLineIntent'))) action(lineLogin); }); },
+    init() {
+      if (config.enabled) Store.clearRemote();
+      return init().then(() => {
+        resolveReady();
+        if (sdk && config.liffId && (sessionStorage.getItem('hoppo-line-intent') || new URLSearchParams(location.search).has('liff.state') || new URLSearchParams(location.search).has('hoppoLineIntent'))) action(lineLogin);
+        return config.enabled ? boot : 'preview';
+      }, error => { resolveReady(); throw error; });
+    },
     open, call, errorMessage, markProfileDirty,
     get enabled() { return config.enabled === true; },
     get user() { return currentUser; }, get account() { return account; },
@@ -489,6 +547,7 @@
     get blocked() { return blocked; }, get threads() { return threads; },
     get friendProfiles() { return friendProfiles; },
     get reads() { return reads; },
+    get hydrationPending() { return hydrationPending.slice(); },
     onChange(fn) { listeners.add(fn); return () => listeners.delete(fn); },
     watchMessages(threadId, cb, onError) {
       if (!account) return () => {};
