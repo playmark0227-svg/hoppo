@@ -124,8 +124,18 @@
     }
   ];
 
-  function evaluateAll() {
+  const announcementTimers = new Set();
+
+  function clearAnnouncements() {
+    clearTimeout(window.Achievements._t);
+    announcementTimers.forEach(clearTimeout);
+    announcementTimers.clear();
+    window.UI?.hideAchievement?.();
+  }
+
+  function evaluateAll({ silent = false } = {}) {
     if (!window.Store || !window.Store.state) return [];
+    if (window.Cloud?.enabled && !window.Store._remoteUid) return [];
     const state = window.Store.state;
     const unlocked = [];
     DEFS.forEach((def) => {
@@ -137,15 +147,20 @@
         }
       } catch (e) { console.warn('[achievements] test failed', def.id, e); }
     });
-    if (unlocked.length) announce(unlocked);
+    if (unlocked.length && !silent) announce(unlocked);
     return unlocked;
   }
 
   function announce(list) {
+    const state = window.Store.state;
+    const owner = window.Store._remoteUid;
     list.forEach((def, i) => {
-      setTimeout(() => {
+      const timer = setTimeout(() => {
+        announcementTimers.delete(timer);
+        if (window.Store.state !== state || window.Store._remoteUid !== owner) return;
         if (window.UI && UI.showAchievement) UI.showAchievement(def);
       }, i * 1400);
+      announcementTimers.add(timer);
     });
   }
 
@@ -173,10 +188,20 @@
 
   // Evaluate on any state change
   if (window.Store && window.Store.on) {
+    // The first server snapshot restores existing badges, not newly earned notifications.
+    window.Store.on('remote', ({ initial }) => {
+      if (initial) clearAnnouncements();
+      evaluateAll({ silent: initial });
+    });
     window.Store.on('change', () => {
+      if (window.Cloud?.enabled && !window.Store._remoteUid) {
+        clearAnnouncements();
+        return;
+      }
       // small debounce
       clearTimeout(window.Achievements._t);
       window.Achievements._t = setTimeout(evaluateAll, 80);
     });
+    window.Store.on('reset', clearAnnouncements);
   }
 })();

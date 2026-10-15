@@ -290,18 +290,26 @@
     },
 
     /* ---------------- Achievement popup ---------------- */
+    hideAchievement() {
+      clearTimeout(this._achieveTimer);
+      clearTimeout(this._achieveHideTimer);
+      cancelAnimationFrame(this._achieveFrame);
+      const pop = document.getElementById('achievePop');
+      if (pop) { pop.classList.remove('show'); pop.hidden = true; }
+    },
+
     showAchievement(ach) {
       const pop = document.getElementById('achievePop');
       if (!pop || !ach) return;
+      this.hideAchievement();
       document.getElementById('achievePopIcon').textContent = ach.icon || '🏅';
       document.getElementById('achievePopTitle').textContent = ach.name || '';
       document.getElementById('achievePopDesc').textContent = ach.desc || '';
       pop.hidden = false;
-      requestAnimationFrame(() => pop.classList.add('show'));
-      clearTimeout(this._achieveTimer);
+      this._achieveFrame = requestAnimationFrame(() => pop.classList.add('show'));
       this._achieveTimer = setTimeout(() => {
         pop.classList.remove('show');
-        setTimeout(() => { pop.hidden = true; }, 300);
+        this._achieveHideTimer = setTimeout(() => { pop.hidden = true; }, 300);
       }, 3600);
     },
 

@@ -4,6 +4,7 @@ const assert = require('node:assert/strict');
 const functionRequire = require('node:module').createRequire(require.resolve('../functions/package.json'));
 const { initializeApp, deleteApp } = functionRequire('firebase-admin/app');
 const { getAuth } = functionRequire('firebase-admin/auth');
+const { getFirestore } = functionRequire('firebase-admin/firestore');
 const config = { enabled: true, emulator: true, firebase: { apiKey: 'fake-key', projectId: 'demo-hoppo', authDomain: 'demo-hoppo.firebaseapp.com', appId: 'test-browser' }, region: 'asia-northeast1', liffId: 'test-liff-id' };
 async function main() {
   const admin = initializeApp({ projectId: 'demo-hoppo' }, 'browser-admin');
@@ -99,6 +100,27 @@ async function main() {
     assert.match(await small.page.locator('#quizResultScore').textContent(), new RegExp(`${entryAnswers.length} / ${entryAnswers.length}`));
     await small.context.close();
     const a = await register('登録者A', 390), b = await register('登録者B', 1440);
+    const achievementUser = await a.page.evaluate(() => Cloud.user.uid);
+    const achievementDoc = getFirestore(admin).doc(`users/${achievementUser}`);
+    await achievementDoc.update({ points: 99, totalEarned: 99 });
+    await a.page.waitForFunction(() => Store.get().totalEarned === 99);
+    await achievementDoc.update({ points: 100, totalEarned: 100 });
+    await a.page.waitForFunction(() => !document.getElementById('achievePop').hidden
+      && document.getElementById('achievePopTitle').textContent === '100ポイント突破');
+    await a.page.screenshot({ path: require('node:path').join(require('node:os').tmpdir(), 'hoppo-achievements-new-mobile.png') });
+    await achievementDoc.update({ points: 2030, totalEarned: 2030 });
+    await a.page.waitForFunction(() => Store.get().totalEarned === 2030);
+    await a.page.reload({ waitUntil: 'domcontentloaded' });
+    await a.page.locator('#loader').waitFor({ state: 'detached' });
+    await a.page.waitForFunction(() => Store.get().achievements.includes('points-1000'));
+    assert.equal(await a.page.locator('#achievePop').isVisible(), false, 'restored achievements must not pop up on login');
+    // Include the old staggered notification delay, not just the first rendered frame.
+    await a.page.waitForTimeout(4500);
+    assert.equal(await a.page.locator('#achievePop').isVisible(), false, 'restored achievements must not enqueue delayed notifications');
+    await a.page.evaluate(() => UI.go('home'));
+    await a.page.waitForFunction(() => getComputedStyle(document.querySelector('[data-page="home"]')).opacity === '1');
+    await a.page.screenshot({ path: require('node:path').join(require('node:os').tmpdir(), 'hoppo-achievements-restored-mobile.png') });
+    await a.page.evaluate(() => UI.go('settings'));
     await a.page.locator('#accountManageBtn').click();
     assert.equal(await a.page.locator('#authSessionActions').isVisible(), true);
     await a.page.locator('#authModal [data-close]').last().click();

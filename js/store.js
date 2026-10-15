@@ -163,7 +163,9 @@
     },
 
     applyRemote(user, uid, hydrateProfile) {
-      if (this._remoteUid !== uid) {
+      const initial = this._remoteUid !== uid;
+      if (initial) {
+        this.state.achievements = [];
         this.state.profile.avatarImage = '';
         try {
           const device = JSON.parse(localStorage.getItem('hoppou_device_v2') || '{}');
@@ -187,6 +189,7 @@
         this.state.name = user.profile.name;
         Object.assign(this.state.profile, user.profile);
       }
+      this._emit('remote', { uid, initial });
       this._emit('change', this.state);
     },
 

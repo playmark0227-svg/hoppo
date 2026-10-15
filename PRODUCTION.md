@@ -12,7 +12,7 @@
 
 ## 設定状況（2026-10-15）
 
-配信アセットはv57（読み込み画面の重なりを修正）。`docs/RELEASE-CHECK.md` は以前のリリース時点の記録です。v55・v56の防御・運用手順は `SECURITY.md`、本番の読み戻しは `node scripts/security-audit.cjs` を参照してください。
+配信アセットはv58（ログイン時の実績通知の繰り返しを修正）。`docs/RELEASE-CHECK.md` は以前のリリース時点の記録です。v55・v56の防御・運用手順は `SECURITY.md`、本番の読み戻しは `node scripts/security-audit.cjs` を参照してください。
 
 - 会社アカウントで専用プロジェクト `hoppo-status-vifight` とWebアプリを作成。
 - Firestoreは東京 `asia-northeast1`、削除保護あり。ルールとインデックスは配備済み。
