@@ -13,7 +13,7 @@
 
   function render() {
     const s = Store.get();
-    const rank = window.getRankByPoints(s.points);
+    const rank = window.getRankByPoints(s.totalEarned);
     const rankIdx = window.getRankIndex(rank.id);
     const totalTiers = window.RANKS.length;
 
@@ -33,7 +33,7 @@
     // Meta
     document.getElementById('licenseName').textContent = s.name || 'ゲスト';
     document.getElementById('licenseId').textContent = s.userId || '—';
-    document.getElementById('licensePoints').textContent = s.points.toLocaleString();
+    document.getElementById('licensePoints').textContent = s.totalEarned.toLocaleString();
     document.getElementById('licenseIssued').textContent = formatDate(s.createdAt);
 
     // Signature
@@ -50,10 +50,10 @@
     // Rank ladder
     const list = document.getElementById('rankList');
     list.innerHTML = window.RANKS.map((r, i) => {
-      const achieved = s.points >= r.min;
+      const achieved = s.totalEarned >= r.min;
       const isCurrent = rank.id === r.id;
       const next = window.RANKS[i + 1];
-      const range = next ? `${r.min}〜${next.min - 1}pt` : `${r.min}pt 〜`;
+      const range = next ? `${r.min.toLocaleString()}〜${(next.min - 1).toLocaleString()}pt` : `${r.min.toLocaleString()}pt 〜`;
       const imgStyle = r.image
         ? `style="background-image: linear-gradient(135deg, rgba(255,255,255,0.3), rgba(255,255,255,0.85)), url('${r.image}');"`
         : '';
@@ -107,10 +107,10 @@
 
   function shareLicense() {
     const s = Store.get();
-    const rank = window.getRankByPoints(s.points);
+    const rank = window.getRankByPoints(s.totalEarned);
     const txt = `【北方領土ステータス】
 ${s.name || 'ゲスト'} さんは ${rank.emoji} ${rank.name}（${rank.sub}）です！
-現在 ${s.points} pt 獲得中✨
+累計 ${s.totalEarned.toLocaleString()} pt 獲得（手持ち ${s.points.toLocaleString()} pt）
 #北方領土 #北方領土ステータス`;
 
     if (navigator.share) {
@@ -146,7 +146,7 @@ ${s.name || 'ゲスト'} さんは ${rank.emoji} ${rank.name}（${rank.sub}）�
   async function saveAsImage() {
     const btn = document.getElementById('licenseSaveBtn');
     const s = Store.get();
-    const rank = window.getRankByPoints(s.points);
+    const rank = window.getRankByPoints(s.totalEarned);
     const rankIdx = window.getRankIndex(rank.id);
     const totalTiers = window.RANKS.length;
 
@@ -399,7 +399,7 @@ ${s.name || 'ゲスト'} さんは ${rank.emoji} ${rank.name}（${rank.sub}）�
     const metaColW = (cardW - 80 - metaGap) / 2;
     drawMetaCell(ctx, cardX + 40, metaY, metaColW, 'NAME', s.name || 'ゲスト');
     drawMetaCell(ctx, cardX + 40 + metaColW + metaGap, metaY, metaColW, 'LICENSE ID', s.userId || '—');
-    drawMetaCell(ctx, cardX + 40, metaY + 100, metaColW, 'POINTS', s.points.toLocaleString());
+    drawMetaCell(ctx, cardX + 40, metaY + 100, metaColW, 'TOTAL POINTS', s.totalEarned.toLocaleString());
     drawMetaCell(ctx, cardX + 40 + metaColW + metaGap, metaY + 100, metaColW, 'ISSUED', formatDateParts(s.createdAt).full);
 
     // ---- Signature + stamp ----

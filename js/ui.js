@@ -86,7 +86,7 @@
     /* ---------------- Top bar / rank ---------------- */
     refreshHeader() {
       const s = Store.get();
-      const rank = window.getRankByPoints(s.points);
+      const rank = window.getRankByPoints(s.totalEarned);
       const pointsTxt = s.points.toLocaleString();
       const pointsEl = document.getElementById('pointsValue');
       if (pointsEl) pointsEl.textContent = pointsTxt;
@@ -108,8 +108,8 @@
 
     refreshHome() {
       const s = Store.get();
-      const rank = window.getRankByPoints(s.points);
-      const next = window.getNextRank(s.points);
+      const rank = window.getRankByPoints(s.totalEarned);
+      const next = window.getNextRank(s.totalEarned);
 
       const badgeBig = document.getElementById('rankBadgeBig');
       if (badgeBig) badgeBig.textContent = rank.emoji;
@@ -122,10 +122,10 @@
       const text = document.getElementById('rankProgressText');
       if (next) {
         const span = next.min - rank.min;
-        const done = s.points - rank.min;
+        const done = s.totalEarned - rank.min;
         const pct = Math.max(6, Math.min(100, (done / span) * 100));
         if (fill) fill.style.width = pct + '%';
-        if (text) text.textContent = `あと ${next.min - s.points} pt で ${next.emoji} ${next.name}`;
+        if (text) text.textContent = `累計 ${s.totalEarned.toLocaleString()} / ${next.min.toLocaleString()}pt（あと ${(next.min - s.totalEarned).toLocaleString()}pt）で ${next.name}`;
       } else {
         if (fill) fill.style.width = '100%';
         if (text) text.textContent = '最高位に到達！🎉';
@@ -138,7 +138,7 @@
           `今日は何する？<br>${namePart}頑張ろう！`,
           'クイズに挑戦してポイント獲得！',
           'イベントのQRコード、もう読んだ？',
-          next ? `あと ${next.min - s.points}pt で昇格だよ！` : 'あなたは北方領土総理！すごい！',
+          next ? `あと ${(next.min - s.totalEarned).toLocaleString()}pt で昇格だよ！` : 'あなたは北方領土総理！すごい！',
           'タップで違うメッセージに切り替えできるよ'
         ];
         bubble.innerHTML = `<span>${msgs[Math.floor(Math.random() * msgs.length)]}</span>`;

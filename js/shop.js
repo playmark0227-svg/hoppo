@@ -3,10 +3,10 @@
    ============================================================ */
 (function() {
   function priceTier(price) {
-    if (price < 100) return 'ENTRY';
-    if (price < 300) return 'NORMAL';
-    if (price < 500) return 'RARE';
-    if (price < 800) return 'EPIC';
+    if (price < 2500) return 'ENTRY';
+    if (price < 7500) return 'NORMAL';
+    if (price < 12500) return 'RARE';
+    if (price < 20000) return 'EPIC';
     return 'LEGEND';
   }
 
@@ -79,7 +79,7 @@
       UI.toast('既に獲得済みです');
       return;
     }
-    const ok = confirm(`「${item.name}」を ${item.price}pt で交換しますか？`);
+    const ok = confirm(`「${item.name}」を ${item.price.toLocaleString()}pt で交換しますか？`);
     if (!ok) return;
     const success = Store.spendPoints(item.price, { type: 'spend', label: item.name });
     if (!success) {

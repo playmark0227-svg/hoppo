@@ -82,7 +82,7 @@
       name: '流氷の仲間入り',
       desc: '「流氷の守り手」に昇格した',
       test: (s) => {
-        const r = window.getRankByPoints && window.getRankByPoints(s.points);
+        const r = window.getRankByPoints && window.getRankByPoints(s.totalEarned);
         if (!r) return false;
         const idx = window.getRankIndex ? window.getRankIndex(r.id) : -1;
         return idx >= 3;
@@ -94,7 +94,7 @@
       name: '最高位到達',
       desc: '「北方領土総理」に到達した',
       test: (s) => {
-        const r = window.getRankByPoints && window.getRankByPoints(s.points);
+        const r = window.getRankByPoints && window.getRankByPoints(s.totalEarned);
         return r && r.id === 'prime';
       }
     },

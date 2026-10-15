@@ -20,7 +20,7 @@ window.RANKS = [
     name: '北方ナビゲーター',
     sub: 'ゴールドライセンス',
     en: 'GOLD NAVIGATOR',
-    min: 100,
+    min: 2500,
     image: 'assets/images/hoppou/kunashir-view.jpg',
     color: '#f6b93b',
     blurb: '基本を身につけた！仲間に教えられるレベル。'
@@ -31,7 +31,7 @@ window.RANKS = [
     name: '花咲ガニ大使',
     sub: 'ハナサキライセンス',
     en: 'HANASAKI AMBASSADOR',
-    min: 300,
+    min: 7500,
     image: 'assets/images/hoppou/hanasaki-crab.jpg',
     color: '#f47a5a',
     blurb: '根室の名物、花咲ガニのように堂々と知識を広めよう。'
@@ -42,7 +42,7 @@ window.RANKS = [
     name: '流氷の守り手',
     sub: 'クリオネライセンス',
     en: 'CLIONE GUARDIAN',
-    min: 800,
+    min: 20000,
     image: 'assets/images/hoppou/clione.jpg',
     color: '#b9a6ff',
     blurb: 'オホーツクの天使・クリオネみたいに、美しく語ろう。'
@@ -53,7 +53,7 @@ window.RANKS = [
     name: '北方領土総理',
     sub: 'プライムライセンス',
     en: 'HOPPOU PRIME MINISTER',
-    min: 2000,
+    min: 50000,
     image: 'assets/images/hoppou/iturup-volcano.jpg',
     color: '#ff6fa4',
     blurb: '最高位！君こそ北方領土の顔だ！'
@@ -505,7 +505,7 @@ window.SHOP_ITEMS = [
     desc: 'ノートやPCに貼れるよ！',
     emoji: '✨',
     accent: 'cherry',
-    price: 50,
+    price: 1250,
     stock: 'infinite'
   },
   {
@@ -514,7 +514,7 @@ window.SHOP_ITEMS = [
     desc: 'プロフィールに飾れるバッジ',
     emoji: '🥈',
     accent: 'silver',
-    price: 100,
+    price: 2500,
     stock: 'infinite'
   },
   {
@@ -523,7 +523,7 @@ window.SHOP_ITEMS = [
     desc: '手のひらサイズのしろくまくん',
     emoji: '🧸',
     accent: 'coral',
-    price: 300,
+    price: 7500,
     stock: 'infinite'
   },
   {
@@ -532,7 +532,7 @@ window.SHOP_ITEMS = [
     desc: '抱きしめサイズ！',
     emoji: '🐻',
     accent: 'cherry',
-    price: 800,
+    price: 20000,
     stock: 'infinite'
   },
   {
@@ -541,7 +541,7 @@ window.SHOP_ITEMS = [
     desc: '北方四島のイラスト入り',
     emoji: '🏳️',
     accent: 'ocean',
-    price: 200,
+    price: 5000,
     stock: 'infinite'
   },
   {
@@ -550,7 +550,7 @@ window.SHOP_ITEMS = [
     desc: '朝のココアにぴったり',
     emoji: '☕',
     accent: 'gold',
-    price: 250,
+    price: 6250,
     stock: 'infinite'
   },
   {
@@ -559,7 +559,7 @@ window.SHOP_ITEMS = [
     desc: '優しく学べる絵本',
     emoji: '📖',
     accent: 'mint',
-    price: 400,
+    price: 10000,
     stock: 'infinite'
   },
   {
@@ -568,7 +568,7 @@ window.SHOP_ITEMS = [
     desc: 'しろくまくんプリント',
     emoji: '👜',
     accent: 'ocean',
-    price: 500,
+    price: 12500,
     stock: 'infinite'
   }
 ];

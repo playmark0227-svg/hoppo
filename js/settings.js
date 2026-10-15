@@ -130,7 +130,7 @@
   function renderPreview() {
     const s = Store.get();
     const profile = s.profile;
-    const rank = window.getRankByPoints(s.points);
+    const rank = window.getRankByPoints(s.totalEarned);
 
     const previewName = document.getElementById('settingsPreviewName');
     if (previewName) previewName.textContent = s.name || 'ゲスト';
