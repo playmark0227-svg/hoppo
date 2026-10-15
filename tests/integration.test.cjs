@@ -78,6 +78,28 @@ test('quiz awards are authoritative, idempotent and bounded on replay', async ()
     assert.deepEqual(duplicate, last);
   }
 });
+test('batched quiz grades once, updates points, and replays safely', async () => {
+  const quiz = catalog.quizzes[1];
+  const answers = quiz.questions.map(q => q.answer);
+  const data = { quizId: quiz.id, version: catalog.version, answers, requestId: 'batch-quiz-test-0001' };
+  const [first, replay] = await Promise.all([users.alice.call('submitQuiz', data), users.alice.call('submitQuiz', data)]);
+  const expected = quiz.questions.length * 10 + 50;
+  assert.deepEqual(first, { correctCount: quiz.questions.length, total: quiz.questions.length, earned: expected });
+  assert.deepEqual(replay, first);
+  const state = (await db.doc(`users/${users.alice.uid}`).get()).data();
+  assert.equal(state.quizResults[`${catalog.version}:${quiz.id}`].timesPlayed, 1);
+  assert.equal(state.points, 5 + catalog.quizzes[0].questions.length * 10 + 50 + expected);
+  await assert.rejects(users.alice.call('submitQuiz', { ...data, version: 'old' }), { code: 'functions/failed-precondition' });
+  await assert.rejects(users.alice.call('submitQuiz', { ...data, answers: [0] }), { code: 'functions/invalid-argument' });
+  const wrongAnswers = [...answers];
+  wrongAnswers[0] = (answers[0] + 1) % quiz.questions[0].choices.length;
+  const second = await users.alice.call('submitQuiz', {
+    ...data, answers: wrongAnswers, requestId: 'batch-quiz-test-0002', correctCount: quiz.questions.length, earned: 9999
+  });
+  assert.equal(second.correctCount, quiz.questions.length - 1);
+  assert.equal(second.earned, 0);
+  assert.equal((await db.doc(`users/${users.alice.uid}`).get()).data().quizResults[`${catalog.version}:${quiz.id}`].timesPlayed, 2);
+});
 test('QR codes are server-issued, expire and redeem once even concurrently', async () => {
   const code = 'HOPPO:' + 'a'.repeat(43);
   await db.doc(`events/${P.hash(code)}`).set({ active: true, expiresAt: Date.now() + 60000, label: 'test', points: 30, stampId: 'nosappu' });

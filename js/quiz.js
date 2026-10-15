@@ -41,19 +41,15 @@
     });
   }
 
-  async function start(quizId) {
-    let quiz = window.QUIZZES.find(q => q.id === quizId);
+  function start(quizId) {
+    const quiz = window.QUIZZES.find(q => q.id === quizId);
     if (!quiz) return;
     if (window.Cloud?.enabled && !Cloud.account) return Cloud.open();
-    const run = { quiz, index: 0, correctCount: 0, answers: [], earned: 0 };
+    const bytes = new Uint8Array(16);
+    crypto.getRandomValues(bytes);
+    const requestId = Array.from(bytes, byte => byte.toString(16).padStart(2, '0')).join('');
+    const run = { quiz, index: 0, correctCount: 0, answers: [], requestId, pending: false };
     current = run;
-    if (window.Cloud?.enabled) {
-      try {
-        const session = await Cloud.call('beginQuiz', { quizId });
-        if (current !== run) return;
-        quiz = { ...quiz, questions: session.questions }; run.quiz = quiz; run.sessionId = session.sessionId;
-      } catch (error) { if (current === run) current = null; UI.toast(Cloud.errorMessage(error), 'bad'); return; }
-    }
     document.getElementById('quizList').hidden = true;
     document.getElementById('quizResult').hidden = true;
     document.getElementById('quizPlay').hidden = false;
@@ -138,28 +134,16 @@
     });
   }
 
-  async function answer(choiceIndex) {
+  function answer(choiceIndex) {
     if (!current || current.pending) return;
-    const run = current;
     const { quiz, index } = current;
     const q = quiz.questions[index];
     const choicesEl = document.getElementById('quizChoices');
     const buttons = choicesEl.querySelectorAll('.quiz-choice');
     buttons.forEach(b => b.disabled = true);
 
-    let correct = choiceIndex === q.answer;
-    if (window.Cloud?.enabled) {
-      run.pending = true;
-      try {
-        const result = await Cloud.call('answerQuiz', { sessionId: run.sessionId, index, choice: choiceIndex });
-        if (current !== run) return;
-        correct = result.correct; q.answer = result.answer; q.explain = result.explain; q.source = result.source;
-        if (result.done) run.earned = result.earned;
-      } catch (error) {
-        if (current === run) buttons.forEach(b => b.disabled = false);
-        UI.toast(Cloud.errorMessage(error), 'bad'); return;
-      } finally { run.pending = false; }
-    }
+    const correct = choiceIndex === q.answer;
+    current.answers[index] = choiceIndex;
     buttons[choiceIndex].classList.add(correct ? 'correct' : 'wrong');
     if (!correct) buttons[q.answer].classList.add('correct');
 
@@ -206,6 +190,7 @@
   }
 
   function next() {
+    if (!current || current.pending || current.answers[current.index] === undefined) return;
     if (current.index + 1 < current.quiz.questions.length) {
       current.index++;
       renderQuestion();
@@ -214,16 +199,42 @@
     }
   }
 
-  function finish() {
-    const { quiz, correctCount } = current;
-    const total = quiz.questions.length;
-    const perfect = correctCount === total;
-
-    const earned = window.Cloud?.enabled ? current.earned : correctCount * POINTS_PER_CORRECT + (perfect ? PERFECT_BONUS : 0);
-    Store.recordQuizResult(quiz.id, correctCount, total);
-    if (earned > 0) {
-      Store.addPoints(earned, { type: 'quiz', label: `クイズ：${quiz.title}` }, { silent: true });
+  async function finish() {
+    const run = current;
+    if (!run || run.pending) return;
+    const { quiz } = run;
+    let { correctCount } = run;
+    let total = quiz.questions.length;
+    let earned;
+    if (window.Cloud?.enabled) {
+      run.pending = true;
+      const nextBtn = document.getElementById('quizNextBtn');
+      nextBtn.disabled = true;
+      nextBtn.textContent = '結果を確認中…';
+      try {
+        const result = await Cloud.call('submitQuiz', {
+          quizId: quiz.id, version: window.QUIZ_CATALOG_VERSION,
+          answers: run.answers, requestId: run.requestId
+        });
+        if (current !== run) return;
+        correctCount = result.correctCount;
+        total = result.total;
+        earned = result.earned;
+      } catch (error) {
+        if (current === run) {
+          nextBtn.disabled = false;
+          nextBtn.textContent = '結果を見る';
+          UI.toast(error?.code === 'functions/failed-precondition'
+            ? '問題が更新されました。ページを再読み込みしてください。' : Cloud.errorMessage(error), 'bad');
+        }
+        return;
+      } finally { run.pending = false; }
+    } else {
+      earned = correctCount * POINTS_PER_CORRECT + (correctCount === total ? PERFECT_BONUS : 0);
+      Store.recordQuizResult(quiz.id, correctCount, total);
+      if (earned > 0) Store.addPoints(earned, { type: 'quiz', label: `クイズ：${quiz.title}` }, { silent: true });
     }
+    const perfect = correctCount === total;
 
     document.getElementById('quizPlay').hidden = true;
     document.body.classList.remove('quiz-in-progress');

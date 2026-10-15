@@ -190,6 +190,41 @@ exports.answerQuiz = onCall(options, async (req) => {
     return result;
   });
 });
+exports.submitQuiz = onCall(options, async (req) => {
+  const id = uid(req), data = req.data || {}, now = new Date();
+  const quiz = catalog.quizzes.find(q => q.id === data.quizId);
+  if (!quiz) fail('not-found', 'クイズが見つかりません。');
+  if (data.version !== catalog.version) fail('failed-precondition', '問題が更新されました。ページを再読み込みしてください。');
+  if (!/^[a-zA-Z0-9_-]{16,64}$/.test(data.requestId || '') ||
+      !Array.isArray(data.answers) || data.answers.length !== quiz.questions.length ||
+      data.answers.some((choice, index) => !Number.isInteger(choice) || choice < 0 || choice >= quiz.questions[index].choices.length)) {
+    fail('invalid-argument', '回答が無効です。');
+  }
+  const userRef = db.doc(`users/${id}`);
+  const receiptRef = db.doc(`users/${id}/quizSubmissions/${data.requestId}`);
+  const rateRef = db.doc(`users/${id}/limits/quiz-${P.dayKey(now)}`);
+  return db.runTransaction(async (tx) => {
+    const [userSnap, receiptSnap, rateSnap] = await tx.getAll(userRef, receiptRef, rateRef);
+    const user = active(userSnap);
+    if (receiptSnap.exists) {
+      const receipt = receiptSnap.data();
+      if (receipt.quizId !== quiz.id || receipt.version !== catalog.version) fail('invalid-argument', '送信IDが重複しています。');
+      return receipt.result;
+    }
+    consume(tx, rateRef, rateSnap, 40, now);
+    const correctCount = data.answers.reduce((sum, choice, index) => sum + Number(choice === quiz.questions[index].answer), 0);
+    const key = `${catalog.version}:${quiz.id}`, prev = user.quizResults[key] || { bestScore: 0, timesPlayed: 0 };
+    const earned = P.quizReward(prev.bestScore, correctCount, quiz.questions.length);
+    const next = P.award(user, earned, `クイズ：${quiz.title}`, 'quiz', now);
+    next.quizResults[key] = { bestScore: Math.max(prev.bestScore, correctCount), timesPlayed: prev.timesPlayed + 1,
+      total: quiz.questions.length, lastPlayedAt: now.toISOString(), quizId: quiz.id };
+    const result = { correctCount, total: quiz.questions.length, earned };
+    tx.set(userRef, next);
+    publish(tx, id, next);
+    tx.create(receiptRef, { quizId: quiz.id, version: catalog.version, result, at: now.toISOString() });
+    return result;
+  });
+});
 exports.redeemEvent = onCall(options, async (req) => {
   const id = uid(req), now = new Date(), code = P.clean(req.data?.code, 200);
   if (!/^HOPPO:[a-zA-Z0-9_-]{32,100}$/.test(code)) fail('invalid-argument', '本番イベントのコードではありません。');
