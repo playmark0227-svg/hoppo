@@ -199,6 +199,21 @@
     }
   }
 
+  async function submitWithLegacyApi(run) {
+    const { quiz } = run;
+    const session = await Cloud.call('beginQuiz', { quizId: quiz.id });
+    const sameQuestions = session.questions?.length === quiz.questions.length &&
+      session.questions.every((question, index) => question.q === quiz.questions[index].q &&
+        JSON.stringify(question.choices) === JSON.stringify(quiz.questions[index].choices));
+    if (!sameQuestions) { const error = new Error('quiz-version-mismatch'); error.code = 'functions/failed-precondition'; throw error; }
+    let result;
+    for (let index = 0; index < run.answers.length; index++) {
+      if (current !== run) return null;
+      result = await Cloud.call('answerQuiz', { sessionId: session.sessionId, index, choice: run.answers[index] });
+    }
+    return { correctCount: result.correctCount, total: quiz.questions.length, earned: result.earned };
+  }
+
   async function finish() {
     const run = current;
     if (!run || run.pending) return;
@@ -212,10 +227,16 @@
       nextBtn.disabled = true;
       nextBtn.textContent = '結果を確認中…';
       try {
-        const result = await Cloud.call('submitQuiz', {
-          quizId: quiz.id, version: window.QUIZ_CATALOG_VERSION,
-          answers: run.answers, requestId: run.requestId
-        });
+        let result;
+        try {
+          result = await Cloud.call('submitQuiz', {
+            quizId: quiz.id, version: window.QUIZ_CATALOG_VERSION,
+            answers: run.answers, requestId: run.requestId
+          });
+        } catch (error) {
+          if (error?.code !== 'functions/not-found') throw error;
+          result = await submitWithLegacyApi(run);
+        }
         if (current !== run) return;
         correctCount = result.correctCount;
         total = result.total;

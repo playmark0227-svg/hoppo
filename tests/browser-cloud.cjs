@@ -75,7 +75,23 @@ async function main() {
     return { context, page, email };
   }
   try {
-    const small = await register('小画面確認', 320); await small.context.close();
+    const small = await register('小画面確認', 320);
+    await small.page.evaluate(() => {
+      const realCall = Cloud.call;
+      Cloud.call = (name, data) => name === 'submitQuiz'
+        ? Promise.reject({ code: 'functions/not-found' }) : realCall(name, data);
+      UI.go('quiz'); Quiz.refresh();
+    });
+    await small.page.locator('[data-quiz="entry"]').click();
+    const entryAnswers = await small.page.evaluate(() => QUIZZES.find(quiz => quiz.id === 'entry').questions.map(question => question.answer));
+    for (const [index, answer] of entryAnswers.entries()) {
+      await small.page.locator('#quizChoices .quiz-choice').nth(answer).click();
+      await small.page.locator('#quizNextBtn').click();
+    }
+    await small.page.waitForFunction(() => !document.getElementById('quizResult').hidden);
+    await small.page.waitForFunction(() => Store.get().points > 5);
+    assert.match(await small.page.locator('#quizResultScore').textContent(), new RegExp(`${entryAnswers.length} / ${entryAnswers.length}`));
+    await small.context.close();
     const a = await register('登録者A', 390), b = await register('登録者B', 1440);
     await a.page.locator('#accountManageBtn').click();
     assert.equal(await a.page.locator('#authSessionActions').isVisible(), true);

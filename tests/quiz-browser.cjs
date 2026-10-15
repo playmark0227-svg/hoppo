@@ -22,7 +22,7 @@ async function main() {
       const page = await context.newPage();
       const errors = [];
       page.on('pageerror', error => errors.push(error.message));
-      await page.route('**/js/cloud-config.js?v=48', route => route.fulfill({
+      await page.route('**/js/cloud-config.js*', route => route.fulfill({
         contentType: 'application/javascript', body: 'window.HOPPO_CLOUD_CONFIG = { enabled: false };'
       }));
       await page.goto(url, { waitUntil: 'networkidle' });
