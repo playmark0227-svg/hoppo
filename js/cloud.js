@@ -33,6 +33,7 @@
     'auth/user-not-found': 'メールアドレスまたはパスワードを確認してください。',
     'auth/wrong-password': 'メールアドレスまたはパスワードを確認してください。',
     'auth/too-many-requests': '試行回数が多いため、しばらく待ってからお試しください。',
+    'functions/unauthenticated': 'ログイン情報が失効しました。再度ログインしてください。',
     'auth/network-request-failed': '通信できません。接続を確認してください。',
     'functions/permission-denied': '操作できません。メール確認・相互フォロー・DM設定を確認してください。',
     'functions/resource-exhausted': '操作回数の上限です。時間を空けてお試しください。',
@@ -41,6 +42,7 @@
     'functions/unavailable': 'サーバーへ接続できません。時間を空けてお試しください。'
   };
   function errorMessage(error) {
+    if (error?.details?.reason === 'recent-login-required' || error?.message === 'line-requires-recent-login') return '安全のため、一度ログアウトして再ログインしてから操作してください。';
     if (error?.message === 'line-link-needs-email-account') return 'LINE連携には、メール確認済みのメールアカウントでログインしてください。';
     if (error?.message === 'line-openid-scope') return 'LINEの認証情報を取得できません。もう一度お試しください。';
     if (error?.message === 'line-sdk') return 'LINEログインを読み込めません。通信状態を確認してください。';
@@ -166,7 +168,14 @@
   async function call(name, data = {}) {
     await ready;
     if (!sdk || !config.enabled) throw new Error('not-configured');
-    return (await sdk.httpsCallable(functions, name)(data)).data;
+    try { return (await sdk.httpsCallable(functions, name)(data)).data; }
+    catch (error) {
+      if (error?.code === 'functions/unauthenticated' && currentUser) {
+        clear(); Store.clearRemote({ clearPersonal: true }); Settings.syncFields(); notify();
+        await sdk.signOut(auth);
+      }
+      throw error;
+    }
   }
   function watch(ref, fn, epoch, label) {
     return new Promise((resolve, reject) => {
@@ -183,6 +192,9 @@
         }).catch(error => { if (!received) reject(error); else failure(error); });
       }, error => {
         if (generation !== epoch) return;
+        if (['permission-denied', 'unauthenticated'].includes(error.code)) {
+          clear(); Store.clearRemote({ clearPersonal: true }); Settings.syncFields(); notify();
+        }
         status('データを取得できません。サーバー設定と接続を確認してください。', true);
         if (!received) reject(error);
       }));
@@ -228,8 +240,8 @@
         if (generation === epoch && JSON.stringify(requested) === JSON.stringify(following)) { friendProfiles = results.filter(s => s.exists()).map(s => s.data()); notify(); }
       } catch (error) { if (!initialHydration) throw error; }
     }, epoch, 'フレンド'));
-    initial.push(watch(sdk.collection(db, 'users', user.uid, 'blocks'), snap => { blocked = snap.docs.map(doc => doc.id); notify(); }, epoch, 'ブロック'));
-    initial.push(watch(sdk.collection(db, 'users', user.uid, 'reads'), snap => { reads = Object.fromEntries(snap.docs.map(doc => [doc.id, doc.data().at])); notify(); }, epoch, '既読'));
+    initial.push(watch(sdk.query(sdk.collection(db, 'users', user.uid, 'blocks'), sdk.limit(200)), snap => { blocked = snap.docs.map(doc => doc.id); notify(); }, epoch, 'ブロック'));
+    initial.push(watch(sdk.query(sdk.collection(db, 'users', user.uid, 'reads'), sdk.limit(500)), snap => { reads = Object.fromEntries(snap.docs.map(doc => [doc.id, doc.data().at])); notify(); }, epoch, '既読'));
     initial.push(watch(sdk.query(sdk.collection(db, 'threads'), sdk.where('members', 'array-contains', user.uid), sdk.orderBy('updatedAt', 'desc'), sdk.limit(50)), snap => {
       threads = snap.docs.map(doc => ({ id: doc.id, ...doc.data() })); notify();
     }, epoch, 'メッセージ'));
@@ -243,7 +255,7 @@
     if (user) window.App?.showLoader('プロフィール・ポイント・交流データを読み込んでいます…');
     const previousUid = currentUser?.uid;
     clear(); currentUser = user;
-    if (!user || (previousUid && previousUid !== user.uid)) { Store.clearRemote(); Settings.syncFields(); }
+    if (!user || (previousUid && previousUid !== user.uid)) { Store.clearRemote({ clearPersonal: true }); Settings.syncFields(); }
     identityVerified = false; emailSession = false;
     profileDirty = false; profileSaving = false; profileRevision = 0;
     profileStatus('プロフィールの変更は保存ボタンでクラウドに反映されます。');
@@ -465,7 +477,7 @@
       status('FirebaseまたはApp Checkの設定が未完了です。', true); throw new Error('クラウド設定が未完了です。');
     }
     try {
-      sdk = await import('./vendor/firebase.js?v=54');
+      sdk = await import('./vendor/firebase.js?v=55');
       const app = sdk.initializeApp(config.firebase);
       auth = sdk.getAuth(app); db = sdk.getFirestore(app); functions = sdk.getFunctions(app, config.region || 'asia-northeast1');
       auth.languageCode = 'ja';
@@ -503,21 +515,23 @@
       if (!user?.email || !user.emailVerified || token?.signInProvider !== 'password') {
         throw new Error('line-link-needs-email-account');
       }
+      const age = Date.now() - Date.parse(token.authTime);
+      if (!Number.isFinite(age) || age > 300000 || age < -60000) {
+        throw new Error('line-requires-recent-login');
+      }
     }
-    if (!liffPromise) liffPromise = new Promise((resolve, reject) => {
-      const script = document.createElement('script'); script.src = 'https://static.line-scdn.net/liff/edge/2/sdk.js';
-      script.onload = resolve; script.onerror = () => { liffPromise = null; reject(new Error('line-sdk')); };
-      document.head.append(script);
+    if (!liffPromise) liffPromise = import('./vendor/liff.js?v=55').then(module => module.default).catch(() => {
+      liffPromise = null; throw new Error('line-sdk');
     });
-    await liffPromise;
-    await window.liff.init({ liffId: config.liffId });
-    if (!window.liff.isLoggedIn()) {
+    const liff = await liffPromise;
+    await liff.init({ liffId: config.liffId });
+    if (!liff.isLoggedIn()) {
       sessionStorage.setItem('hoppo-line-intent', intent);
       const redirect = new URL(location.origin + location.pathname);
       if (intent === 'link') redirect.searchParams.set('hoppoLineIntent', 'link');
-      window.liff.login({ redirectUri: redirect.href }); return;
+      liff.login({ redirectUri: redirect.href }); return;
     }
-    const idToken = window.liff.getIDToken();
+    const idToken = liff.getIDToken();
     if (!idToken) throw new Error('line-openid-scope');
     if (intent === 'link') {
       await call('linkLineAccount', { idToken, consent: true });
@@ -551,8 +565,11 @@
     onChange(fn) { listeners.add(fn); return () => listeners.delete(fn); },
     watchMessages(threadId, cb, onError) {
       if (!account) return () => {};
+      const epoch = generation, user = currentUser;
       return sdk.onSnapshot(sdk.query(sdk.collection(db, 'threads', threadId, 'messages'), sdk.orderBy('at', 'desc'), sdk.limit(100)),
-        snap => cb(snap.docs.map(doc => ({ id: doc.id, ...doc.data() })).reverse()), onError);
+        snap => {
+          if (epoch === generation && user === currentUser && account) cb(snap.docs.map(doc => ({ id: doc.id, ...doc.data() })).reverse());
+        }, error => { if (epoch === generation && user === currentUser) { cb([]); onError?.(error); } });
     }
   };
 })();

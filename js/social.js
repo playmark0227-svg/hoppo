@@ -127,6 +127,14 @@
     node('dmSendBtn').addEventListener('click', send); node('dmInput').addEventListener('keydown', e => { if (e.key === 'Enter' && !e.isComposing) { e.preventDefault(); send(); } }); node('dmBackBtn').addEventListener('click', closeThread);
     node('homeSocialCard').addEventListener('click', e => { const n = e.target.closest('[data-social-open]'); if (n) { UI.go('social'); switchTab(n.dataset.socialOpen); } });
     UI.on('page', page => { if (page === 'social') render(); else { stopMessages?.(); stopMessages = null; otherId = null; } });
-    Cloud.onChange(() => { if (!Cloud.account) { stopMessages?.(); stopMessages = null; otherId = null; } render(); }); render();
+    Cloud.onChange(() => {
+      if (!Cloud.account) {
+        stopMessages?.(); stopMessages = null; otherId = null; messages = []; outbox = null;
+        pendingReads.clear(); node('dmLog').replaceChildren(); node('dmInput').value = '';
+        node('dmChatName').textContent = ''; node('liveChatStatus').textContent = '';
+        node('liveChatTools').replaceChildren();
+      }
+      render();
+    }); render();
   }, refresh: render, openTab: switchTab, getStandings: standings, renderHomeWidget: renderHome };
 })();

@@ -33,6 +33,22 @@ test('unverified email and missing consent are rejected', async () => {
   await assert.rejects(unverified.call('ensureAccount', { termsVersion: P.VERSION }), { code: "functions/permission-denied" });
   await assert.rejects(users.alice.call('ensureAccount', { termsVersion: 'old' }), { code: "functions/failed-precondition" });
 });
+test('disabled users cannot reuse an otherwise valid cached ID token', async () => {
+  const disabled = await client('disabled-security');
+  await disabled.call('ensureAccount', { termsVersion: P.VERSION });
+  const idToken = await disabled.auth.currentUser.getIdToken();
+  await adminAuth(admin).updateUser(disabled.uid, { disabled: true });
+  const response = await fetch('http://127.0.0.1:5001/demo-hoppo/asia-northeast1/claimDaily', {
+    method: 'POST', headers: { Authorization: `Bearer ${idToken}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ data: {} })
+  });
+  assert.equal(response.status, 401);
+  assert.equal((await db.doc(`users/${disabled.uid}`).get()).data().points, 0);
+});
+test('oversized payloads are rejected without mutating a profile', async () => {
+  await assert.rejects(users.alice.call('updateProfile', { profile: { name: 'changed', bio: 'x'.repeat(20000) } }), { code: 'functions/invalid-argument' });
+  assert.equal((await db.doc(`users/${users.alice.uid}`).get()).data().profile.name, 'alice');
+});
 test('daily concurrency grants only one server award', async () => {
   const results = await Promise.all([users.alice.call('claimDaily'), users.alice.call('claimDaily')]);
   assert.equal(results.reduce((n, r) => n + r.points, 0), 5);

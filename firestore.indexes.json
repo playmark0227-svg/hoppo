@@ -7,6 +7,10 @@
   ],
   "fieldOverrides": [
     { "collectionGroup": "following", "fieldPath": "targetId", "indexes": [{ "order": "ASCENDING", "queryScope": "COLLECTION_GROUP" }] },
-    { "collectionGroup": "blocks", "fieldPath": "targetId", "indexes": [{ "order": "ASCENDING", "queryScope": "COLLECTION_GROUP" }] }
+    { "collectionGroup": "blocks", "fieldPath": "targetId", "indexes": [{ "order": "ASCENDING", "queryScope": "COLLECTION_GROUP" }] },
+    { "collectionGroup": "limits", "fieldPath": "purgeAt", "ttl": true, "indexes": [] },
+    { "collectionGroup": "authLimits", "fieldPath": "purgeAt", "ttl": true, "indexes": [] },
+    { "collectionGroup": "quizSessions", "fieldPath": "purgeAt", "ttl": true, "indexes": [] },
+    { "collectionGroup": "quizSubmissions", "fieldPath": "purgeAt", "ttl": true, "indexes": [] }
   ]
 }

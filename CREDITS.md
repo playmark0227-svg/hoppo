@@ -102,6 +102,12 @@
 - **Kosugi Maru** — 補助体裁
 - **Yuji Syuku** — ライセンスカードの署名欄
 
+## 同梱ライブラリ
+
+- Firebase Web SDK: Apache-2.0。`client/firebase-entry.js` から同梱。
+- jsQR 1.4.0: Apache-2.0。`client/qr-entry.js` から同梱。
+- LINE LIFF 2.31.2: LINE Developers Agreementに基づく利用。`client/line-entry.js` から同梱。公式のnpmパッケージを使用しています。
+
 ---
 
 ## ライセンス・免責事項

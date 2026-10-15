@@ -1,18 +1,37 @@
 const { initializeApp } = require('firebase-admin/app');
 const { getAuth } = require('firebase-admin/auth');
-const { getFirestore } = require('firebase-admin/firestore');
+const { getFirestore, Timestamp } = require('firebase-admin/firestore');
 const { onCall, HttpsError } = require('firebase-functions/v2/https');
 const { defineString } = require('firebase-functions/params');
 const crypto = require('node:crypto');
 const P = require('./policy.cjs');
+const S = require('./security.cjs');
 const catalog = require('./catalog.json');
 initializeApp();
 const db = getFirestore();
 const lineChannelId = defineString('LINE_CHANNEL_ID', { default: 'disabled' });
 // Domain-restricted organizations use a per-service HTTP entry setting, not allUsers IAM grants.
+const emulator = process.env.FUNCTIONS_EMULATOR === 'true';
 const options = { region: 'asia-northeast1', maxInstances: 10, timeoutSeconds: 30, invoker: 'private',
-  enforceAppCheck: process.env.FUNCTIONS_EMULATOR !== 'true' };
+  cors: emulator ? true : S.ORIGINS,
+  serviceAccount: emulator ? undefined : 'hoppo-runtime@hoppo-status-vifight.iam.gserviceaccount.com',
+  enforceAppCheck: !emulator };
 const fail = (code, text) => { throw new HttpsError(code, text); };
+function callable(handler, { anonymous = false, recent = false } = {}) {
+  return onCall(options, async req => {
+    S.validateRequest(req, emulator);
+    if (!anonymous || req.auth) {
+      const id = uid(req);
+      try { req.identity = await getAuth().getUser(id); }
+      catch { fail('unauthenticated', '再度ログインしてください。'); }
+      // Callable verifies the signature; the current Auth record also rejects revoked/disabled sessions.
+      S.validateSession(req.auth.token, req.identity);
+      if (recent) S.requireRecentLogin(req.auth.token);
+    }
+    req.rawRequest?.res?.set('Cache-Control', 'no-store');
+    return handler(req);
+  });
+}
 function uid(req) {
   if (!req.auth) fail('unauthenticated', 'ログインしてください。');
   if (req.auth.token.email_verified !== true && req.auth.token.lineVerified !== true) {
@@ -41,7 +60,8 @@ function publish(tx, id, user) {
 function consume(tx, ref, snap, max, now) {
   const old = snap.data() || {};
   if ((old.count || 0) >= max) fail('resource-exhausted', '操作回数の上限です。しばらく待ってからお試しください。');
-  tx.set(ref, { count: (old.count || 0) + 1, at: now.toISOString() });
+  tx.set(ref, { count: (old.count || 0) + 1, at: now.toISOString(),
+    purgeAt: Timestamp.fromMillis(+now + 7 * 86400000) });
 }
 async function verifyLineToken(token) {
   const clientId = lineChannelId.value();
@@ -58,26 +78,36 @@ async function verifyLineToken(token) {
   let identity;
   try { identity = await response.json(); } catch { fail('unavailable', 'LINE認証の応答を確認できませんでした。'); }
   if (identity.aud !== clientId || identity.iss !== 'https://access.line.me' ||
-      !/^U[0-9a-f]{32}$/i.test(identity.sub || '') || !Number.isFinite(identity.exp) || identity.exp * 1000 <= Date.now()) {
+      !/^U[0-9a-f]{32}$/i.test(identity.sub || '') || !Number.isFinite(identity.exp) || identity.exp * 1000 <= Date.now() ||
+      !Number.isFinite(identity.iat) || identity.iat * 1000 > Date.now() + 60000) {
     fail('unauthenticated', 'LINE認証が期限切れ、または対象外です。');
   }
-  return P.hash(identity.sub);
+  return { hash: P.hash(identity.sub), issuedAt: identity.iat * 1000 };
 }
-exports.exchangeLineToken = onCall(options, async (req) => {
-  const lineHash = await verifyLineToken(req.data?.idToken);
+exports.exchangeLineToken = callable(async (req) => {
+  const now = new Date(), minute = Math.floor(+now / 60000);
+  const rate = db.doc(`authLimits/${P.hash(`${req.rawRequest.ip}:${minute}`)}`);
+  await db.runTransaction(async tx => consume(tx, rate, await tx.get(rate), 20, now));
+  const line = await verifyLineToken(req.data?.idToken), lineHash = line.hash;
   const linked = await db.doc(`lineLinks/${lineHash}`).get();
   const id = linked.exists ? linked.data().uid : `line_${lineHash}`;
+  const [user, closed] = await db.getAll(db.doc(`users/${id}`), db.doc(`accountClosures/${id}`));
+  if (user.exists) active(user);
+  if (closed.exists && line.issuedAt <= closed.data().at) fail('unauthenticated', 'LINEから再度ログインしてください。');
+  try {
+    if ((await getAuth().getUser(id)).disabled) fail('permission-denied', 'このアカウントは利用できません。');
+  } catch (error) { if (error.code !== 'auth/user-not-found') throw error; }
   // Never trust a client-supplied LINE profile, email, or Firebase uid.
   return { token: await getAuth().createCustomToken(id, { lineVerified: true, lineHash }) };
-});
-exports.linkLineAccount = onCall(options, async (req) => {
+}, { anonymous: true });
+exports.linkLineAccount = callable(async (req) => {
   const id = uid(req);
-  const identity = await getAuth().getUser(id);
+  const identity = req.identity;
   if (!identity.email || !identity.emailVerified || req.auth.token.firebase?.sign_in_provider !== 'password') {
     fail('failed-precondition', 'メール確認済みのメールアカウントでログインしてください。');
   }
   if (req.data?.consent !== true) fail('invalid-argument', 'LINE連携への同意が必要です。');
-  const lineHash = await verifyLineToken(req.data?.idToken);
+  const { hash: lineHash } = await verifyLineToken(req.data?.idToken);
   const lineRef = db.doc(`lineLinks/${lineHash}`), userRef = db.doc(`users/${id}`);
   const separateRef = db.doc(`users/line_${lineHash}`);
   await db.runTransaction(async (tx) => {
@@ -91,12 +121,9 @@ exports.linkLineAccount = onCall(options, async (req) => {
     tx.update(userRef, { lineHash });
   });
   return { linked: true };
-});
-exports.ensureAccount = onCall(options, async (req) => {
+}, { recent: true });
+exports.ensureAccount = callable(async (req) => {
   const id = uid(req);
-  let identity;
-  try { identity = await getAuth().getUser(id); } catch { fail('unauthenticated', 'このログイン情報は無効です。'); }
-  if (identity.disabled) fail('permission-denied', 'このアカウントは利用できません。');
   if (req.data?.termsVersion !== P.VERSION) fail('failed-precondition', '最新の利用条件に同意してください。');
   const ref = db.doc(`users/${id}`);
   const lineHash = req.auth.token.lineHash;
@@ -116,10 +143,10 @@ exports.ensureAccount = onCall(options, async (req) => {
   });
   return { ok: true };
 });
-exports.updateProfile = onCall(options, async (req) => {
+exports.updateProfile = callable(async (req) => {
   const id = uid(req), now = new Date(), ref = db.doc(`users/${id}`);
   const input = req.data?.profile;
-  if (!input || typeof input !== 'object') fail('invalid-argument', 'プロフィールが必要です。');
+  if (!input || typeof input !== 'object' || Array.isArray(input)) fail('invalid-argument', 'プロフィールが必要です。');
   const next = P.profile(input, now);
   if (input.dmEnabled === true && !next.dmEnabled) fail('failed-precondition', 'DMは18歳以上・ランキング参加者のみ有効にできます。');
   await db.runTransaction(async (tx) => {
@@ -132,7 +159,7 @@ exports.updateProfile = onCall(options, async (req) => {
   });
   return { profile: next };
 });
-exports.claimDaily = onCall(options, async (req) => {
+exports.claimDaily = callable(async (req) => {
   const id = uid(req), ref = db.doc(`users/${id}`), now = new Date();
   return db.runTransaction(async (tx) => {
     const user = active(await tx.get(ref)), bonus = P.daily(user, now);
@@ -144,7 +171,7 @@ exports.claimDaily = onCall(options, async (req) => {
     return { points: bonus.points, streak: bonus.streak };
   });
 });
-exports.beginQuiz = onCall(options, async (req) => {
+exports.beginQuiz = callable(async (req) => {
   const id = uid(req), quiz = catalog.quizzes.find(q => q.id === req.data?.quizId);
   if (!quiz) fail('not-found', 'クイズが見つかりません。');
   const now = new Date(), session = db.collection('quizSessions').doc();
@@ -153,11 +180,12 @@ exports.beginQuiz = onCall(options, async (req) => {
     const [user, rateSnap] = await tx.getAll(db.doc(`users/${id}`), rate);
     active(user); consume(tx, rate, rateSnap, 40, now);
     tx.set(session, { uid: id, quizId: quiz.id, version: catalog.version, index: 0,
-      correct: 0, expiresAt: Date.now() + 30 * 60 * 1000 });
+      correct: 0, expiresAt: Date.now() + 30 * 60 * 1000,
+      purgeAt: Timestamp.fromMillis(Date.now() + 86400000) });
   });
   return { sessionId: session.id, questions: quiz.questions.map(q => ({ q: q.q, choices: q.choices })) };
 });
-exports.answerQuiz = onCall(options, async (req) => {
+exports.answerQuiz = callable(async (req) => {
   const id = uid(req), data = req.data || {}, now = new Date();
   if (!/^[a-zA-Z0-9]{20}$/.test(data.sessionId || '')) fail('invalid-argument', 'セッションが無効です。');
   const ref = db.doc(`quizSessions/${data.sessionId}`), userRef = db.doc(`users/${id}`);
@@ -190,7 +218,7 @@ exports.answerQuiz = onCall(options, async (req) => {
     return result;
   });
 });
-exports.submitQuiz = onCall(options, async (req) => {
+exports.submitQuiz = callable(async (req) => {
   const id = uid(req), data = req.data || {}, now = new Date();
   const quiz = catalog.quizzes.find(q => q.id === data.quizId);
   if (!quiz) fail('not-found', 'クイズが見つかりません。');
@@ -221,11 +249,12 @@ exports.submitQuiz = onCall(options, async (req) => {
     const result = { correctCount, total: quiz.questions.length, earned };
     tx.set(userRef, next);
     publish(tx, id, next);
-    tx.create(receiptRef, { quizId: quiz.id, version: catalog.version, result, at: now.toISOString() });
+    tx.create(receiptRef, { quizId: quiz.id, version: catalog.version, result, at: now.toISOString(),
+      purgeAt: Timestamp.fromMillis(+now + 7 * 86400000) });
     return result;
   });
 });
-exports.redeemEvent = onCall(options, async (req) => {
+exports.redeemEvent = callable(async (req) => {
   const id = uid(req), now = new Date(), code = P.clean(req.data?.code, 200);
   if (!/^HOPPO:[a-zA-Z0-9_-]{32,100}$/.test(code)) fail('invalid-argument', '本番イベントのコードではありません。');
   const key = P.hash(code), ref = db.doc(`events/${key}`), userRef = db.doc(`users/${id}`);
@@ -245,7 +274,7 @@ exports.redeemEvent = onCall(options, async (req) => {
     return { points: event.points, label: event.label, stampId: event.stampId || '' };
   });
 });
-exports.setFollow = onCall(options, async (req) => {
+exports.setFollow = callable(async (req) => {
   const id = uid(req), other = target(req), now = new Date();
   await db.runTransaction(async (tx) => {
     const follow = db.doc(`users/${id}/following/${other}`), rate = db.doc(`users/${id}/limits/follow-${P.dayKey(now)}`);
@@ -264,10 +293,18 @@ exports.setFollow = onCall(options, async (req) => {
   });
   return { ok: true };
 });
-exports.setBlock = onCall(options, async (req) => {
-  const id = uid(req), other = target(req);
+exports.setBlock = callable(async (req) => {
+  const id = uid(req), other = target(req), now = new Date();
   await db.runTransaction(async (tx) => {
-    active(await tx.get(db.doc(`users/${id}`)));
+    const rate = db.doc(`users/${id}/limits/block-${P.dayKey(now)}`);
+    const [user, rateSnap, current] = await Promise.all([
+      tx.get(db.doc(`users/${id}`)), tx.get(rate), tx.get(db.collection(`users/${id}/blocks`).limit(201))
+    ]);
+    active(user);
+    if (req.data.block === true && current.size >= 200 && !current.docs.some(doc => doc.id === other)) {
+      fail('resource-exhausted', 'ブロックは200人までです。');
+    }
+    consume(tx, rate, rateSnap, 100, now);
     const ref = db.doc(`users/${id}/blocks/${other}`);
     if (req.data.block === true) {
       tx.set(ref, { targetId: other, at: new Date().toISOString() });
@@ -276,7 +313,7 @@ exports.setBlock = onCall(options, async (req) => {
   });
   return { ok: true };
 });
-exports.sendMessage = onCall(options, async (req) => {
+exports.sendMessage = callable(async (req) => {
   const id = uid(req), other = target(req), now = new Date();
   let text;
   try { text = P.message(req.data || {}); } catch { fail('invalid-argument', '本文または送信IDが無効です。'); }
@@ -302,7 +339,7 @@ exports.sendMessage = onCall(options, async (req) => {
   });
   return { threadId: thread.id };
 });
-exports.markThreadRead = onCall(options, async (req) => {
+exports.markThreadRead = callable(async (req) => {
   const id = uid(req), threadId = req.data?.threadId, at = req.data?.at;
   if (!/^[0-9a-f]{64}$/.test(threadId || '') || typeof at !== 'string' || !Number.isFinite(Date.parse(at))) fail('invalid-argument', '会話の指定が無効です。');
   const ref = db.doc(`users/${id}/reads/${threadId}`);
@@ -315,7 +352,7 @@ exports.markThreadRead = onCall(options, async (req) => {
   });
   return { ok: true };
 });
-exports.reportUser = onCall(options, async (req) => {
+exports.reportUser = callable(async (req) => {
   const id = uid(req), other = target(req), now = new Date();
   const reason = P.clean(req.data?.reason, 300);
   if (!reason) fail('invalid-argument', '通報理由を入力してください。');
@@ -329,9 +366,8 @@ exports.reportUser = onCall(options, async (req) => {
   return { ok: true };
 });
 
-exports.deleteAccount = onCall(options, async (req) => {
+exports.deleteAccount = callable(async (req) => {
   const id = uid(req);
-  if (Date.now() / 1000 - (req.auth.token.auth_time || 0) > 300) fail('failed-precondition', '一度ログアウトし、再ログインしてから削除してください。');
   const ref = db.doc(`users/${id}`);
   await db.runTransaction(async (tx) => {
     const snap = await tx.get(ref);
@@ -353,4 +389,4 @@ exports.deleteAccount = onCall(options, async (req) => {
   await db.recursiveDelete(ref);
   await getAuth().deleteUser(id);
   return { ok: true };
-});
+}, { recent: true });

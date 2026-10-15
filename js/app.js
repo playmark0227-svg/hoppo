@@ -151,6 +151,14 @@
   }
 
   function init() {
+    if (window.self !== window.top) {
+      const link = document.createElement('a');
+      link.href = location.origin + location.pathname;
+      link.target = '_blank'; link.rel = 'noopener noreferrer';
+      link.textContent = '北方領土ステータスを開く';
+      document.body.replaceChildren(link);
+      return;
+    }
     Store.init();
     bindNav();
     bindStore();

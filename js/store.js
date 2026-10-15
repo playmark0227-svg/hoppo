@@ -107,7 +107,8 @@
   function saveDevice(state) {
     try {
       localStorage.setItem('hoppou_device_v2', JSON.stringify({ settings: state.settings,
-        flags: state.flags, avatarImage: state.profile.avatarImage || '', islandThemeOn: !!state.profile.islandThemeOn }));
+        flags: state.flags, avatarImage: state.profile.avatarImage || '',
+        avatarOwner: window.Cloud?.user?.uid || '', islandThemeOn: !!state.profile.islandThemeOn }));
     } catch { /* device preferences must not prevent cloud operations */ }
   }
 
@@ -162,6 +163,14 @@
     },
 
     applyRemote(user, uid, hydrateProfile) {
+      if (this._remoteUid !== uid) {
+        this.state.profile.avatarImage = '';
+        try {
+          const device = JSON.parse(localStorage.getItem('hoppou_device_v2') || '{}');
+          if (device.avatarOwner === uid) this.state.profile.avatarImage = device.avatarImage || '';
+        } catch { /* leave the default avatar */ }
+        this._remoteUid = uid;
+      }
       this.state.userId = uid.slice(0, 12).toUpperCase();
       const keys = ['points', 'totalEarned', 'history', 'stamps', 'usedQrCodes', 'lastLoginDate',
         'loginStreak', 'longestStreak', 'loginTotal', 'createdAt'];
@@ -181,10 +190,11 @@
       this._emit('change', this.state);
     },
 
-    clearRemote() {
+    clearRemote({ clearPersonal = false } = {}) {
       if (!window.Cloud?.enabled) return;
       const local = load();
       this.state = structuredClone(DEFAULT_STATE);
+      this._remoteUid = null;
       this.state.userId = '未ログイン';
       this.state.createdAt = new Date().toISOString();
       if (local) { this.state.settings = local.settings; this.state.flags = local.flags; }
@@ -192,9 +202,10 @@
         const device = JSON.parse(localStorage.getItem('hoppou_device_v2') || '{}');
         this.state.settings = { ...this.state.settings, ...device.settings };
         this.state.flags = { ...this.state.flags, ...device.flags };
-        this.state.profile.avatarImage = device.avatarImage || '';
+        this.state.profile.avatarImage = clearPersonal ? '' : device.avatarImage || '';
         this.state.profile.islandThemeOn = !!device.islandThemeOn;
       } catch { /* keep safe defaults */ }
+      if (clearPersonal) saveDevice(this.state);
       this._emit('change', this.state);
     },
 

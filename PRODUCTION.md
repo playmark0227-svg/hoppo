@@ -12,7 +12,7 @@
 
 ## 設定状況（2026-10-15）
 
-配信アセットはv45。`docs/RELEASE-CHECK.md` は以前のリリース時点の記録です。
+配信アセットはv55。`docs/RELEASE-CHECK.md` は以前のリリース時点の記録です。v55の防御・運用手順は `SECURITY.md`、本番の読み戻しは `node scripts/security-audit.cjs` を参照してください。
 
 - 会社アカウントで専用プロジェクト `hoppo-status-vifight` とWebアプリを作成。
 - Firestoreは東京 `asia-northeast1`、削除保護あり。ルールとインデックスは配備済み。
@@ -20,10 +20,10 @@
 - `hoppo-status.vifight.com` とGitHub PagesドメインをFirebase Authの承認済みドメイン・reCAPTCHA Enterpriseの許可ドメインに登録。
 - 管理者がChrome画面でBlazeの請求先接続を完了。Firebase APIでも有効化を確認。
 - FirestoreのApp Check強制適用は設定済み。ビルドイメージの保持期間は7日。
-- 管理者の承認で専用サーバーアカウントに必要権限を設定。既存13件に加えLINE連携用1件のCloud Functionを配備済み。署名に必要な `Service Account Token Creator` は実行サービスアカウント自身にのみ付与。秘密鍵ファイルは発行していません。
+- v55で実行IDを `hoppo-runtime` に分離。Firestore操作、Auth利用者の取得・削除、ログ出力と自身へのsignBlobだけに限定。ビルド用compute IDのアプリデータ・Auth管理権限と自己トークン権限を解除します。秘密鍵ファイルは発行していません。
 - 月10米ドルの目安として承認された月1,500円（請求通貨JPY）の予算通知を、このプロジェクトだけに設定。実績50/90/100%および月末予測100%で通知。支出の自動停止は設定していません。
 - Web設定を `enabled: true` に変更。LINE Loginチャネルは公開済み、LIFF `2012022040-tYo7QPPo` の接続先は独自ドメイン。実LINEアカウントでのログイン・既存アカウントへの連携は未検証。
-- 既存13件と追加1件の関数はACTIVE。`allUsers`へのInvoker付与は組織ポリシーで拒否されたため、承認を得た対象サービスだけHTTP入口を公開し、Firebase認証・メール確認・App Checkをアプリ側で要求。追加の `linkLineAccount` はApp Checkなしの実HTTPリクエストが401になることを確認。
+- v55は一括クイズ採点 `submitQuiz` を含む15関数が対象。`allUsers`へのInvoker付与は組織ポリシーで拒否されたため、対象サービスのHTTP入口でFirebase認証・メール確認・App Checkを要求。匿名のLINE交換もApp CheckとLINE公式verifyが必須。未認証の実HTTP拒否は監査スクリプトで確認します。
 - LINE公式アカウント `@569qepzp` の6分割リッチメニューは表示設定済み。友だち追加URLは `https://lin.ee/zHLPt21`。画像には現在許可されているしろくま素材のみを使用。
 - Squarespaceの `hoppo-status` CNAME、GitHub Pagesのカスタムドメイン設定、HTTPS応答を確認。GitHub Pagesへのv45フロント反映は公開URLで別途読み戻して確認します。
 - `functions/index.cjs` の `invoker: 'private'` は `allUsers` IAM付与を避けるためです。承認後に各サービスのIAMチェックだけを別途設定し、再配備後にもHTTP入口の状態を確認してください。

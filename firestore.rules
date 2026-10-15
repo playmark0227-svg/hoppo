@@ -8,31 +8,38 @@ service cloud.firestore {
     function registered() {
       return verified() && exists(/databases/$(database)/documents/users/$(request.auth.uid))
         && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('suspended', false) == false
-        && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('deleting', false) == false;
+        && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('deleting', false) == false
+        && request.auth.token.get('auth_time', 0) >= get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('sessionsRevokedAt', 0);
     }
+    function limited(maximum) { return request.query.limit != null && request.query.limit <= maximum; }
     function member(thread) { return registered() && request.auth.uid in thread.members; }
     function unblocked(thread) {
       return !exists(/databases/$(database)/documents/users/$(thread.members[0])/blocks/$(thread.members[1]))
         && !exists(/databases/$(database)/documents/users/$(thread.members[1])/blocks/$(thread.members[0]));
     }
     match /users/{uid} {
-      allow read: if own(uid);
+      // A first-time user may check whether their own record exists before registration.
+      allow get: if own(uid) && (!exists(/databases/$(database)/documents/users/$(uid)) || registered());
       allow write: if false;
       match /{privateCollection}/{id} {
-        allow read: if own(uid) && privateCollection in ['following', 'blocks', 'reads'];
+        allow read: if own(uid) && registered() && privateCollection in ['following', 'blocks', 'reads'];
         allow write: if false;
       }
     }
     match /publicProfiles/{uid} {
-      allow read: if registered();
+      allow get: if registered();
+      allow list: if registered() && limited(100);
       allow write: if false;
     }
     match /threads/{threadId} {
       // Members retain the conversation listing after a block; sending is disabled server-side.
-      allow read: if member(resource.data);
+      allow get: if member(resource.data);
+      allow list: if member(resource.data) && limited(50);
       allow write: if false;
       match /messages/{messageId} {
-        allow read: if member(get(/databases/$(database)/documents/threads/$(threadId)).data)
+        allow get: if member(get(/databases/$(database)/documents/threads/$(threadId)).data)
+          && unblocked(get(/databases/$(database)/documents/threads/$(threadId)).data);
+        allow list: if limited(100) && member(get(/databases/$(database)/documents/threads/$(threadId)).data)
           && unblocked(get(/databases/$(database)/documents/threads/$(threadId)).data);
         allow write: if false;
       }

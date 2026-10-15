@@ -9,6 +9,12 @@ async function main() {
   const admin = initializeApp({ projectId: 'demo-hoppo' }, 'browser-admin');
   const browser = await chromium.launch({ headless: true, ...(process.env.HOPPO_CHROMIUM_PATH ? { executablePath: process.env.HOPPO_CHROMIUM_PATH } : {}) });
   const errors = [], pages = [];
+  const frameTest = await browser.newPage();
+  await frameTest.setContent('<iframe src="http://127.0.0.1:8776/index.html"></iframe>');
+  const framed = frameTest.frameLocator('iframe');
+  await framed.getByRole('link', { name: '北方領土ステータスを開く', exact: true }).waitFor();
+  assert.equal(await framed.locator('#authForm').count(), 0, 'embedded login controls must never be exposed for clickjacking');
+  await frameTest.close();
   async function register(label, width) {
     const context = await browser.newContext({ viewport: { width, height: width === 320 ? 740 : 900 }, serviceWorkers: 'block' });
     await context.grantPermissions(['local-network-access'], { origin: 'http://127.0.0.1:8776' });
@@ -219,8 +225,18 @@ async function main() {
     await b.page.locator('#loader').waitFor({ state: 'detached', timeout: 20000 });
     await b.page.waitForFunction(() => !!Cloud.account);
     assert.equal(await b.page.evaluate(() => Cloud.account.profile.name), '登録者B');
+    await b.page.evaluate(() => { UI.go('social'); Social.openTab('dm'); });
+    await b.page.locator('#dmThreadList button').first().click();
+    await b.page.waitForFunction(() => document.querySelector('#dmLog')?.textContent.includes('<img src=x'));
+    await b.page.locator('#dmInput').fill('送信前の個人情報');
     await b.page.evaluate(() => Cloud.open()); await b.page.locator('#authLogoutBtn').click(); await b.page.waitForFunction(() => !Cloud.user);
     assert.equal(await b.page.evaluate(() => Store.get().points), 0);
+    assert.equal(await b.page.locator('#dmLog').textContent(), '', 'logout must erase rendered DM bodies');
+    assert.equal(await b.page.locator('#dmInput').inputValue(), '', 'logout must erase unsent messages');
+    assert.equal(await b.page.evaluate(() => Cloud.threads.length), 0);
+    assert.equal(await b.page.evaluate(() => Store.getProfile().bio), '');
+    assert.equal(await b.page.evaluate(() => Object.keys(localStorage).filter(k => k.startsWith('hoppou_'))
+      .some(k => /送信前の個人情報|<img src=x|四島を学んでいます/.test(localStorage.getItem(k)))), false);
     assert.deepEqual(errors, []); console.log('Live-emulator browser: email registration/verification, profile opt-in, real-user follows/DM, escaped HTML, session restoration and logout passed.');
   } finally { await browser.close(); await deleteApp(admin); }
 }

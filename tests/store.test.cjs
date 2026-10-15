@@ -33,6 +33,16 @@ test('cloud initialization remains usable when device storage is full', () => {
   assert.ok(writes.every(w => w.key === 'hoppou_device_v2'));
   assert.equal(store.get().points, 0);
 });
+test('uploaded avatars cannot carry over to another cloud account and are erased on logout', () => {
+  const { store, writes } = setup(true, false, { avatarImage: 'private-photo', avatarOwner: 'alice' });
+  store.init(); store.clearRemote();
+  store.applyRemote({ profile: { name: 'Alice' } }, 'alice', true);
+  assert.equal(store.getProfile().avatarImage, 'private-photo');
+  store.applyRemote({ profile: { name: 'Bob' } }, 'bob', true);
+  assert.equal(store.getProfile().avatarImage, '');
+  store.clearRemote({ clearPersonal: true });
+  assert.ok(!writes.at(-1).value.includes('private-photo'));
+});
 
 test('local preview retains its normal persisted state', () => {
   const { store, writes } = setup(false);
