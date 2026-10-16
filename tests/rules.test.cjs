@@ -14,7 +14,10 @@ before(async () => {
       'publicProfiles/alice': { name: 'Alice', totalEarned: 10 },
       'threads/ab': { members: ['alice', 'bob'] }, 'threads/ab/messages/1': { senderId: 'alice', text: 'hello' },
       'threads/ac': { members: ['alice', 'carol'] }, 'threads/ac/messages/1': { senderId: 'alice', text: 'blocked' },
-      'users/carol/blocks/alice': { at: 'now' }, 'events/secret': { points: 500 }, 'reports/1': { reason: 'private' }
+      'users/carol/blocks/alice': { at: 'now' }, 'events/secret': { points: 500 }, 'reports/1': { reason: 'private' },
+      'content/catalog': { revision: 1, notices: [] }, 'adminContent/catalog': { private: true },
+      'admins/alice': { enabled: true }, 'adminEventSecrets/secret': { code: 'not-public' },
+      'adminAudit/secret': { uid: 'alice' }
     })) await setDoc(doc(db, path), value);
   });
 });
@@ -83,4 +86,15 @@ test('block disables reading messages; internal events and reports stay private'
   await assertFails(getDoc(doc(dbFor('carol'), 'threads/ac/messages/1')));
   await assertFails(getDoc(doc(dbFor('alice'), 'events/secret')));
   await assertFails(getDoc(doc(dbFor('alice'), 'reports/1')));
+});
+test('only the published catalog is public; even administrators cannot read drafts or QR secrets directly', async () => {
+  for (const db of [env.unauthenticatedContext().firestore(), dbFor('alice', { email_verified: true, admin: true })]) {
+    await assertSucceeds(getDoc(doc(db, 'content/catalog')));
+    await assertFails(getDocs(collection(db, 'content')));
+    await assertFails(setDoc(doc(db, 'content/catalog'), { forged: true }));
+    for (const path of ['adminContent/catalog', 'admins/alice', 'adminEventSecrets/secret', 'adminAudit/secret', 'adminLimits/secret', 'adminOperations/secret']) {
+      await assertFails(getDoc(doc(db, path)));
+      await assertFails(setDoc(doc(db, path), { forged: true }));
+    }
+  }
 });

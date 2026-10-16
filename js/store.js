@@ -181,7 +181,8 @@
       const edition = window.QUIZ_CATALOG_VERSION || '';
       this.state.quizCatalogVersion = edition;
       Object.entries(user.quizResults || {}).forEach(([key, result]) => {
-        if (result.quizId && (!edition || key.startsWith(`${edition}:`))) {
+        const expected = (window.QUIZZES || []).find(quiz => quiz.id === result.quizId)?.version || edition;
+        if (result.quizId && (!expected || key === `${expected}:${result.quizId}`)) {
           this.state.quizResults[result.quizId] = result;
         }
       });

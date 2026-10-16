@@ -14,7 +14,7 @@
       if (window.jsQR) { resolve(window.jsQR); return; }
       const s = document.createElement('script');
       // Pinned in package-lock.json and served from the app's own origin.
-      s.src = 'js/vendor/jsqr.js?v=58';
+      s.src = 'js/vendor/jsqr.js?v=59';
       s.crossOrigin = 'anonymous';
       s.referrerPolicy = 'no-referrer';
       s.onload = () => resolve(window.jsQR);

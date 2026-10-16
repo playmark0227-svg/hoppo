@@ -105,7 +105,8 @@ test('batched quiz grades once, updates points, and replays safely', async () =>
   const state = (await db.doc(`users/${users.alice.uid}`).get()).data();
   assert.equal(state.quizResults[`${catalog.version}:${quiz.id}`].timesPlayed, 1);
   assert.equal(state.points, 5 + catalog.quizzes[0].questions.length * 10 + 50 + expected);
-  await assert.rejects(users.alice.call('submitQuiz', { ...data, version: 'old' }), { code: 'functions/failed-precondition' });
+  await assert.rejects(users.alice.call('submitQuiz', { ...data, version: 'old' }), { code: 'functions/invalid-argument' });
+  await assert.rejects(users.alice.call('submitQuiz', { ...data, version: 'old', requestId: 'batch-obsolete-0001' }), { code: 'functions/failed-precondition' });
   await assert.rejects(users.alice.call('submitQuiz', { ...data, answers: [0] }), { code: 'functions/invalid-argument' });
   const wrongAnswers = [...answers];
   wrongAnswers[0] = (answers[0] + 1) % quiz.questions[0].choices.length;

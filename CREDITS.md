@@ -107,6 +107,9 @@
 - Firebase Web SDK: Apache-2.0。`client/firebase-entry.js` から同梱。
 - jsQR 1.4.0: Apache-2.0。`client/qr-entry.js` から同梱。
 - LINE LIFF 2.31.2: LINE Developers Agreementに基づく利用。`client/line-entry.js` から同梱。公式のnpmパッケージを使用しています。
+- qrcode 1.5.4: MIT。管理画面のQR画像生成に使用。
+- Lucide 0.468.0: ISC。管理画面の操作アイコンに使用。
+- dijkstrajs: MIT。qrcodeの依存。上記管理画面バンドルのライセンス本文は `js/vendor/ADMIN-LICENSES.txt` に同梱。
 
 ---
 

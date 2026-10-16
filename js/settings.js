@@ -92,9 +92,9 @@
               data-island="${island.id}" role="radio" aria-checked="${profile.favoriteIsland === island.id}">
         <span class="island-chip-photo" style="background-image: url('${island.image}');"></span>
         <span class="island-chip-meta">
-          <span class="island-chip-en">${island.en}</span>
-          <span class="island-chip-name">${island.name}</span>
-          <span class="island-chip-desc">${island.desc}</span>
+          <span class="island-chip-en">${UI.escapeHtml(island.en)}</span>
+          <span class="island-chip-name">${UI.escapeHtml(island.name)}</span>
+          <span class="island-chip-desc">${UI.escapeHtml(island.desc)}</span>
         </span>
         <span class="island-chip-check" aria-hidden="true">✓</span>
       </button>

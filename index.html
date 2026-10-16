@@ -36,24 +36,25 @@
   <meta property="og:title" content="北方領土ステータス">
   <meta property="og:description" content="クイズ・スタンプラリー・ランキングで、北方領土について楽しく学べるPWAアプリ。">
   <meta property="og:url" content="https://hoppo-status.vifight.com/">
-  <meta property="og:image" content="https://hoppo-status.vifight.com/assets/images/icon-512.png?v=58">
+  <meta property="og:image" content="https://hoppo-status.vifight.com/assets/images/icon-512.png?v=59">
   <meta property="og:locale" content="ja_JP">
   <meta name="twitter:card" content="summary">
   <meta name="twitter:title" content="北方領土ステータス">
   <meta name="twitter:description" content="クイズ・スタンプラリー・ランキングで、北方領土について楽しく学べるPWAアプリ。">
-  <meta name="twitter:image" content="https://hoppo-status.vifight.com/assets/images/icon-512.png?v=58">
+  <meta name="twitter:image" content="https://hoppo-status.vifight.com/assets/images/icon-512.png?v=59">
   <link rel="canonical" href="https://hoppo-status.vifight.com/">
 
-  <link rel="manifest" href="manifest.webmanifest?v=58">
-  <link rel="apple-touch-icon" href="assets/images/icon-192.png?v=58">
-  <link rel="icon" href="assets/images/icon-192.png?v=58">
+  <link rel="manifest" href="manifest.webmanifest?v=59">
+  <link rel="apple-touch-icon" href="assets/images/icon-192.png?v=59">
+  <link rel="icon" href="assets/images/icon-192.png?v=59">
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700;900&family=Yuji+Syuku&display=swap" rel="stylesheet" crossorigin="anonymous">
 
-  <link rel="stylesheet" href="css/style.css?v=58">
-  <link rel="stylesheet" href="css/account.css?v=58">
+  <link rel="stylesheet" href="css/style.css?v=59">
+  <link rel="stylesheet" href="css/account.css?v=59">
+  <link rel="stylesheet" href="css/admin.css?v=59">
 </head>
 <body>
 
@@ -904,6 +905,11 @@
         </div>
       </section>
 
+      <section class="page page-admin" data-page="admin" hidden>
+        <div class="page-head"><div class="page-head-kicker">CONTENT MANAGEMENT</div><h2>コンテンツ管理</h2></div>
+        <div id="adminRoot"></div>
+      </section>
+
       <!-- SOCIAL（ランキング・フレンド・DM） -->
       <section class="page page-social" data-page="social" hidden>
         <div class="page-head">
@@ -1192,6 +1198,11 @@
               <span>運営</span>
               <strong>ViFight</strong>
             </div>
+            <button type="button" class="settings-row-btn" id="adminEntry" data-goto="admin" hidden>
+              <span class="settings-row-icon"><svg class="icon"><use href="#i-shield"/></svg></span>
+              <span class="settings-row-meta"><strong>コンテンツ管理</strong><small>クイズ・スタンプ・QR・掲載情報</small></span>
+              <span class="settings-row-arrow">›</span>
+            </button>
             <button type="button" class="settings-row-btn" id="settingsTutorialBtn">
               <span class="settings-row-icon">🎓</span>
               <span class="settings-row-meta">
@@ -1503,21 +1514,23 @@
     <canvas id="confetti" class="confetti"></canvas>
   </div>
 
-  <script defer src="js/data.js?v=58"></script>
-  <script defer src="js/quiz-extra.js?v=58"></script>
-  <script defer src="js/store.js?v=58"></script>
-  <script defer src="js/ui.js?v=58"></script>
-  <script defer src="js/cloud-config.js?v=58"></script>
-  <script defer src="js/cloud.js?v=58"></script>
-  <script defer src="js/achievements.js?v=58"></script>
-  <script defer src="js/quiz.js?v=58"></script>
-  <script defer src="js/shop.js?v=58"></script>
-  <script defer src="js/qr.js?v=58"></script>
-  <script defer src="js/license.js?v=58"></script>
-  <script defer src="js/settings.js?v=58"></script>
-  <script defer src="js/stamps.js?v=58"></script>
-  <script defer src="js/social.js?v=58"></script>
-  <script defer src="js/tutorial.js?v=58"></script>
-  <script defer src="js/app.js?v=58"></script>
+  <script defer src="js/data.js?v=59"></script>
+  <script defer src="js/quiz-extra.js?v=59"></script>
+  <script defer src="js/content.js?v=59"></script>
+  <script defer src="js/store.js?v=59"></script>
+  <script defer src="js/ui.js?v=59"></script>
+  <script defer src="js/cloud-config.js?v=59"></script>
+  <script defer src="js/cloud.js?v=59"></script>
+  <script defer src="js/achievements.js?v=59"></script>
+  <script defer src="js/quiz.js?v=59"></script>
+  <script defer src="js/shop.js?v=59"></script>
+  <script defer src="js/qr.js?v=59"></script>
+  <script defer src="js/license.js?v=59"></script>
+  <script defer src="js/settings.js?v=59"></script>
+  <script defer src="js/stamps.js?v=59"></script>
+  <script defer src="js/social.js?v=59"></script>
+  <script defer src="js/tutorial.js?v=59"></script>
+  <script defer src="js/admin.js?v=59"></script>
+  <script defer src="js/app.js?v=59"></script>
 </body>
 </html>

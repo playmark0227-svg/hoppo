@@ -17,6 +17,11 @@ service cloud.firestore {
       return !exists(/databases/$(database)/documents/users/$(thread.members[0])/blocks/$(thread.members[1]))
         && !exists(/databases/$(database)/documents/users/$(thread.members[1])/blocks/$(thread.members[0]));
     }
+    match /content/catalog {
+      // Only reviewed, published content. Private drafts, roles and QR secrets stay denied below.
+      allow get: if true;
+      allow list, write: if false;
+    }
     match /users/{uid} {
       // A first-time user may check whether their own record exists before registration.
       allow get: if own(uid) && (!exists(/databases/$(database)/documents/users/$(uid)) || registered());

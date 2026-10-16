@@ -101,7 +101,7 @@
       const dsName = document.getElementById('dsProfileName');
       if (dsName) dsName.textContent = s.name || 'ゲスト';
       const dsRank = document.getElementById('dsProfileRank');
-      if (dsRank) dsRank.innerHTML = `<span class="ds-profile-rank-pip">${rank.emoji}</span> ${rank.name}`;
+      if (dsRank) dsRank.innerHTML = `<span class="ds-profile-rank-pip">${this.escapeHtml(rank.emoji)}</span> ${this.escapeHtml(rank.name)}`;
       const dsPoints = document.getElementById('dsPointsValue');
       if (dsPoints) dsPoints.textContent = pointsTxt;
     },
@@ -177,11 +177,11 @@
       const facts = document.getElementById('islandFacts');
       if (facts) {
         facts.innerHTML = (island.facts || []).map(f =>
-          `<li><span>${f.k}</span><b>${f.v}</b></li>`
+          `<li><span>${this.escapeHtml(f.k)}</span><b>${this.escapeHtml(f.v)}</b></li>`
         ).join('');
       }
       const body = document.getElementById('islandBody');
-      if (body) body.innerHTML = `<p>${island.body}</p>`;
+      if (body) body.textContent = island.body;
       this.openModal('islandModal');
     },
 

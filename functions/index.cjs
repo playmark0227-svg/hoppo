@@ -6,7 +6,7 @@ const { defineString } = require('firebase-functions/params');
 const crypto = require('node:crypto');
 const P = require('./policy.cjs');
 const S = require('./security.cjs');
-const catalog = require('./catalog.json');
+const Content = require('./content-service.cjs');
 initializeApp();
 const db = getFirestore();
 const lineChannelId = defineString('LINE_CHANNEL_ID', { default: 'disabled' });
@@ -17,9 +17,9 @@ const options = { region: 'asia-northeast1', maxInstances: 10, timeoutSeconds: 3
   serviceAccount: emulator ? undefined : 'hoppo-runtime@hoppo-status-vifight.iam.gserviceaccount.com',
   enforceAppCheck: !emulator };
 const fail = (code, text) => { throw new HttpsError(code, text); };
-function callable(handler, { anonymous = false, recent = false } = {}) {
+function callable(handler, { anonymous = false, recent = false, maxBytes = 16384 } = {}) {
   return onCall(options, async req => {
-    S.validateRequest(req, emulator);
+    S.validateRequest(req, emulator, maxBytes);
     if (!anonymous || req.auth) {
       const id = uid(req);
       try { req.identity = await getAuth().getUser(id); }
@@ -35,6 +35,7 @@ function callable(handler, { anonymous = false, recent = false } = {}) {
     return handler(req);
   });
 }
+exports.manageContent = callable(req => Content.createContentService(db).handle(req), { maxBytes: 131072 });
 function uid(req) {
   if (!req.auth) fail('unauthenticated', 'ログインしてください。');
   if (req.auth.token.email_verified !== true && req.auth.token.lineVerified !== true) {
@@ -175,32 +176,35 @@ exports.claimDaily = callable(async (req) => {
   });
 });
 exports.beginQuiz = callable(async (req) => {
-  const id = uid(req), quiz = catalog.quizzes.find(q => q.id === req.data?.quizId);
-  if (!quiz) fail('not-found', 'クイズが見つかりません。');
+  const id = uid(req);
   const now = new Date(), session = db.collection('quizSessions').doc();
-  await db.runTransaction(async (tx) => {
+  return db.runTransaction(async (tx) => {
     const rate = db.doc(`users/${id}/limits/quiz-${P.dayKey(now)}`);
-    const [user, rateSnap] = await tx.getAll(db.doc(`users/${id}`), rate);
+    const [user, rateSnap, contentSnap] = await tx.getAll(db.doc(`users/${id}`), rate, Content.publicRef(db));
+    const current = Content.value(contentSnap), quiz = current.quizzes.find(q => q.id === req.data?.quizId);
+    if (!quiz) fail('not-found', 'クイズが見つかりません。');
     active(user); consume(tx, rate, rateSnap, 40, now);
-    tx.set(session, { uid: id, quizId: quiz.id, version: catalog.version, index: 0,
+    tx.set(session, { uid: id, quizId: quiz.id, version: quiz.version || current.version, index: 0,
       correct: 0, expiresAt: Date.now() + 30 * 60 * 1000,
       purgeAt: Timestamp.fromMillis(Date.now() + 86400000) });
+    return { sessionId: session.id, questions: quiz.questions.map(q => ({ q: q.q, choices: q.choices })) };
   });
-  return { sessionId: session.id, questions: quiz.questions.map(q => ({ q: q.q, choices: q.choices })) };
 });
 exports.answerQuiz = callable(async (req) => {
   const id = uid(req), data = req.data || {}, now = new Date();
   if (!/^[a-zA-Z0-9]{20}$/.test(data.sessionId || '')) fail('invalid-argument', 'セッションが無効です。');
   const ref = db.doc(`quizSessions/${data.sessionId}`), userRef = db.doc(`users/${id}`);
   return db.runTransaction(async (tx) => {
-    const [sessionSnap, userSnap] = await tx.getAll(ref, userRef);
+    const [sessionSnap, userSnap, contentSnap] = await tx.getAll(ref, userRef, Content.publicRef(db));
+    const current = Content.value(contentSnap);
     const session = sessionSnap.data(), user = active(userSnap);
-    if (!session || session.uid !== id || session.expiresAt < Date.now() || session.version !== catalog.version) {
+    const quiz = current.quizzes.find(q => q.id === session?.quizId);
+    if (!session || !quiz || session.uid !== id || session.expiresAt < Date.now() || session.version !== (quiz.version || current.version)) {
       fail('permission-denied', 'セッションの期限が切れました。もう一度開始してください。');
     }
     // Network retries reuse the last response without granting points twice.
     if (data.index === session.index - 1 && data.choice === session.lastChoice) return session.lastResponse;
-    const quiz = catalog.quizzes.find(q => q.id === session.quizId), question = quiz?.questions[session.index];
+    const question = quiz.questions[session.index];
     if (!question || data.index !== session.index || !Number.isInteger(data.choice) || data.choice < 0 || data.choice >= question.choices.length) {
       fail('invalid-argument', '回答が無効です。');
     }
@@ -208,7 +212,7 @@ exports.answerQuiz = callable(async (req) => {
     const count = session.correct + (correct ? 1 : 0), done = session.index + 1 === quiz.questions.length;
     let earned = 0;
     if (done) {
-      const key = `${catalog.version}:${quiz.id}`, prev = user.quizResults[key] || { bestScore: 0, timesPlayed: 0 };
+      const key = `${session.version}:${quiz.id}`, prev = user.quizResults[key] || { bestScore: 0, timesPlayed: 0 };
       earned = P.quizReward(prev.bestScore, count, quiz.questions.length);
       const next = P.award(user, earned, `クイズ：${quiz.title}`, 'quiz', now);
       next.quizResults[key] = { bestScore: Math.max(prev.bestScore, count), timesPlayed: prev.timesPlayed + 1,
@@ -223,28 +227,30 @@ exports.answerQuiz = callable(async (req) => {
 });
 exports.submitQuiz = callable(async (req) => {
   const id = uid(req), data = req.data || {}, now = new Date();
-  const quiz = catalog.quizzes.find(q => q.id === data.quizId);
-  if (!quiz) fail('not-found', 'クイズが見つかりません。');
-  if (data.version !== catalog.version) fail('failed-precondition', '問題が更新されました。ページを再読み込みしてください。');
-  if (!/^[a-zA-Z0-9_-]{16,64}$/.test(data.requestId || '') ||
-      !Array.isArray(data.answers) || data.answers.length !== quiz.questions.length ||
-      data.answers.some((choice, index) => !Number.isInteger(choice) || choice < 0 || choice >= quiz.questions[index].choices.length)) {
+  if (!/^[a-zA-Z0-9_-]{16,64}$/.test(data.requestId || '') || !Array.isArray(data.answers) || data.answers.length > 30) {
     fail('invalid-argument', '回答が無効です。');
   }
   const userRef = db.doc(`users/${id}`);
   const receiptRef = db.doc(`users/${id}/quizSubmissions/${data.requestId}`);
   const rateRef = db.doc(`users/${id}/limits/quiz-${P.dayKey(now)}`);
+  const fingerprint = P.hash(JSON.stringify(data.answers));
   return db.runTransaction(async (tx) => {
-    const [userSnap, receiptSnap, rateSnap] = await tx.getAll(userRef, receiptRef, rateRef);
+    const [userSnap, receiptSnap, rateSnap, contentSnap] = await tx.getAll(userRef, receiptRef, rateRef, Content.publicRef(db));
     const user = active(userSnap);
     if (receiptSnap.exists) {
       const receipt = receiptSnap.data();
-      if (receipt.quizId !== quiz.id || receipt.version !== catalog.version) fail('invalid-argument', '送信IDが重複しています。');
+      if (receipt.quizId !== data.quizId || receipt.version !== data.version ||
+          (receipt.fingerprint ? receipt.fingerprint !== fingerprint : data.answers.length !== receipt.result.total)) fail('invalid-argument', '送信IDが別の回答と重複しています。');
       return receipt.result;
     }
+    const current = Content.value(contentSnap), quiz = current.quizzes.find(q => q.id === data.quizId);
+    if (!quiz) fail('not-found', 'クイズが見つかりません。');
+    const version = quiz.version || current.version;
+    if (data.version !== version) fail('failed-precondition', '問題が更新されました。ページを再読み込みしてください。');
+    if (data.answers.length !== quiz.questions.length || data.answers.some((choice, index) => !Number.isInteger(choice) || choice < 0 || choice >= quiz.questions[index].choices.length)) fail('invalid-argument', '回答が無効です。');
     consume(tx, rateRef, rateSnap, 40, now);
     const correctCount = data.answers.reduce((sum, choice, index) => sum + Number(choice === quiz.questions[index].answer), 0);
-    const key = `${catalog.version}:${quiz.id}`, prev = user.quizResults[key] || { bestScore: 0, timesPlayed: 0 };
+    const key = `${version}:${quiz.id}`, prev = user.quizResults[key] || { bestScore: 0, timesPlayed: 0 };
     const earned = P.quizReward(prev.bestScore, correctCount, quiz.questions.length);
     const next = P.award(user, earned, `クイズ：${quiz.title}`, 'quiz', now);
     next.quizResults[key] = { bestScore: Math.max(prev.bestScore, correctCount), timesPlayed: prev.timesPlayed + 1,
@@ -252,7 +258,7 @@ exports.submitQuiz = callable(async (req) => {
     const result = { correctCount, total: quiz.questions.length, earned };
     tx.set(userRef, next);
     publish(tx, id, next);
-    tx.create(receiptRef, { quizId: quiz.id, version: catalog.version, result, at: now.toISOString(),
+    tx.create(receiptRef, { quizId: quiz.id, version, fingerprint, result, at: now.toISOString(),
       purgeAt: Timestamp.fromMillis(+now + 7 * 86400000) });
     return result;
   });
@@ -264,9 +270,10 @@ exports.redeemEvent = callable(async (req) => {
   return db.runTransaction(async (tx) => {
     const claim = db.doc(`users/${id}/claims/${key}`);
     const rate = db.doc(`users/${id}/limits/qr-${P.dayKey(now)}`);
-    const [eventSnap, userSnap, claimed, rateSnap] = await tx.getAll(ref, userRef, claim, rate);
+    const [eventSnap, userSnap, claimed, rateSnap, contentSnap] = await tx.getAll(ref, userRef, claim, rate, Content.publicRef(db));
     const user = active(userSnap), event = eventSnap.data();
     if (!event || !event.active || event.expiresAt <= Date.now()) fail('not-found', 'イベントコードは無効、または期限切れです。');
+    if (event.stampId && !Content.value(contentSnap).stamps.some(stamp => stamp.id === event.stampId && !stamp.archived)) fail('not-found', 'このスタンプは公開を終了しました。');
     if (claimed.exists) return { points: 0, alreadyClaimed: true };
     if (event.stampId && user.stamps[event.stampId]) return { points: 0, alreadyClaimed: true };
     consume(tx, rate, rateSnap, 20, now);

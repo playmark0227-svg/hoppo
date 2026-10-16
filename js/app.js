@@ -146,7 +146,7 @@
 
   function handleInitialRoute() {
     const hash = (location.hash || '#home').replace('#', '');
-    const valid = ['home', 'quiz', 'qr', 'shop', 'license', 'settings', 'stamps', 'social'];
+    const valid = ['home', 'quiz', 'qr', 'shop', 'license', 'settings', 'stamps', 'social', 'admin'];
     UI.go(valid.includes(hash) ? hash : 'home');
   }
 
@@ -180,6 +180,7 @@
     if (window.Stamps) Stamps.init();
     if (window.Social) Social.init();
     if (window.Tutorial) Tutorial.init();
+    if (window.Admin) Admin.init();
     const cloudBoot = window.Cloud ? Cloud.init() : Promise.resolve('preview');
 
     // Re-apply avatar style after Store changes (e.g. import)

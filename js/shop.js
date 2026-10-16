@@ -28,11 +28,11 @@
         return `
           <div class="shop-item ${state}" data-item="${item.id}" data-accent="${accent}">
             <div class="shop-item-img">
-              <span class="shop-item-emoji">${item.emoji}</span>
+              ${item.image ? `<img class="managed-product-image" src="${UI.escapeHtml(item.image)}" alt="${UI.escapeHtml(item.name)}" loading="lazy">` : `<span class="shop-item-emoji">${UI.escapeHtml(item.emoji)}</span>`}
               <span class="shop-item-sticker">${priceTier(item.price)}</span>
             </div>
-            <div class="shop-item-name">${item.name}</div>
-            <div class="shop-item-desc">${item.desc}</div>
+            <div class="shop-item-name">${UI.escapeHtml(item.name)}</div>
+            <div class="shop-item-desc">${UI.escapeHtml(item.desc)}</div>
             <div class="shop-item-foot">
               <span class="shop-item-price"><svg class="icon icon-sm"><use href="#i-star"/></svg> ${item.price.toLocaleString()}pt</span>
               <button class="shop-item-btn" ${exchangeUnavailable || owned || !canBuy ? 'disabled' : ''}
@@ -41,7 +41,7 @@
             ${owned ? '<div class="shop-item-owned-stamp">獲得済</div>' : ''}
           </div>
         `;
-      }).join('');
+      }).join('') || '<p class="content-empty">掲載中の商品はありません。</p>';
       grid.querySelectorAll('[data-buy]').forEach(btn => {
         btn.addEventListener('click', (e) => {
           e.stopPropagation();
@@ -126,17 +126,17 @@
     grid.innerHTML = items.map(item => `
       <div class="furusato-item" data-accent="${item.accent || 'coral'}">
         <div class="furusato-item-img">
-          <span class="furusato-item-emoji">${item.emoji}</span>
-          <span class="furusato-item-cat">${item.category}</span>
+          ${item.image ? `<img class="managed-product-image" src="${UI.escapeHtml(item.image)}" alt="${UI.escapeHtml(item.name)}" loading="lazy">` : `<span class="furusato-item-emoji">${UI.escapeHtml(item.emoji)}</span>`}
+          <span class="furusato-item-cat">${UI.escapeHtml(item.category)}</span>
         </div>
-        <div class="furusato-item-name">${item.name}</div>
-        <div class="furusato-item-desc">${item.desc}</div>
+        <div class="furusato-item-name">${UI.escapeHtml(item.name)}</div>
+        <div class="furusato-item-desc">${UI.escapeHtml(item.desc)}</div>
         <div class="furusato-item-foot">
           <span class="furusato-item-amount">寄附 ¥${item.amount.toLocaleString()}〜</span>
           <button class="furusato-item-btn" data-furusato="${item.id}">詳細</button>
         </div>
       </div>
-    `).join('');
+    `).join('') || '<p class="content-empty">掲載中の返礼品情報はありません。</p>';
     grid.querySelectorAll('[data-furusato]').forEach(btn => {
       btn.addEventListener('click', () => openFurusatoDetail(btn.dataset.furusato));
     });
@@ -151,7 +151,7 @@
       `公式のふるさと納税ポータルで詳細を確認しますか？`
     );
     if (ok) {
-      window.open('https://www.furusato-tax.jp/city/info/01223', '_blank', 'noopener');
+      window.open(item.url || 'https://www.furusato-tax.jp/city/info/01223', '_blank', 'noopener,noreferrer');
     }
   }
 

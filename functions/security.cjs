@@ -3,11 +3,11 @@ const { HttpsError } = require('firebase-functions/v2/https');
 const ORIGINS = ['https://hoppo-status.vifight.com', 'https://playmark0227-svg.github.io'];
 const reject = (code, message, details) => { throw new HttpsError(code, message, details); };
 
-function validateRequest(req, emulator = false) {
+function validateRequest(req, emulator = false, maxBytes = 16384) {
   const origin = req.rawRequest?.get('origin');
   if (!emulator && origin && !ORIGINS.includes(origin)) reject('permission-denied', 'この接続元は利用できません。');
   if (!req.data || typeof req.data !== 'object' || Array.isArray(req.data) ||
-      Buffer.byteLength(JSON.stringify(req.data)) > 16384) {
+      Buffer.byteLength(JSON.stringify(req.data)) > maxBytes) {
     reject('invalid-argument', '送信内容が無効、または大きすぎます。');
   }
 }

@@ -483,7 +483,7 @@
       status('FirebaseまたはApp Checkの設定が未完了です。', true); throw new Error('クラウド設定が未完了です。');
     }
     try {
-      sdk = await import('./vendor/firebase.js?v=58');
+      sdk = await import('./vendor/firebase.js?v=59');
       const app = sdk.initializeApp(config.firebase);
       auth = sdk.getAuth(app); db = sdk.getFirestore(app); functions = sdk.getFunctions(app, config.region || 'asia-northeast1');
       auth.languageCode = 'ja';
@@ -496,6 +496,16 @@
         document.getElementById('authModal').dataset.appCheck = 'verified';
       }
       // getAuth selects IndexedDB, local or session storage according to browser availability.
+      if (window.Content) {
+        const contentRef = sdk.doc(db, 'content', 'catalog');
+        const initial = await sdk.getDocFromServer(contentRef);
+        if (initial.exists()) Content.apply(initial.data());
+        sdk.onSnapshot(contentRef, snapshot => {
+          if (snapshot.exists() && !snapshot.metadata?.fromCache) {
+            try { Content.apply(snapshot.data()); } catch { UI.toast('公開情報を更新できませんでした。再読み込みしてください。', 'bad'); }
+          }
+        }, () => { /* retain the last confirmed public catalog; never replace account data */ });
+      }
       sdk.onAuthStateChanged(auth, session, error => {
         hydrationFailed = true;
         failure(error); finishBoot(error); window.App?.loadingError();
@@ -526,7 +536,7 @@
         throw new Error('line-requires-recent-login');
       }
     }
-    if (!liffPromise) liffPromise = import('./vendor/liff.js?v=58').then(module => module.default).catch(() => {
+    if (!liffPromise) liffPromise = import('./vendor/liff.js?v=59').then(module => module.default).catch(() => {
       liffPromise = null; throw new Error('line-sdk');
     });
     const liff = await liffPromise;

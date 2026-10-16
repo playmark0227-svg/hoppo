@@ -64,11 +64,11 @@
       return `
         <div class="rank-item ${isCurrent ? 'current' : ''} ${achieved ? '' : 'locked'}" data-rank="${r.id}">
           <div class="rank-item-badge" ${imgStyle}>
-            <span class="rank-item-emoji">${r.emoji}</span>
+            <span class="rank-item-emoji">${UI.escapeHtml(r.emoji)}</span>
           </div>
           <div class="rank-item-meta">
-            <div class="rank-item-name">${r.name} <small>${r.sub}</small></div>
-            <div class="rank-item-range"><b>${range}</b>｜${r.blurb}</div>
+            <div class="rank-item-name">${UI.escapeHtml(r.name)} <small>${UI.escapeHtml(r.sub)}</small></div>
+            <div class="rank-item-range"><b>${range}</b>｜${UI.escapeHtml(r.blurb)}</div>
           </div>
           ${achieved ? '<div class="rank-item-check">✓</div>' : ''}
         </div>

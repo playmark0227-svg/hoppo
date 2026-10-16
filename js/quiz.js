@@ -25,17 +25,17 @@
         : '';
       return `
         <div class="quiz-item ${cleared ? 'cleared' : ''}" data-quiz="${q.id}">
-          <div class="quiz-item-icon ${/^[\u4e00-\u9fff]{2}$/.test(q.icon) ? 'quiz-item-symbol' : ''}" ${iconStyle}><span>${q.icon}</span></div>
+          <div class="quiz-item-icon ${/^[\u4e00-\u9fff]{2}$/.test(q.icon) ? 'quiz-item-symbol' : ''}" ${iconStyle}><span>${UI.escapeHtml(q.icon)}</span></div>
           <div class="quiz-item-meta">
-            <div class="quiz-item-title">${q.title}</div>
-            <div class="quiz-item-desc">${q.desc}<span class="quiz-item-count">全${q.questions.length}問</span></div>
+            <div class="quiz-item-title">${UI.escapeHtml(q.title)}</div>
+            <div class="quiz-item-desc">${UI.escapeHtml(q.desc)}<span class="quiz-item-count">全${q.questions.length}問</span></div>
             <span class="quiz-level" data-level="${q.level}">${q.level}</span>
             ${scoreBadge}
           </div>
           <div class="quiz-item-arrow">›</div>
         </div>
       `;
-    }).join('');
+    }).join('') || '<p class="content-empty">公開中のクイズはありません。</p>';
     list.querySelectorAll('.quiz-item').forEach(el => {
       el.addEventListener('click', () => start(el.dataset.quiz));
     });
@@ -126,7 +126,7 @@
     choicesEl.innerHTML = q.choices.map((c, i) => `
       <button class="quiz-choice" data-i="${i}">
         <span class="quiz-choice-letter">${String.fromCharCode(65 + i)}</span>
-        <span class="quiz-choice-text">${c}</span>
+        <span class="quiz-choice-text">${UI.escapeHtml(c)}</span>
       </button>
     `).join('');
     choicesEl.querySelectorAll('.quiz-choice').forEach(btn => {
@@ -230,7 +230,7 @@
         let result;
         try {
           result = await Cloud.call('submitQuiz', {
-            quizId: quiz.id, version: window.QUIZ_CATALOG_VERSION,
+            quizId: quiz.id, version: quiz.version || window.QUIZ_CATALOG_VERSION,
             answers: run.answers, requestId: run.requestId
           });
         } catch (error) {
@@ -246,7 +246,8 @@
           nextBtn.disabled = false;
           nextBtn.textContent = '結果を見る';
           UI.toast(error?.code === 'functions/failed-precondition'
-            ? '問題が更新されました。ページを再読み込みしてください。' : Cloud.errorMessage(error), 'bad');
+            ? '問題が更新されました。ページを再読み込みしてください。'
+            : error?.code === 'functions/not-found' ? 'このクイズは公開を終了しました。一覧に戻って別のクイズを選んでください。' : Cloud.errorMessage(error), 'bad');
         }
         return;
       } finally { run.pending = false; }

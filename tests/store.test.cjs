@@ -4,10 +4,10 @@ const fs = require('node:fs');
 const vm = require('node:vm');
 const source = fs.readFileSync(require.resolve('../js/store.js'), 'utf8');
 
-function setup(enabled, failWrites = false, device = null, legacyPatch = {}) {
+function setup(enabled, failWrites = false, device = null, legacyPatch = {}, quizzes = []) {
   const writes = [];
   const legacy = JSON.stringify({ points: 99999, totalEarned: 99999, name: 'Preview', profile: { bio: 'private biography' }, ...legacyPatch });
-  const window = { Cloud: { enabled }, QUIZ_CATALOG_VERSION: '2026-10-15', UI: { toast() { throw new Error('Unexpected quota toast'); } } };
+  const window = { Cloud: { enabled }, QUIZZES: quizzes, QUIZ_CATALOG_VERSION: '2026-10-15', UI: { toast() { throw new Error('Unexpected quota toast'); } } };
   const context = vm.createContext({ window, structuredClone, console, UI: window.UI, localStorage: {
     getItem(key) { return key === 'hoppou_status_v1' ? legacy : key === 'hoppou_device_v2' && device ? JSON.stringify(device) : null; },
     setItem(key, value) { writes.push({ key, value }); if (failWrites) throw Object.assign(new Error('Full'), { name: 'QuotaExceededError' }); }
@@ -80,4 +80,16 @@ test('cloud best scores show only the current quiz edition', () => {
     '2026-10-15:basics': { quizId: 'basics', bestScore: 4 }
   } }, 'user-id', false);
   assert.equal(store.get().quizResults.basics.bestScore, 4);
+});
+test('editing one managed quiz preserves every other quiz result and lifetime points', () => {
+  const { store } = setup(true, false, null, {}, [{ id: 'basics', version: 'managed-new' }, { id: 'entry', version: '2026-10-15' }]);
+  store.init(); store.clearRemote();
+  store.applyRemote({ points: 200, totalEarned: 500, profile: { name: 'Tester' }, quizResults: {
+    '2026-10-15:basics': { quizId: 'basics', bestScore: 5 },
+    'managed-new:basics': { quizId: 'basics', bestScore: 2 },
+    '2026-10-15:entry': { quizId: 'entry', bestScore: 3 }
+  } }, 'user-id', false);
+  assert.equal(store.get().quizResults.basics.bestScore, 2);
+  assert.equal(store.get().quizResults.entry.bestScore, 3);
+  assert.equal(store.get().totalEarned, 500);
 });

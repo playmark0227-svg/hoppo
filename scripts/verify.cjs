@@ -1,8 +1,10 @@
 const { spawnSync } = require('node:child_process');
 for (const args of [
-  ['--test', 'tests/security.test.cjs', 'tests/policy.test.cjs', 'tests/store.test.cjs', 'tests/auth.test.cjs', 'tests/hydration.test.cjs', 'tests/achievements.test.cjs'],
+  ['--test', 'tests/security.test.cjs', 'tests/policy.test.cjs', 'tests/store.test.cjs', 'tests/auth.test.cjs', 'tests/hydration.test.cjs', 'tests/achievements.test.cjs', 'tests/content.test.cjs'],
   ['--test', 'tests/rules.test.cjs'],
   ['--test', 'tests/integration.test.cjs'],
+  ['--test', 'tests/admin-integration.test.cjs'],
+  ['tests/browser-admin.cjs'],
   ['tests/loader-layout.cjs'],
   ['tests/browser-cloud.cjs'],
   ['tests/browser-auth-recovery.cjs']

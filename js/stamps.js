@@ -16,7 +16,7 @@
     const fill = document.getElementById('stampProgressFill');
     if (!grid) return;
 
-    const stamps = window.STAMPS || [];
+    const stamps = (window.STAMPS || []).filter(s => !s.archived || Store.hasStamp(s.id));
     const earned = stamps.filter(s => Store.hasStamp(s.id)).length;
 
     if (counter) counter.textContent = `${earned} / ${stamps.length}`;
@@ -27,16 +27,16 @@
       const at = got ? Store.get().stamps[s.id] : null;
       return `
         <button type="button" class="stamp-cell ${got ? 'earned' : 'locked'}" data-stamp="${s.id}"
-                aria-label="${got ? s.name : '未取得スタンプ No.' + s.no}">
+                aria-label="${UI.escapeHtml(got ? s.name : '未取得スタンプ No.' + s.no)}">
           <span class="stamp-no">No.${String(s.no).padStart(2, '0')}</span>
           <span class="stamp-seal" data-color="${s.color}">
-            <span class="stamp-seal-emoji">${got ? s.emoji : '？'}</span>
+            <span class="stamp-seal-emoji">${got ? UI.escapeHtml(s.emoji) : '？'}</span>
           </span>
-          <span class="stamp-cell-name">${got ? s.name : '？？？'}</span>
+          <span class="stamp-cell-name">${got ? UI.escapeHtml(s.name) : '？？？'}</span>
           <span class="stamp-cell-sub">${got ? fmtDate(at) : 'タップでヒント'}</span>
         </button>
       `;
-    }).join('');
+    }).join('') || '<p class="content-empty">現在配布中のスタンプはありません。</p>';
 
     grid.querySelectorAll('[data-stamp]').forEach(btn => {
       btn.addEventListener('click', () => showDetail(btn.dataset.stamp));
@@ -78,16 +78,24 @@
     const facts = document.getElementById('stampFacts');
     if (facts) {
       facts.innerHTML = got
-        ? s.facts.map(f => `<li><span>${f.k}</span><strong>${f.v}</strong></li>`).join('')
+        ? s.facts.map(f => `<li><span>${UI.escapeHtml(f.k)}</span><strong>${UI.escapeHtml(f.v)}</strong></li>`).join('')
           + `<li><span>取得日</span><strong>${fmtDate(at)}</strong></li>`
-        : `<li><span>ヒント</span><strong>${s.desc}</strong></li>`;
+        : `<li><span>ヒント</span><strong>${UI.escapeHtml(s.hint || s.desc)}</strong></li>`;
     }
 
     const body = document.getElementById('stampBody');
     if (body) {
       body.textContent = got
-        ? s.body
+        ? `${s.body}${s.address ? '\n所在地：' + s.address : ''}${s.archived ? '\n※このスタンプの新規配布は終了しています。' : ''}`
         : `このスタンプは「${s.area}」エリアのイベント・施設で発行されたQRコードを読み取ると取得できます。${window.Cloud?.enabled ? '' : 'プレビューではデモコードでも体験できます。'}`;
+    }
+    const oldMap = document.getElementById('stampMapLink');
+    oldMap?.remove();
+    if (Number.isFinite(s.lat) && Number.isFinite(s.lng)) {
+      const link = document.createElement('a'); link.id = 'stampMapLink';
+      link.href = `https://www.google.com/maps/search/?api=1&query=${s.lat},${s.lng}`;
+      link.textContent = '地図で場所を見る'; link.target = '_blank'; link.rel = 'noopener noreferrer';
+      body?.append(document.createElement('br'), link);
     }
 
     UI.openModal('stampModal');
@@ -102,7 +110,7 @@
       const got = Store.hasStamp(id);
       return `
         <button type="button" class="stamp-demo-chip ${got ? 'used' : ''}" data-demo-stamp="${code}" ${got ? 'disabled' : ''}>
-          <span>${s ? s.emoji : '📍'} ${s ? s.name : code}</span>
+          <span>${UI.escapeHtml(s ? s.emoji : '印')} ${UI.escapeHtml(s ? s.name : code)}</span>
           <small>${got ? '取得済' : code}</small>
         </button>
       `;

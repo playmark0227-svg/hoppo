@@ -3,7 +3,7 @@ const { cloudAdmin, PROJECT, NUMBER } = require('./cloud-admin.cjs');
 const checks = [];
 const check = (name, passed) => checks.push({ name, passed: !!passed });
 const endpoints = ['exchangeLineToken', 'linkLineAccount', 'ensureAccount', 'updateProfile', 'claimDaily',
-  'beginQuiz', 'answerQuiz', 'submitQuiz', 'redeemEvent', 'setFollow', 'setBlock', 'sendMessage', 'markThreadRead', 'reportUser', 'deleteAccount'];
+  'beginQuiz', 'answerQuiz', 'submitQuiz', 'redeemEvent', 'setFollow', 'setBlock', 'sendMessage', 'markThreadRead', 'reportUser', 'deleteAccount', 'manageContent'];
 
 async function main() {
   if (!process.argv.includes('--public-only')) {
@@ -38,7 +38,7 @@ async function main() {
     method: 'OPTIONS', headers: { Origin: 'https://attacker.example', 'Access-Control-Request-Method': 'POST' }, signal: AbortSignal.timeout(20000)
   });
   check('Unapproved browser origin has no CORS access', !cors.headers.has('access-control-allow-origin'));
-  for (const collection of ['users', 'threads', 'reports', 'lineLinks', 'events']) {
+  for (const collection of ['users', 'threads', 'reports', 'lineLinks', 'events', 'admins', 'adminContent', 'adminEventSecrets', 'adminAudit']) {
     const response = await fetch(`https://firestore.googleapis.com/v1/projects/${PROJECT}/databases/(default)/documents/${collection}`, { signal: AbortSignal.timeout(20000) });
     check(`${collection}: unauthenticated listing is rejected`, [401, 403].includes(response.status));
   }

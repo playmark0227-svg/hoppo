@@ -118,8 +118,8 @@
       name: 'スタンプコンプリート',
       desc: '全てのご当地スタンプを集めた',
       test: (s) => {
-        const total = (window.STAMPS || []).length;
-        return total > 0 && Object.keys(s.stamps || {}).length >= total;
+        const active = (window.STAMPS || []).filter(stamp => !stamp.archived);
+        return active.length > 0 && active.every(stamp => !!s.stamps?.[stamp.id]);
       }
     }
   ];

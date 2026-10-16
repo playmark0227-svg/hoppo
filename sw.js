@@ -5,8 +5,8 @@
    - Versioned caches; old caches purged on activate
    Bump CACHE_VERSION whenever shipping a new release.
    ============================================================ */
-const CACHE_VERSION = 'v58';
-const ASSET_Q = '?v=58'; // must match the ?v= query in index.html
+const CACHE_VERSION = 'v59';
+const ASSET_Q = '?v=59'; // must match the ?v= query in index.html
 const SHELL_CACHE = `hoppou-shell-${CACHE_VERSION}`;
 const RUNTIME_CACHE = `hoppou-runtime-${CACHE_VERSION}`;
 
@@ -16,6 +16,9 @@ const SHELL_ASSETS = [
   './index.html',
   `./css/style.css${ASSET_Q}`,
   `./css/account.css${ASSET_Q}`,
+  `./css/admin.css${ASSET_Q}`,
+  `./js/content.js${ASSET_Q}`,
+  `./js/admin.js${ASSET_Q}`,
   `./js/cloud.js${ASSET_Q}`,
   `./js/cloud-config.js${ASSET_Q}`,
   `./js/vendor/firebase.js${ASSET_Q}`,

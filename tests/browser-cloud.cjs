@@ -25,7 +25,7 @@ async function main() {
     await context.route('**/index.html', async route => { const response = await route.fetch(); await route.fulfill({ response, body: (await response.text()).replace(/<meta http-equiv="Content-Security-Policy" content="[\s\S]*?">/, '') }); });
     const page = await context.newPage(); page.on('pageerror', e => { errors.push(e.message); console.error('browser error:', e.message); }); pages.push(page);
     page.on('console', message => { if (message.type() === 'error') console.error('browser console:', message.text()); });
-    await page.goto('http://127.0.0.1:8776/index.html', { waitUntil: 'networkidle' });
+    await page.goto('http://127.0.0.1:8776/index.html', { waitUntil: 'domcontentloaded' });
     await page.locator('#loader').waitFor({ state: 'detached' });
     console.log(label, 'loaded');
     assert.equal(await page.evaluate(() => Store.get().points), 0, 'preview points must never migrate');
