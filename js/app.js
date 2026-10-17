@@ -150,7 +150,32 @@
     UI.go(valid.includes(hash) ? hash : 'home');
   }
 
+  function showFileNotice() {
+    const main = document.createElement('main');
+    main.className = 'file-entry';
+    const icon = document.createElement('img');
+    icon.src = 'assets/images/icon-192.png'; icon.alt = ''; icon.width = 88; icon.height = 88;
+    const title = document.createElement('h1'); title.textContent = '北方領土ステータス';
+    const message = document.createElement('p');
+    message.textContent = '端末内のファイルを直接開いています。ログインと学習記録の読み込みには、公開サイトを開いてください。';
+    const link = document.createElement('a');
+    const route = (location.hash || '#home').slice(1);
+    const routes = ['home', 'quiz', 'qr', 'shop', 'license', 'settings', 'stamps', 'social', 'admin'];
+    link.href = `https://hoppo-status.vifight.com/#${routes.includes(route) ? route : 'home'}`;
+    link.textContent = '公開サイトを開く';
+    const domain = document.createElement('p'); domain.className = 'file-entry-domain';
+    domain.textContent = 'hoppo-status.vifight.com';
+    main.append(icon, title, message, link, domain);
+    document.body.className = 'file-entry-body';
+    document.body.replaceChildren(main);
+    document.title = '公開サイトのご案内｜北方領土ステータス';
+  }
+
   function init() {
+    if (location.protocol === 'file:') {
+      showFileNotice();
+      return;
+    }
     if (window.self !== window.top) {
       const link = document.createElement('a');
       link.href = location.origin + location.pathname;

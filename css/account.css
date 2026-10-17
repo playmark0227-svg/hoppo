@@ -75,3 +75,12 @@
   .cloud-profile-actions .btn { width: 100%; }
   .auth-card { padding: 24px 18px; }
 }
+.file-entry-body { min-height: 100vh; min-height: 100svh; display: grid; place-items: center; margin: 0; padding: 28px 20px; background: #f4f8f7; }
+.file-entry { width: min(100%, 440px); text-align: center; color: #263e36; }
+.file-entry > img { display: block; margin: 0 auto 24px; border-radius: 8px; }
+.file-entry h1 { font-size: 24px; line-height: 1.6; letter-spacing: 0; margin: 0 0 16px; }
+.file-entry p { font-size: 15px; line-height: 1.9; margin: 0 0 24px; overflow-wrap: anywhere; }
+.file-entry a { display: inline-flex; justify-content: center; align-items: center; width: 100%; min-height: 48px; padding: 12px 20px; border-radius: 6px; background: #276c5d; color: #fff; text-decoration: none; font-size: 16px; font-weight: 700; letter-spacing: 0; }
+.file-entry a:hover { background: #1f564b; }
+.file-entry a:focus-visible { outline: 3px solid #2f7fab; outline-offset: 4px; }
+.file-entry .file-entry-domain { margin-top: 14px; margin-bottom: 0; font-size: 13px; color: #5d6f67; }

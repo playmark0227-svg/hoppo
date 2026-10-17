@@ -4,6 +4,7 @@ for (const args of [
   ['--test', 'tests/rules.test.cjs'],
   ['--test', 'tests/integration.test.cjs'],
   ['--test', 'tests/admin-integration.test.cjs'],
+  ['tests/browser-file-entry.cjs'],
   ['tests/browser-admin.cjs'],
   ['tests/loader-layout.cjs'],
   ['tests/browser-cloud.cjs'],
