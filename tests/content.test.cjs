@@ -19,6 +19,8 @@ test('government sources, answer ranges, coordinates and URLs are validated', ()
   assert.throws(() => C.normalize('stamps', { ...seed.stamps[0], lat: 43, lng: '' }));
   assert.throws(() => C.normalize('shop', { ...seed.shop[0], image: 'javascript:alert(1)' }));
   assert.throws(() => C.normalize('shop', { ...seed.shop[0], image: 'assets/../secret' }));
+  assert.throws(() => C.normalize('shop', { ...seed.shop[0], image: 'https://external.example/photo.jpg' }), /外部画像/);
+  assert.equal(C.normalize('shop', { ...seed.shop[0], image: 'https://hoppo-status.vifight.com/assets/images/icon-192.png' }).image, 'assets/images/icon-192.png');
 });
 test('unknown fields cannot overwrite status, quiz edition or server metadata', () => {
   const item = C.normalize('stamps', { ...seed.stamps[0], _state: 'published', enabled: true, createdBy: 'fake', arbitrary: 'no' });

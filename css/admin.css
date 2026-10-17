@@ -32,6 +32,7 @@
 .admin-field input, .admin-field select, .admin-field textarea, .admin-search { width: 100%; min-width: 0; border: 1px solid #c5d0cb; border-radius: 4px; background: #fff; color: #263c32; font: inherit; font-size: 14px; padding: 11px 12px; line-height: 1.6; }
 .admin-field textarea { resize: vertical; min-height: 100px; }
 .admin-field small { font-weight: 400; color: #6e7771; line-height: 1.6; }
+.admin-image-preview { display: block; width: 120px; height: 80px; max-width: 100%; object-fit: contain; }
 .admin-field input:read-only { background: #f1f3f1; }
 .admin-field :focus-visible, .admin-search:focus-visible, .admin-btn:focus-visible { outline: 2px solid #3d8470; outline-offset: 2px; }
 .admin-question { padding: 22px 0; border: 0; border-bottom: 1px solid #d6dfd9; margin: 0; min-width: 0; }

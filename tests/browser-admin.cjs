@@ -10,7 +10,7 @@ const { initializeApp, deleteApp } = ar('firebase-admin/app');
 const { getAuth } = ar('firebase-admin/auth');
 const { getFirestore } = ar('firebase-admin/firestore');
 const P = require('../functions/policy.cjs');
-const config = { enabled: true, emulator: true, firebase: { apiKey: 'fake-key', projectId: 'demo-hoppo', authDomain: 'demo-hoppo.firebaseapp.com', appId: 'admin-browser' }, region: 'asia-northeast1' };
+const config = { enabled: true, emulator: true, emulatorFirestorePort: Number(process.env.FIRESTORE_EMULATOR_HOST?.split(':').pop() || 8080), firebase: { apiKey: 'fake-key', projectId: 'demo-hoppo', authDomain: 'demo-hoppo.firebaseapp.com', appId: 'admin-browser' }, region: 'asia-northeast1' };
 const origin = 'http://127.0.0.1:8776';
 const shots = path.join(os.tmpdir(), 'hoppo-admin-qa'); fs.mkdirSync(shots, { recursive: true });
 async function main() {
@@ -65,6 +65,9 @@ async function main() {
     await form.locator('[name=address]').fill('北海道根室市納沙布'); await form.locator('[name=hint]').fill('四島を望む展望スポット。案内所のQRを探してください。');
     await form.locator('[name=body]').fill('北方四島について学べる学習スポットです。'); await form.locator('[name=lat]').fill('43.385'); await form.locator('[name=lng]').fill('145.817');
     await form.locator('[name=image]').fill('assets/images/hoppou/cape-nosappu.jpg');
+    await form.locator('.admin-image-preview').waitFor();
+    await page.waitForFunction(() => { const img = document.querySelector('.admin-image-preview'); return img?.complete && img.naturalWidth > 0; });
+    assert.ok(await page.locator('#adminImageOptions option').count() > 0, 'existing images must be selectable without knowing their paths');
     await form.locator('[name=facts]').fill('エリア｜根室市\n種別｜学習施設');
     await form.getByRole('button', { name: '下書き保存', exact: true }).click(); await saved(page, /下書きを保存しました/);
     assert.ok(!(await db.doc('content/catalog').get()).data().stamps.some(s => s.id === stampId));

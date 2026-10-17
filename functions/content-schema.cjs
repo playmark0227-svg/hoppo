@@ -26,6 +26,13 @@ function url(value, government = false, image = false) {
   try { parsed = new URL(input); } catch { bad('URLの形式を確認してください。'); }
   if (parsed.protocol !== 'https:' || parsed.username || parsed.password ||
       (government && !parsed.hostname.endsWith('.go.jp'))) bad(government ? '出典には日本政府機関のHTTPS URL（go.jp）が必要です。' : 'HTTPSのURLを入力してください。');
+  if (image) {
+    const prefix = parsed.origin === 'https://hoppo-status.vifight.com' ? '/assets/'
+      : parsed.origin === 'https://playmark0227-svg.github.io' ? '/hoppo/assets/' : '';
+    const asset = prefix && parsed.pathname.startsWith(prefix) ? `assets/${parsed.pathname.slice(prefix.length)}` : '';
+    if (/^assets\/[a-zA-Z0-9_./-]+$/.test(asset) && !asset.includes('..')) return asset;
+    bad('画像はアプリ内の素材を指定してください。外部画像には対応していません。');
+  }
   // Safe even when older views interpolate the URL into a CSS background attribute.
   return parsed.href.replace(/["'<>\\()]/g, c => `%${c.charCodeAt(0).toString(16)}`);
 }

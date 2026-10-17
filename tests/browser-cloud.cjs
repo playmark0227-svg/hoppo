@@ -5,7 +5,7 @@ const functionRequire = require('node:module').createRequire(require.resolve('..
 const { initializeApp, deleteApp } = functionRequire('firebase-admin/app');
 const { getAuth } = functionRequire('firebase-admin/auth');
 const { getFirestore } = functionRequire('firebase-admin/firestore');
-const config = { enabled: true, emulator: true, firebase: { apiKey: 'fake-key', projectId: 'demo-hoppo', authDomain: 'demo-hoppo.firebaseapp.com', appId: 'test-browser' }, region: 'asia-northeast1', liffId: 'test-liff-id' };
+const config = { enabled: true, emulator: true, emulatorFirestorePort: Number(process.env.FIRESTORE_EMULATOR_HOST?.split(':').pop() || 8080), firebase: { apiKey: 'fake-key', projectId: 'demo-hoppo', authDomain: 'demo-hoppo.firebaseapp.com', appId: 'test-browser' }, region: 'asia-northeast1', liffId: 'test-liff-id' };
 async function main() {
   const admin = initializeApp({ projectId: 'demo-hoppo' }, 'browser-admin');
   const browser = await chromium.launch({ headless: true, ...(process.env.HOPPO_CHROMIUM_PATH ? { executablePath: process.env.HOPPO_CHROMIUM_PATH } : {}) });

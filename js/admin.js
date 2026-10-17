@@ -173,8 +173,20 @@
     }
     input.name = key; input.required = !!required; input.readOnly = readOnly;
     if (type === 'facts') { input.dataset.facts = 'true'; wrap.append(el('small', '1行に「見出し｜内容」の形式で入力します。最大8行。')); }
-    if (key === 'image') wrap.append(el('small', '既存素材例：assets/images/hoppou/cape-nosappu.jpg。外部画像はHTTPS URLを指定。'));
-    wrap.append(input); container.append(wrap); return input;
+    wrap.append(input);
+    if (key === 'image') {
+      const options = el('datalist'); options.id = 'adminImageOptions'; input.setAttribute('list', options.id);
+      const images = new Map();
+      Object.values(data.published).filter(Array.isArray).flat().forEach(item => {
+        if (item.image?.startsWith('assets/')) images.set(item.image, item.title || item.name || item.image);
+      });
+      for (const [path, name] of images) { const option = el('option'); option.value = path; option.label = name; options.append(option); }
+      const preview = el('img', null, 'admin-image-preview'); preview.alt = '選択中の画像'; preview.width = 120; preview.height = 80;
+      const update = () => { const valid = /^assets\/[a-zA-Z0-9_./-]+$/.test(input.value) && !input.value.includes('..'); preview.hidden = !valid; if (valid) preview.src = input.value; else preview.removeAttribute('src'); };
+      input.addEventListener('input', update); update();
+      wrap.append(options, preview, el('small', '候補から素材を選択できます。外部画像は使用できません。'));
+    }
+    container.append(wrap); return input;
   }
   function renderQuestions(form, questions) {
     const area = el('div'); area.id = 'adminQuestions'; form.append(area);

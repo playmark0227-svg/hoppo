@@ -4,7 +4,7 @@ const fs = require('node:fs');
 const adminRequire = require('node:module').createRequire(require.resolve('../functions/package.json'));
 const { initializeApp, deleteApp } = adminRequire('firebase-admin/app');
 const { getAuth } = adminRequire('firebase-admin/auth');
-const config = { enabled: true, emulator: true, firebase: { apiKey: 'fake-key', projectId: 'demo-hoppo', authDomain: 'demo-hoppo.firebaseapp.com', appId: 'auth-recovery' } };
+const config = { enabled: true, emulator: true, emulatorFirestorePort: Number(process.env.FIRESTORE_EMULATOR_HOST?.split(':').pop() || 8080), firebase: { apiKey: 'fake-key', projectId: 'demo-hoppo', authDomain: 'demo-hoppo.firebaseapp.com', appId: 'auth-recovery' } };
 
 async function main() {
   const admin = initializeApp({ projectId: 'demo-hoppo' }, 'auth-recovery');
