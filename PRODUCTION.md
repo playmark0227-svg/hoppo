@@ -10,9 +10,9 @@
 - データ：Firestore。ブラウザからの書き込みは全て拒否し、Cloud Functionsが登録、ポイント、フォロー、DMを操作。
 - App Check：reCAPTCHA Enterprise。全callableで必須（ローカルエミュレーター以外）。Firestoreにも強制適用済みです。
 
-## 設定状況（2026-10-15）
+## 設定状況（2026-10-17）
 
-配信アセットはv58（ログイン時の実績通知の繰り返しを修正）。`docs/RELEASE-CHECK.md` は以前のリリース時点の記録です。v55・v56の防御・運用手順は `SECURITY.md`、本番の読み戻しは `node scripts/security-audit.cjs` を参照してください。
+配信アセットはv59（コンテンツ管理とローカルファイル起動の案内を追加）。GitHub Pagesのビルド完了と独自ドメインでのv59管理スクリプトの配信を確認済み。管理API・関連クイズAPI・スタンプ取得API・Firestoreルールも本番反映済みで、読み取り専用のセキュリティ監査は全項目成功しました。初期管理者の指定先 `playmark0227@gmail.com` はアプリ未登録のため、登録とメール確認後に権限を付与します。管理者本人による本番保存は未確認です。操作方法・制限は `docs/CONTENT-ADMIN.md` を参照してください。`docs/RELEASE-CHECK.md` は以前のリリース時点の記録です。v55・v56の防御・運用手順は `SECURITY.md`、本番の読み戻しは `node scripts/security-audit.cjs` を参照してください。
 
 - 会社アカウントで専用プロジェクト `hoppo-status-vifight` とWebアプリを作成。
 - Firestoreは東京 `asia-northeast1`、削除保護あり。ルールとインデックスは配備済み。
@@ -24,6 +24,7 @@
 - 月10米ドルの目安として承認された月1,500円（請求通貨JPY）の予算通知を、このプロジェクトだけに設定。実績50/90/100%および月末予測100%で通知。支出の自動停止は設定していません。
 - Web設定を `enabled: true` に変更。LINE Loginチャネルは公開済み、LIFF `2012022040-tYo7QPPo` の接続先は独自ドメイン。実LINEアカウントでのログイン・既存アカウントへの連携は未検証。
 - v55は一括クイズ採点 `submitQuiz` を含む15関数が対象。`allUsers`へのInvoker付与は組織ポリシーで拒否されたため、対象サービスのHTTP入口でFirebase認証・メール確認・App Checkを要求。匿名のLINE交換もApp CheckとLINE公式verifyが必須。未認証の実HTTP拒否は監査スクリプトで確認します。
+- v59で16件目の `manageContent` を追加。同サービスのみHTTP入口のIAMチェックを外し、Firebase認証・メール確認・App Check・サーバー管理者権限で保護。組織の共有制限は維持し、未認証HTTP要求の拒否と管理用コレクションの直接アクセス拒否を本番で確認しました。
 - LINE公式アカウント `@569qepzp` の6分割リッチメニューは表示設定済み。友だち追加URLは `https://lin.ee/zHLPt21`。画像には現在許可されているしろくま素材のみを使用。
 - Squarespaceの `hoppo-status` CNAME、GitHub Pagesのカスタムドメイン設定、HTTPS応答を確認。GitHub PagesのフロントとFirebaseのバックエンドは別の配備先です。どちらも公開後に読み戻して確認します。
 - `functions/index.cjs` の `invoker: 'private'` は `allUsers` IAM付与を避けるためです。承認後に各サービスのIAMチェックだけを別途設定し、再配備後にもHTTP入口の状態を確認してください。
